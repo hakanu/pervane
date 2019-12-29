@@ -41,6 +41,7 @@ export FLASK_APP=serve.py;  flask run
 
 ## TODO
 
+* Simple expand/collapse logic in file tree.
 * Files with spaces sometimes cause filenotfound
 * mermaid.js integration
 * Mindmap and flowchart rendering support.
