@@ -17,6 +17,28 @@ Personally tried many alternatives like [allmark](https://github.com/andreaskoch
 * File tree with proper nesting.
 * Basic http authentication.
 
+## Install
+
+* Fetch the single python script to somewhere in your machine.
+
+```shell
+# Init:
+virtualenv -p python3 env
+source env/bin/activate
+pip install flask
+pip install markdown2
+pip install Flask-Caching
+pip install Flask-HTTPAuth
+
+# Download the latest version.
+wget https://raw.githubusercontent.com/hakanu/pervane/master/serve.py
+
+# Run:
+export FLASK_APP=serve.py;  flask run 
+```
+
+* Modify serve.py's configuration section to add your folder to be searched.
+
 ## TODO
 
 * Files with spaces sometimes cause filenotfound

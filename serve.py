@@ -12,10 +12,11 @@ Run:
 export FLASK_APP=serve.py; export FLASK_ENV=development; flask run 
 """
 import json
+import logging
 import os
 import re
+import subprocess
 import sys
-import glob
 # Python3 way of globbing patterns.
 from pathlib import Path
 
@@ -137,7 +138,6 @@ def verify_password(username, password):
 
 @cache.cached(timeout=50, key_prefix='make_tree')
 def make_tree(path):
-    print('making the tree')
     tree = dict(name=os.path.basename(path), children=[])
     try:
         lst = os.listdir(path)
@@ -158,7 +158,6 @@ def make_tree(path):
 
 def check_match(file_path):
   for pattern in _CONFIG['ignore_patterns']:
-    #print('pattern: ', pattern, 'file_path: ', file_path)
     result = re.search(pattern, str(file_path))
     if result:
       return True
@@ -167,9 +166,7 @@ def check_match(file_path):
 def get_files(root_path):
     files = []
     for f in Path(root_path).rglob('*'):
-        #print('checking: ', f)
         if not check_match(f):
-            #print('appending')
             files.append({
 	      'path': str(f),
               'name': os.path.basename(f),
@@ -181,8 +178,6 @@ def get_files(root_path):
 @app.route('/')
 @auth.login_required
 def front_page_handler():
-    #return render_template('index.html', name=name)
-#    files = get_files(_CONFIG['root_dir'])
     rtemplate = Environment(loader=BaseLoader).from_string(
         _INDEX_TEMPLATE)
     return rtemplate.render(html_content=_CONFIG['front_page_message'], 
@@ -192,10 +187,7 @@ def front_page_handler():
 @app.route('/file')
 @auth.login_required
 def file_handler():
-    print('file handler: ')
     path = request.args.get('f', '')
-    print('path: ', path)
-#    files = get_files('.')
     content = open(path, 'r').read()
     html_content = ''
     _, ext = os.path.splitext(path)
@@ -212,9 +204,7 @@ def file_handler():
 
 @app.route('/dir')
 def dir_handler():
-    print('dir handler: ')
     path = request.args.get('d', '')
-    print('path: ', path)
     return path
 
 
@@ -225,10 +215,10 @@ def search_handler():
     if not query:
         return 'You need to search for something'
     cmd = ['ag', query, _CONFIG['root_dir'], '--ackmate', '--stats', '-m', '2']
-    print('Running cmd: ', cmd)
-    import subprocess
+    logging.info('Running cmd: ', cmd)
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE)
     output, error = process.communicate()
+    # Convert output from binary to string.
     output = output.decode('utf-8')
     lines = output.split('\n')
     results = []
@@ -240,20 +230,13 @@ def search_handler():
     stats_str = ' '.join(lines[-6:])
     in_file_started = False
     for line in lines[:-6]:
-       print('line: ', line, ' ===')
-
        if line.startswith(':'):
-           print('fn', line)
            fn = line
            in_file_results = []
            file_finished = False
            in_file_started = True
            continue
        elif in_file_started and ';' in line:
-           print('in file result')
-           #search_results = re.search('\d+;\d+ \d+,\d+ \d+:(.*)', line)
-           #if search_results:
-           #    in_file_results.append(search_results.group(1))
            in_file_results.append({
                 'snippet': line,
            })
