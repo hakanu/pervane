@@ -20,21 +20,28 @@ Personally tried many alternatives like [allmark](https://github.com/andreaskoch
 ## Install
 
 * Fetch the single python script to somewhere in your machine.
+* Run it in screen or tmux.
+
+```shell
+screen
+
+# Download the latest version.
+wget https://raw.githubusercontent.com/hakanu/pervane/maste/init.sh | bash
+```
+
+## Contribute
 
 ```shell
 # Init:
+git clone https://github.com/hakanu/pervane.git
+
+# Set up local env.
 virtualenv -p python3 env
 source env/bin/activate
-pip install flask
-pip install markdown2
-pip install Flask-Caching
-pip install Flask-HTTPAuth
-
-# Download the latest version.
-wget https://raw.githubusercontent.com/hakanu/pervane/master/serve.py
+pip install flask markdown2 Flask-Caching Flask-HTTPAuth
 
 # Run:
-export FLASK_APP=serve.py;  flask run 
+export FLASK_APP=serve.py ; flask run 
 ```
 
 * Modify serve.py's configuration section to add your folder to be searched.
