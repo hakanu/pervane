@@ -52,9 +52,10 @@ export FLASK_APP=serve.py ; flask run
 
 ## TODO
 
+* Fix repetitions in the file tree
 * Simple expand/collapse logic in file tree.
 * Files with spaces sometimes cause filenotfound
 * mermaid.js integration
 * Mindmap and flowchart rendering support.
 * Edit the files?
-
+	* https://github.com/sparksuite/simplemde-markdown-editor
