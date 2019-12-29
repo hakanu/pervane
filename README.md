@@ -23,10 +23,11 @@ Personally tried many alternatives like [allmark](https://github.com/andreaskoch
 * Run it in screen or tmux.
 
 ```shell
+# Run it in screen to make it always run.
 screen
 
 # Download the latest version.
-wget https://raw.githubusercontent.com/hakanu/pervane/maste/init.sh | bash
+wget -O -N - https://raw.githubusercontent.com/hakanu/pervane/master/init.sh | bash
 ```
 
 ## Contribute
