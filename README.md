@@ -41,7 +41,10 @@ virtualenv -p python3 env
 source env/bin/activate
 pip install flask markdown2 Flask-Caching Flask-HTTPAuth
 
-# Run:
+# Run
+python3 serve.py
+
+# Run alternative:
 export FLASK_APP=serve.py ; flask run 
 ```
 

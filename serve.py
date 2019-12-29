@@ -1,14 +1,14 @@
 """Simple server to serve  files with directory hierarchy.
 
-Init:
+# Init:
 virtualenv -p python3 env
 source env/bin/activate
-pip install flask
-pip install markdown2
-pip install Flask-Caching
-pip install Flask-HTTPAuth
+pip install flask markdown2 Flask-Caching Flask-HTTPAuth
 
-Run:
+# Run simple:
+python3 serve.py 
+
+# Run flask way:
 export FLASK_APP=serve.py; export FLASK_ENV=development; flask run 
 """
 import json
@@ -252,4 +252,8 @@ def search_handler():
     return rtemplate.render(
         search_results=results, query=query, stats=stats_str,
         tree=make_tree(_CONFIG['root_dir'])) 
+
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)
 
