@@ -32,16 +32,15 @@ app = Flask(__name__)
 cache.init_app(app)
 auth = HTTPBasicAuth()
 
-users = {
-    # Change this.
-    'guldum': generate_password_hash('net'),
-    # Add yours here.
-}
 
-_CONFIG = {
-    'root_dir': '/home/$USER/notes',
-    'front_page_message': 'Home page of wholesomeness',
-    'ignore_patterns': ['env/.*', '.git', '.*.swp', '.*.pyc', '__pycache__', '.allmark'],
+_CONFIG = {}
+try:
+    _CONFIG = json.loads(open('config.json', 'r').read())
+except Exception as e:
+    logging.info('config.json can not be found, rename config_example.json to config.json for inspiration. Err: ', e)
+logging.info('loaded config: ', _CONFIG)
+users = {
+    _CONFIG['username']: generate_password_hash(_CONFIG['password']),
 }
 
 _INDEX_TEMPLATE = """
@@ -52,6 +51,10 @@ _INDEX_TEMPLATE = """
     <style>
       body {
         margin: 10px;
+      }
+
+      ul li ul {
+        display: none;
       }
     </style>
  </head>
@@ -79,7 +82,7 @@ _INDEX_TEMPLATE = """
 			{% if '.' in item.name  %}
 			    <a href="/file?f={{ item.path }}">{{ item.name }}</a>
 			{% else %}
-			    <a href="/dir?d={{ item.path }}">{{ item.name }}</a>
+			    <a href="#" data-href="/dir?d={{ item.path }}" class="expand">/{{ item.name }}</a>
 			{% endif %}
 
 			{%- if item.children -%}
@@ -123,6 +126,10 @@ _INDEX_TEMPLATE = """
 	    hljs.highlightBlock(block);
 	  });
 	}); 
+
+    $('.expand').click(function() {
+      $('ul', $(this).parent()).eq(0).toggle();
+    });
     </script>
  </body>
 </html>
@@ -139,6 +146,9 @@ def verify_password(username, password):
 @cache.cached(timeout=50, key_prefix='make_tree')
 def make_tree(path):
     tree = dict(name=os.path.basename(path), children=[])
+
+#    if check_match(path):
+#       return 
     try:
         lst = os.listdir(path)
     except OSError:
@@ -146,9 +156,6 @@ def make_tree(path):
     else:
         for name in lst:
             fn = os.path.join(path, name)
-            if check_match(fn):
-                continue
-
             if os.path.isdir(fn):
                 tree['children'].append(make_tree(fn))
             else:
@@ -214,6 +221,7 @@ def search_handler():
     query = request.args.get('query', '')
     if not query:
         return 'You need to search for something'
+    # ackmate mode for easier parsing.
     cmd = ['ag', query, _CONFIG['root_dir'], '--ackmate', '--stats', '-m', '2']
     logging.info('Running cmd: ', cmd)
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE)

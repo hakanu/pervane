@@ -1,0 +1,8 @@
+{
+    "username": "hakanu",
+    "password": "matata",
+    "root_dir": "/home/$USER/notes",
+    "front_page_message": "Home page of wholesomeness",
+    "ignore_patterns": ["env/.*", ".git", ".*.swp", ".*.pyc", "__pycache__", ".allmark"]
+}
+
