@@ -3,7 +3,7 @@
 # Init:
 virtualenv -p python3 env
 source env/bin/activate
-pip install flask markdown2 Flask-Caching Flask-HTTPAuth
+pip install flask markdown2 Flask-Caching Flask-HTTPAuth mistune
 
 # Run simple:
 python3 serve.py 
@@ -17,10 +17,13 @@ import os
 import re
 import subprocess
 import sys
+
 # Python3 way of globbing patterns.
 from pathlib import Path
 
 import markdown2
+import mistune
+
 from jinja2 import Environment, BaseLoader
 from flask import Flask, render_template, request
 from flask_caching import Cache
@@ -79,8 +82,8 @@ _INDEX_TEMPLATE = """
 		<ul>
 		{%- for item in tree.children recursive %}
 		    <li>
-			{% if '.' in item.name  %}
-			    <a href="/file?f={{ item.path }}">{{ item.name }}</a>
+			{% if '.' in item.name and not item.name.startswith('.')  %}
+			    <a href="/file?f={{ item.path }}">+{{ item.name }}</a>
 			{% else %}
 			    <a href="#" data-href="/dir?d={{ item.path }}" class="expand">/{{ item.name }}</a>
 			{% endif %}
@@ -143,12 +146,12 @@ def verify_password(username, password):
     return False
 
 
-@cache.cached(timeout=50, key_prefix='make_tree')
+#@cache.cached(timeout=50, key_prefix='make_tree')
 def make_tree(path):
     tree = dict(name=os.path.basename(path), children=[])
 
-#    if check_match(path):
-#       return 
+    if check_match(path):
+       return 
     try:
         lst = os.listdir(path)
     except OSError:
@@ -195,13 +198,16 @@ def front_page_handler():
 @auth.login_required
 def file_handler():
     path = request.args.get('f', '')
+    if not path.startswith(_CONFIG['root_dir']):
+        logging.info('no auth')
+        return 'Not authorized to see this dir, must be under: ' + _CONFIG['root_dir']
     content = open(path, 'r').read()
-    html_content = ''
+    html_content = 'root_dir'
     _, ext = os.path.splitext(path)
     rtemplate = Environment(loader=BaseLoader).from_string(
         _INDEX_TEMPLATE)
     if ext == '.md':
-        html_content = markdown2.markdown(content)
+        html_content = mistune.markdown(content, escape=False)  #markdown2.markdown(content)
     else:
         html_content = content
     return rtemplate.render(
