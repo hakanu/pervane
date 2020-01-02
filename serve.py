@@ -51,6 +51,10 @@ _INDEX_TEMPLATE = """
  <head>
     <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.17.1/build/styles/default.min.css">
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" rel="stylesheet" >
+    <link rel="stylesheet" href="https://uicdn.toast.com/tui-editor/latest/tui-editor.css"></link>
+    <link rel="stylesheet" href="https://uicdn.toast.com/tui-editor/latest/tui-editor-contents.css"></link>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/codemirror.css"></link>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css"></link>
     <style>
       body {
         margin: 10px;
@@ -85,7 +89,11 @@ _INDEX_TEMPLATE = """
 			{% if '.' in item.name and not item.name.startswith('.')  %}
 			    <a href="/file?f={{ item.path }}">+{{ item.name }}</a>
 			{% else %}
-			    <a href="#" data-href="/dir?d={{ item.path }}" class="expand">/{{ item.name }}</a>
+                            <a href="#" data-href="/dir?d={{ item.path }}" class="expand">/{{ item.name }}</a>&nbsp;&nbsp;
+
+			    <span>
+                              <a href="/create_file?d={{ item.name }}">⊕</a>
+                            </span>
 			{% endif %}
 
 			{%- if item.children -%}
@@ -97,10 +105,14 @@ _INDEX_TEMPLATE = """
             </div>
 
             <div class="col-md-8">
-                {% if html_content %}
-		    <h6><a href="file://{{path}}" target="_blank">{{ path }}</a></h6>
+                {% if not search_results %}
+		    <h6><a id="a-path" href="file://{{path}}" target="_blank">{{ path }}</a>&nbsp;&nbsp;<span><a href="#" onclick="update()">💾</a> <span id="status"></span></h6>
 		    {% if ext == '.md' %}
-			<div>{{ html_content|safe }}</div>
+                        {% if not md_content %}
+                            <div>{{ html_content|safe }}</div>
+                        {% else %}
+                            <div id="editorSection"></div>
+                        {% endif %}
 		    {% else %}
 			<pre><code class="{{ext|replace('.', '')}}">{{ html_content|e }}</code></pre>
 		    {% endif %}
@@ -123,6 +135,7 @@ _INDEX_TEMPLATE = """
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
     <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.17.1/build/highlight.min.js"></script>
+    <script src="https://uicdn.toast.com/tui-editor/latest/tui-editor-Editor-full.js"></script>
     <script>
      document.addEventListener('DOMContentLoaded', (event) => {
 	  document.querySelectorAll('pre code').forEach((block) => {
@@ -133,6 +146,43 @@ _INDEX_TEMPLATE = """
     $('.expand').click(function() {
       $('ul', $(this).parent()).eq(0).toggle();
     });
+
+    var editor = new tui.Editor({
+        el: document.querySelector('#editorSection'),
+        previewStyle: 'vertical',
+        height: '900px',
+	usageStatistics: false,
+        initialEditType: 'markdown',
+	initialValue: `{{ md_content }}`,
+	exts: [
+          {
+            name: 'chart',
+            minWidth: 100,
+            maxWidth: 600,
+            minHeight: 100,
+            maxHeight: 300
+          },
+          'scrollSync',
+          'colorSyntax',
+          'uml',
+          'mark',
+          'table'
+        ]
+    });
+
+    function update() {
+       console.log('Updating the content');
+       var text = editor.getMarkdown();
+       var file_path = $('#a-path').text();
+       $.post('/api/update', {updated_content: text, file_path: file_path}, function(result){
+          console.log('Finished request', result);
+          if (result == 'success') {
+            $('#status').text = 'Updated @ ' + (new Date());
+          } else {
+            $('#status').text = 'Failed to update @ ' + (new Date());
+	  }
+       });
+    }
     </script>
  </body>
 </html>
@@ -211,8 +261,22 @@ def file_handler():
     else:
         html_content = content
     return rtemplate.render(
-        path=path, html_content=html_content, ext=ext,
+        path=path, html_content=html_content, md_content=content, ext=ext,
         tree=make_tree(_CONFIG['root_dir'])) 
+
+
+@app.route('/api/update', methods=['POST'])
+def api_update_handler():
+    updated_content = request.form.get('updated_content', '')
+    file_path = request.form.get('file_path', '')
+    if not file_path:
+        logging.info('File path is empty')
+        return json.dumps({'result': 'File path is empty'})
+
+    if not updated_content:
+        logging.info('File content is empty')
+        return json.dumps({'result': 'File content is empty'})
+    return json.dumps({'result': 'success'}) 
 
 
 @app.route('/dir')
@@ -266,6 +330,7 @@ def search_handler():
     return rtemplate.render(
         search_results=results, query=query, stats=stats_str,
         tree=make_tree(_CONFIG['root_dir'])) 
+
 
 
 if __name__ == '__main__':
