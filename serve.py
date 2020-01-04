@@ -42,7 +42,7 @@ try:
     _CONFIG = json.loads(open('config.json', 'r').read())
 except Exception as e:
     logging.info('config.json can not be found, rename config_example.json to config.json for inspiration. Err: ', e)
-logging.info('loaded config: ', _CONFIG)
+logging.info('loaded config: %s', _CONFIG)
 users = {
     _CONFIG['username']: generate_password_hash(_CONFIG['password']),
 }
@@ -82,7 +82,7 @@ _INDEX_TEMPLATE = """
 	</div>
 
         <div class="row">
-            <div class="col-md-4">
+            <div class="col-md-3">
 		<p><a href="/">{{ tree.name }}</a></p>
 		<ul>
 		{%- for item in tree.children recursive %}
@@ -104,10 +104,13 @@ _INDEX_TEMPLATE = """
 		</ul>
             </div>
 
-            <div class="col-md-8">
+            <div class="col-md-9">
                 {% if not search_results %}
-		    <h6><a id="a-path" href="file://{{path}}" target="_blank">{{ path }}</a>&nbsp;&nbsp;<span><a href="#" onclick="update()">💾</a> 
-                    <span id="status"></span></h6>
+		    <h6>
+                        <a id="a-path" href="file://{{path}}" target="_blank">{{ path }}</a>&nbsp;&nbsp;
+                        <span><a href="#" onclick="update()">💾</a></span>
+                        <sub id="status"></sub>
+                    </h6>
 		    {% if ext == '.md' %}
                         {% if not md_content and html_content %}
                             <div>{{ html_content|safe }}</div>
@@ -167,12 +170,17 @@ _INDEX_TEMPLATE = """
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
     <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.17.1/build/highlight.min.js"></script>
     <script src="https://uicdn.toast.com/tui-editor/latest/tui-editor-Editor-full.js"></script>
+<!--    <script src="https://cdnjs.cloudflare.com/ajax/libs/Darkmode.js/1.5.4/darkmode-js.min.js"></script>-->
     <script>
-     document.addEventListener('DOMContentLoaded', (event) => {
-	  document.querySelectorAll('pre code').forEach((block) => {
-	    hljs.highlightBlock(block);
-	  });
-	}); 
+    document.addEventListener('DOMContentLoaded', (event) => {
+      document.querySelectorAll('pre code').forEach((block) => {
+        hljs.highlightBlock(block);
+      });
+    }); 
+
+    // Consider enabling dark mode. Need more work though.
+    // TUI Editor doesn't have dark mode.
+    //new Darkmode().showWidget();
 
     $('.expand').click(function() {
       $('ul', $(this).parent()).eq(0).toggle();
@@ -180,12 +188,12 @@ _INDEX_TEMPLATE = """
 
     var editor = new tui.Editor({
         el: document.querySelector('#editorSection'),
-        previewStyle: 'vertical',
+        previewStyle: 'tab',  // vertical|horizontal
         height: '900px',
 	usageStatistics: false,
         initialEditType: 'markdown',
         {% if md_content %}
-	    initialValue: `{{ md_content|escapejs }}`,
+	    initialValue: `{{ md_content|escapejs|safe }}`,
         {% else %}
 	    initialValue: '', 
         {% endif %}
@@ -236,7 +244,8 @@ _INDEX_TEMPLATE = """
 # Add custom jinja filter.
 def escapejs(val):
     #return json.dumps(str(val))
-    return re.sub(r'\\u', '\\a', val)
+    return re.sub(r'`', '\`', re.sub(r'\\u', '\\a', val))
+#    return val
 
 
 def _get_template():
@@ -252,8 +261,17 @@ def verify_password(username, password):
     return False
 
 
-#@cache.cached(timeout=50, key_prefix='make_tree')
+@cache.cached(timeout=_CONFIG['cache_seconds'], key_prefix='_make_tree')
 def make_tree(path):
+    """Higher level function to be used with cache."""
+    return _make_tree(path)
+
+
+def _make_tree(path):
+    """Recursive function to get the file/dir tree.
+
+    Can not be cached.
+    """
     tree = dict(name=os.path.basename(path), path=path, children=[])
 
     if check_match(path):
@@ -266,7 +284,7 @@ def make_tree(path):
         for name in lst:
             fn = os.path.join(path, name)
             if os.path.isdir(fn):
-                tree['children'].append(make_tree(fn))
+                tree['children'].append(_make_tree(fn))
             else:
                 tree['children'].append(dict(name=name, path=fn))
     return tree
@@ -337,7 +355,7 @@ def api_update_handler():
         with open(file_path, 'w') as f:
             f.write(updated_content)
     except Exception as e:
-        logging.error('Something went wrong while updating the file content', e)
+        logging.error('Something went wrong while updating the file content %s', e)
         return jsonify({'result': 'update failed'})
     return jsonify({'result': 'success'}) 
 
@@ -355,7 +373,7 @@ def add_node_handler():
 
     if new_node_name.endswith('/'):
         path = os.path.join(_CONFIG['root_dir'], parent_path, new_node_name)
-        logging.info('Creating new node as dir ', path)
+        logging.info('Creating new node as dir %s', path)
         try:
             os.mkdir(path)
         except OSError:
@@ -386,7 +404,7 @@ def search_handler():
         return 'You need to search for something'
     # ackmate mode for easier parsing.
     cmd = ['ag', query, _CONFIG['root_dir'], '--ackmate', '--stats', '-m', '2']
-    logging.info('Running cmd: ', cmd)
+    logging.info('Running cmd: %s', cmd)
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE)
     output, error = process.communicate()
     # Convert output from binary to string.
@@ -421,7 +439,7 @@ def search_handler():
     rtemplate = _get_template()
     return rtemplate.render(
         search_results=results, query=query, stats=stats_str,
-        tree=make_tree(_CONFIG['root_dir'])) 
+        tree=make_tree(_CONFIG['root_dir']))
 
 
 if __name__ == '__main__':
