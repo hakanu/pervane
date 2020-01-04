@@ -9,6 +9,8 @@ If you are using plain text based note taking, this can be helpful for adhoc med
 
 Personally tried many alternatives like [allmark](https://github.com/andreaskoch/allmark), [mdserv](https://www.npmjs.com/package/markserv), [markdown-server](https://pypi.org/project/markdown-server/) but none of them seem like providing all features I'm looking for. I just want to be able to see the folder hierarchy and fuzzy text search and some better-than-basic markdown rendering.
 
+## [Discuss](https://reddit.com/r/pervane/)
+
 ## Features
 
 * Completely private, your files, your computer, no database, no installation (apart from some general python packages).
@@ -39,6 +41,11 @@ screen
 wget -O -N - https://raw.githubusercontent.com/hakanu/pervane/master/init.sh | bash
 ```
 
+## Options
+
+* They are located in config_example.json in the initial setup.
+* You need to rename it to config.json and modify as you like.
+
 ## Contribute
 
 ```shell
@@ -64,8 +71,9 @@ export FLASK_APP=serve.py ; flask run
 ~~* Fix repetitions in the file tree~~
 ~~* Simple expand/collapse logic in file tree.~~
 * Files with spaces sometimes cause filenotfound
-~~* mermaid.js integration~~ (Comes for free with TUI editor)
-~~* Mindmap and flowchart rendering support.~~ (Comes for free with TUI editor)
-
-~~* Edit the files?~~
+* ~~mermaid.js integration~~ (Comes for free with TUI editor)
+* ~~Mindmap and flowchart rendering support.~~ (Comes for free with TUI editor)
+* Maybe delete file/dir functionality? Maybe not - security reasons.
+* ~~Edit the files?~~
+* ~~Some editor view?~~
 

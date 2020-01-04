@@ -1,5 +1,23 @@
 """Simple server to serve  files with directory hierarchy.
 
+# Dependencies:
+
+- Flask as python server.
+- Jinja2 for templating.
+- Bootstrap
+- A little jquery
+- TUI editor for markdown editing.
+
+Discuss: https://reddit.com/r/pervane 
+Contribute: https://github.com/hakanu/pervane
+
+Jinja2 template is embedded into python code.
+Although this is not the best option, in order to provide
+single file app, this was necessary.
+
+All dependencies in the template is imported from CDNs. So
+should be fairly fast and cached.
+
 # Init:
 virtualenv -p python3 env
 source env/bin/activate
@@ -17,9 +35,6 @@ import os
 import re
 import subprocess
 import sys
-
-# Python3 way of globbing patterns.
-from pathlib import Path
 
 import markdown2
 import mistune
@@ -50,6 +65,7 @@ users = {
 _INDEX_TEMPLATE = """
 <html>
  <head>
+    <title>Pervane - Plain text based note taking app</title>
     <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.17.1/build/styles/default.min.css">
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" rel="stylesheet" >
     <link rel="stylesheet" href="https://uicdn.toast.com/tui-editor/latest/tui-editor.css"></link>
@@ -243,9 +259,9 @@ _INDEX_TEMPLATE = """
 
 # Add custom jinja filter.
 def escapejs(val):
-    #return json.dumps(str(val))
+    # TODO(hakanu): Need to figure out \u escaping in the notes.
+    # This sub modifies the original content. 
     return re.sub(r'`', '\`', re.sub(r'\\u', '\\a', val))
-#    return val
 
 
 def _get_template():
@@ -270,7 +286,7 @@ def make_tree(path):
 def _make_tree(path):
     """Recursive function to get the file/dir tree.
 
-    Can not be cached.
+    Can not be cached due to recursion.
     """
     tree = dict(name=os.path.basename(path), path=path, children=[])
 
@@ -295,18 +311,6 @@ def check_match(file_path):
     result = re.search(pattern, str(file_path))
     if result:
       return True
-
-        
-def get_files(root_path):
-    files = []
-    for f in Path(root_path).rglob('*'):
-        if not check_match(f):
-            files.append({
-	      'path': str(f),
-              'name': os.path.basename(f),
-              'is_dir': f.is_dir(),
-            })
-    return files
 
 
 @app.route('/')
@@ -342,20 +346,17 @@ def api_update_handler():
     updated_content = request.form.get('updated_content', '')
     file_path = request.form.get('file_path', '')
     if not file_path:
-        logging.info('File path is empty')
         return jsonify({'result': 'File path is empty'})
     
     if not file_path.startswith(_CONFIG['root_dir']):
         return jsonify({'result': 'Unauth file modification'})
 
     if not updated_content:
-        logging.info('File content is empty')
         return jsonify({'result': 'File content is empty'})
     try:
         with open(file_path, 'w') as f:
             f.write(updated_content)
     except Exception as e:
-        logging.error('Something went wrong while updating the file content %s', e)
         return jsonify({'result': 'update failed'})
     return jsonify({'result': 'success'}) 
 
@@ -377,22 +378,17 @@ def add_node_handler():
         try:
             os.mkdir(path)
         except OSError:
-            logging.info('Creation of the directory %s failed' % path)
             return redirect('/?message=failed_to_creat_dir:' + path, code=302)
         else:
-            print('Successfully created the directory %s ' % path)
             return redirect('/?message=created_dir:' + path, code=302)
     else:
         suffix = '' if new_node_name.endswith('.md') else '.md'
         path = os.path.join(_CONFIG['root_dir'], parent_path, new_node_name + suffix)
-        logging.info('Creating new node as md file %s', path)
         try:
             f = open(path, 'x')
         except OSError:
-            logging.info('Creation of the directory %s failed' % path)
             return redirect('/?message=failed_to_creat_md:' + path, code=302)
         else:
-            logging.info('Successfully created the md %s ' % path)
             return redirect('/file?f=' + path, code=302)
 
 
@@ -443,5 +439,5 @@ def search_handler():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host=_CONFIG['host'], port=_CONFIG['port'])
 
