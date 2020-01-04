@@ -7,6 +7,7 @@
 - Bootstrap
 - A little jquery
 - TUI editor for markdown editing.
+- highlight.js for simple code highlighting for non-md files.
 
 Discuss: https://reddit.com/r/pervane 
 Contribute: https://github.com/hakanu/pervane
