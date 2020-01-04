@@ -73,13 +73,21 @@ _INDEX_TEMPLATE = """
     <link rel="stylesheet" href="https://uicdn.toast.com/tui-editor/latest/tui-editor-contents.css"></link>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/codemirror.css"></link>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css"></link>
+    <link href="https://fonts.googleapis.com/css?family=PT+Sans&display=swap" rel="stylesheet">
     <style>
       body {
         margin: 10px;
+	font-family: 'PT Sans', sans-serif;
+	/*        font-size: 1.5vw;*/
+      }
+
+      ul {
+        padding-left: 10px;
       }
 
       ul li ul {
         display: none;
+        padding-left: 10px;
       }
     </style>
  </head>
@@ -99,7 +107,7 @@ _INDEX_TEMPLATE = """
 	</div>
 
         <div class="row">
-            <div class="col-md-3">
+            <div class="col-md-2">
 		<p><a href="/">{{ tree.name }}</a></p>
 		<ul>
 		{%- for item in tree.children recursive %}
@@ -121,7 +129,7 @@ _INDEX_TEMPLATE = """
 		</ul>
             </div>
 
-            <div class="col-md-9">
+            <div class="col-md-10">
                 {% if not search_results %}
 		    <h6>
                         <a id="a-path" href="file://{{path}}" target="_blank">{{ path }}</a>&nbsp;&nbsp;
@@ -203,6 +211,11 @@ _INDEX_TEMPLATE = """
       $('ul', $(this).parent()).eq(0).toggle();
     });
 
+    {% if md_content and path %}
+        console.log('initing the editor for path');
+        initEditor('{{path}}');      
+    {% endif %}
+
     var editor = new tui.Editor({
         el: document.querySelector('#editorSection'),
         previewStyle: 'tab',  // vertical|horizontal
@@ -210,7 +223,7 @@ _INDEX_TEMPLATE = """
 	usageStatistics: false,
         initialEditType: 'markdown',
         {% if md_content %}
-	    initialValue: `{{ md_content|escapejs|safe }}`,
+//	    initialValue: `{{ "md_content"|escapejs|safe }}`,
         {% else %}
 	    initialValue: '', 
         {% endif %}
@@ -230,8 +243,22 @@ _INDEX_TEMPLATE = """
         ]
     });
 
+    function initEditor(path) {
+	$.get( 
+	 "/api/get_content", { 
+	     f: path 
+	 }, 
+	 function(data) { 
+             if (data.result == 'success') {
+	        editor.setValue(data.content);
+	     } else {
+                console.log('something went wrong while fetching the file content', data.result);
+            	$('#status').text('something went wrong while fetching the file content', data.result);
+             }
+	 }); 
+    }
+
     function update() {
-       console.log('Updating the content');
        var text = editor.getMarkdown();
        var file_path = $('#a-path').text();
        $.post('/api/update', {updated_content: text, file_path: file_path}, function(result){
@@ -269,7 +296,7 @@ def _get_template():
     env = Environment(loader=BaseLoader, autoescape=True)
     env.filters['escapejs'] = escapejs
     return env.from_string(_INDEX_TEMPLATE)
-
+      
 
 @auth.verify_password
 def verify_password(username, password):
@@ -326,10 +353,19 @@ def front_page_handler():
 @auth.login_required
 def file_handler():
     path = request.args.get('f', '')
+    if not path:
+        return 'No path is given'
+    path = path.strip()
     if not path.startswith(_CONFIG['root_dir']):
         logging.info('no auth')
         return 'Not authorized to see this dir, must be under: ' + _CONFIG['root_dir']
-    content = open(path, 'r').read()
+    path = path.strip()
+    try:
+        with open(path, 'r') as f:
+            content = f.read()
+    except Exception as e:
+        logging.error('There is an error while reading: %s', str(e))
+        return 'File reading failed with ' + str(e)
     html_content = 'root_dir'
     _, ext = os.path.splitext(path)
     rtemplate = _get_template()
@@ -342,7 +378,23 @@ def file_handler():
         tree=make_tree(_CONFIG['root_dir'])) 
 
 
+@app.route('/api/get_content')
+@auth.login_required
+def api_get_content_handler():
+    path = request.args.get('f', '')
+    if not path.startswith(_CONFIG['root_dir']):
+        logging.info('no auth')
+        return 'Not authorized to see this dir, must be under: ' + _CONFIG['root_dir']
+    try:
+        with open(path, 'r') as f:
+            content = f.read()
+        return jsonify({'result': 'success', 'content': content})
+    except Exception as e:
+        return jsonify({'result': 'smt went wrong ' + e})
+
+
 @app.route('/api/update', methods=['POST'])
+@auth.login_required
 def api_update_handler():
     updated_content = request.form.get('updated_content', '')
     file_path = request.form.get('file_path', '')
@@ -363,6 +415,7 @@ def api_update_handler():
 
 
 @app.route('/api/add_node', methods=['POST'])
+@auth.login_required
 def add_node_handler():
     parent_path = request.form.get('parent_path', '')
     new_node_name = request.form.get('new_node_name', '')
