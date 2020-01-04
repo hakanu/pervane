@@ -25,11 +25,12 @@ import markdown2
 import mistune
 
 from jinja2 import Environment, BaseLoader
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, jsonify, redirect
 from flask_caching import Cache
 from flask_httpauth import HTTPBasicAuth
 from werkzeug.security import generate_password_hash, check_password_hash
 
+logging.basicConfig(level=logging.DEBUG)
 cache = Cache(config={'CACHE_TYPE': 'simple'})
 app = Flask(__name__)
 cache.init_app(app)
@@ -90,9 +91,8 @@ _INDEX_TEMPLATE = """
 			    <a href="/file?f={{ item.path }}">+{{ item.name }}</a>
 			{% else %}
                             <a href="#" data-href="/dir?d={{ item.path }}" class="expand">/{{ item.name }}</a>&nbsp;&nbsp;
-
 			    <span>
-                              <a href="/create_file?d={{ item.name }}">⊕</a>
+                              <a href="#" onclick="addNode('{{ item.path }}')">⊕</a>
                             </span>
 			{% endif %}
 
@@ -106,9 +106,10 @@ _INDEX_TEMPLATE = """
 
             <div class="col-md-8">
                 {% if not search_results %}
-		    <h6><a id="a-path" href="file://{{path}}" target="_blank">{{ path }}</a>&nbsp;&nbsp;<span><a href="#" onclick="update()">💾</a> <span id="status"></span></h6>
+		    <h6><a id="a-path" href="file://{{path}}" target="_blank">{{ path }}</a>&nbsp;&nbsp;<span><a href="#" onclick="update()">💾</a> 
+                    <span id="status"></span></h6>
 		    {% if ext == '.md' %}
-                        {% if not md_content %}
+                        {% if not md_content and html_content %}
                             <div>{{ html_content|safe }}</div>
                         {% else %}
                             <div id="editorSection"></div>
@@ -132,6 +133,36 @@ _INDEX_TEMPLATE = """
         </div>
     </div>
 
+    <!-- Modal -->
+    <div class="modal fade" id="nodeModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered" role="document">
+	<div class="modal-content">
+	  <div class="modal-header">
+	    <h5 class="modal-title" id="exampleModalLongTitle">Create new node</h5>
+	    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+	      <span aria-hidden="true">&times;</span>
+	    </button>
+	  </div>
+          <form action="/api/add_node" method="POST">
+	      <div class="modal-body">
+		<p>Put / at the end if you want to create a directory. Otherwise we append a .md suffix for you.</p>
+		<div class="input-group mb-3">
+		    <input id="modal-input-parent-path" type="hidden" name="parent_path" class="form-control"> 
+		    <div class="input-group-prepend">
+		        <span id="modal-input-prefix" class="input-group-text"></span>
+		    </div>
+		    <input type="text" name="new_node_name" class="form-control" placeholder="Type new node's name">
+		  </div>
+	        </div>
+	      <div class="modal-footer">
+		<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+		<button type="submit" class="btn btn-primary">Add node</button>
+	      </div>
+          </form>
+	</div>
+      </div>
+    </div>
+
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
     <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.17.1/build/highlight.min.js"></script>
@@ -153,7 +184,11 @@ _INDEX_TEMPLATE = """
         height: '900px',
 	usageStatistics: false,
         initialEditType: 'markdown',
-	initialValue: `{{ md_content }}`,
+        {% if md_content %}
+	    initialValue: `{{ md_content|escapejs }}`,
+        {% else %}
+	    initialValue: '', 
+        {% endif %}
 	exts: [
           {
             name: 'chart',
@@ -175,18 +210,39 @@ _INDEX_TEMPLATE = """
        var text = editor.getMarkdown();
        var file_path = $('#a-path').text();
        $.post('/api/update', {updated_content: text, file_path: file_path}, function(result){
-          console.log('Finished request', result);
-          if (result == 'success') {
-            $('#status').text = 'Updated @ ' + (new Date());
+          console.log('Finished request', result, result.result);
+          if (result.result == 'success') {
+            $('#status').text('Updated @ ' + (new Date()));
+            console.log('Reloading');
+            location.reload();
           } else {
-            $('#status').text = 'Failed to update @ ' + (new Date());
+            $('#status').text('Failed to update @ ' + (new Date()));
 	  }
        });
+    }
+
+    function addNode(parent) {
+        console.log('adding node to parent', parent);
+        $('#modal-input-parent-path').attr('value', parent);
+        $('#modal-input-prefix').text(parent + '/');
+        $('#nodeModal').modal();
     }
     </script>
  </body>
 </html>
 """
+
+
+# Add custom jinja filter.
+def escapejs(val):
+    #return json.dumps(str(val))
+    return re.sub(r'\\u', '\\a', val)
+
+
+def _get_template():
+    env = Environment(loader=BaseLoader, autoescape=True)
+    env.filters['escapejs'] = escapejs
+    return env.from_string(_INDEX_TEMPLATE)
 
 
 @auth.verify_password
@@ -198,7 +254,7 @@ def verify_password(username, password):
 
 #@cache.cached(timeout=50, key_prefix='make_tree')
 def make_tree(path):
-    tree = dict(name=os.path.basename(path), children=[])
+    tree = dict(name=os.path.basename(path), path=path, children=[])
 
     if check_match(path):
        return 
@@ -238,8 +294,7 @@ def get_files(root_path):
 @app.route('/')
 @auth.login_required
 def front_page_handler():
-    rtemplate = Environment(loader=BaseLoader).from_string(
-        _INDEX_TEMPLATE)
+    rtemplate = _get_template()
     return rtemplate.render(html_content=_CONFIG['front_page_message'], 
                             tree=make_tree(_CONFIG['root_dir']))
 
@@ -254,8 +309,7 @@ def file_handler():
     content = open(path, 'r').read()
     html_content = 'root_dir'
     _, ext = os.path.splitext(path)
-    rtemplate = Environment(loader=BaseLoader).from_string(
-        _INDEX_TEMPLATE)
+    rtemplate = _get_template()
     if ext == '.md':
         html_content = mistune.markdown(content, escape=False)  #markdown2.markdown(content)
     else:
@@ -271,18 +325,57 @@ def api_update_handler():
     file_path = request.form.get('file_path', '')
     if not file_path:
         logging.info('File path is empty')
-        return json.dumps({'result': 'File path is empty'})
+        return jsonify({'result': 'File path is empty'})
+    
+    if not file_path.startswith(_CONFIG['root_dir']):
+        return jsonify({'result': 'Unauth file modification'})
 
     if not updated_content:
         logging.info('File content is empty')
-        return json.dumps({'result': 'File content is empty'})
-    return json.dumps({'result': 'success'}) 
+        return jsonify({'result': 'File content is empty'})
+    try:
+        with open(file_path, 'w') as f:
+            f.write(updated_content)
+    except Exception as e:
+        logging.error('Something went wrong while updating the file content', e)
+        return jsonify({'result': 'update failed'})
+    return jsonify({'result': 'success'}) 
 
 
-@app.route('/dir')
-def dir_handler():
-    path = request.args.get('d', '')
-    return path
+@app.route('/api/add_node', methods=['POST'])
+def add_node_handler():
+    parent_path = request.form.get('parent_path', '')
+    new_node_name = request.form.get('new_node_name', '')
+    if not parent_path or not new_node_name:
+         return redirect('/?message=path_can_not_be_empty', code=302)
+    new_node_name = new_node_name.strip()
+
+    if not parent_path.startswith(_CONFIG['root_dir']):
+        return jsonify({'result': 'Unauth file modification'})
+
+    if new_node_name.endswith('/'):
+        path = os.path.join(_CONFIG['root_dir'], parent_path, new_node_name)
+        logging.info('Creating new node as dir ', path)
+        try:
+            os.mkdir(path)
+        except OSError:
+            logging.info('Creation of the directory %s failed' % path)
+            return redirect('/?message=failed_to_creat_dir:' + path, code=302)
+        else:
+            print('Successfully created the directory %s ' % path)
+            return redirect('/?message=created_dir:' + path, code=302)
+    else:
+        suffix = '' if new_node_name.endswith('.md') else '.md'
+        path = os.path.join(_CONFIG['root_dir'], parent_path, new_node_name + suffix)
+        logging.info('Creating new node as md file %s', path)
+        try:
+            f = open(path, 'x')
+        except OSError:
+            logging.info('Creation of the directory %s failed' % path)
+            return redirect('/?message=failed_to_creat_md:' + path, code=302)
+        else:
+            logging.info('Successfully created the md %s ' % path)
+            return redirect('/file?f=' + path, code=302)
 
 
 @app.route('/search')
@@ -325,12 +418,10 @@ def search_handler():
        }) 
 
     html_body = ''
-    rtemplate = Environment(loader=BaseLoader).from_string(
-        _INDEX_TEMPLATE)
+    rtemplate = _get_template()
     return rtemplate.render(
         search_results=results, query=query, stats=stats_str,
         tree=make_tree(_CONFIG['root_dir'])) 
-
 
 
 if __name__ == '__main__':
