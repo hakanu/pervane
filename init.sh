@@ -8,7 +8,7 @@ init_or_update() {
 		virtualenv -p python3 env
 	fi
 	source env/bin/activate
-	pip install flask markdown2 Flask-Caching Flask-HTTPAuth mistune
+	pip install flask Flask-Caching Flask-HTTPAuth 
 
 	# Download the latest version.
 	wget https://raw.githubusercontent.com/hakanu/pervane/master/serve.py

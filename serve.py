@@ -37,9 +37,6 @@ import re
 import subprocess
 import sys
 
-import markdown2
-import mistune
-
 from jinja2 import Environment, BaseLoader
 from flask import Flask, render_template, request, jsonify, redirect
 from flask_caching import Cache
@@ -369,10 +366,7 @@ def file_handler():
     html_content = 'root_dir'
     _, ext = os.path.splitext(path)
     rtemplate = _get_template()
-    if ext == '.md':
-        html_content = mistune.markdown(content, escape=False)  #markdown2.markdown(content)
-    else:
-        html_content = content
+    html_content = content
     return rtemplate.render(
         path=path, html_content=html_content, md_content=content, ext=ext,
         tree=make_tree(_CONFIG['root_dir'])) 
