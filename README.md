@@ -1,3 +1,5 @@
+![](docs/pervane_logo.png)
+
 # Pervane
 
 Pervane is a bare minimum plain text file based note taking and knowledge base building tool.
