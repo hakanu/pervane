@@ -86,8 +86,8 @@ export FLASK_APP=serve.py ; flask run
 
 ## TODO
 
-~~* Fix repetitions in the file tree~~
-~~* Simple expand/collapse logic in file tree.~~
+* ~~Fix repetitions in the file tree~~
+* ~~Simple expand/collapse logic in file tree.~~
 * Files with spaces sometimes cause filenotfound
 * ~~mermaid.js integration~~ (Comes for free with TUI editor)
 * ~~Mindmap and flowchart rendering support.~~ (Comes for free with TUI editor)
