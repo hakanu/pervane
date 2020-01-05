@@ -3,6 +3,10 @@ env/*
 *.swp
 *.pyc
 config.json
+
+# setup.py related.
 build
 dist
 pervane.egg-info
+bin
+bin/*

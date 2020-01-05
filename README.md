@@ -31,6 +31,16 @@ Personally tried many alternatives like [allmark](https://github.com/andreaskoch
 
 ## Install
 
+### Via pip
+
+```shell
+screen
+pip install pervane
+pervane --dir=/tmp/my_notes
+```
+
+### Without pip
+
 * Fetch the single python script to somewhere in your machine.
 * Run it in screen or tmux.
 
@@ -44,8 +54,13 @@ wget -O -N - https://raw.githubusercontent.com/hakanu/pervane/master/init.sh | b
 
 ## Options
 
-* They are located in config_example.json in the initial setup.
-* You need to rename it to config.json and modify as you like.
+* `--dir`: Note root directory. File tree will be generated from this.
+* `--host`: defaults to 0.0.0.0. Hostname to be binded.
+* `--port`: defaults to 5000. Port number to be binded.
+* `--username`: defaults to 'hakuna'. Username for basic http auth.
+* `--password`: defaults to 'matata'. Username for basic http auth.
+* `--front_page_message`: / message.
+* `--cache_seconds`: Seconds to bust the cache. Mainly used for file tree re-reading.
 
 ## Contribute
 

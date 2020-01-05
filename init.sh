@@ -17,7 +17,7 @@ init_or_update() {
 start() {
 	echo "Running the server"
 	#export FLASK_APP=serve.py;  flask run 
-        python3 serve.py
+  python3 serve.py
 }
 
 init_or_update
