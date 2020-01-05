@@ -1,4 +1,4 @@
-![](docs/pervane_logo.png)
+![](docs/pervane_logo_small.png)
 
 # Pervane
 
