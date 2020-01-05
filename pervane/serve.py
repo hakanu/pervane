@@ -505,6 +505,12 @@ def search_handler():
         tree=make_tree(args.root_dir))
 
 
+
+def cli_main():
+    """Used within the python package cli."""
+    app.run(host=args.host, port=args.port)
+
+
 if __name__ == '__main__':
     app.run(host=args.host, port=args.port)
 
