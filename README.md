@@ -39,6 +39,8 @@ pip install pervane
 pervane --dir=/tmp/my_notes
 ```
 
+Package details here: https://pypi.org/project/pervane/
+
 ### Without pip
 
 * Fetch the single python script to somewhere in your machine.
