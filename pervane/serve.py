@@ -59,7 +59,9 @@ parser.add_argument('--cache_seconds', dest='cache_seconds', default=50,
                     help='Cache the sidebar file tree creation.')
 parser.add_argument(
     '--ignore_patterns', dest='ignore_patterns', nargs='*',
-    default=["env/.*", ".git", ".*.swp", ".*.pyc", "__pycache__", ".allmark"],
+    default=["env/.*", ".git", ".*.swp", ".*.pyc", "__pycache__", ".allmark",
+             "_vnote.json", "!!!meta.json", "PaxHeader", ".nojekyll",
+             ".*.sqlite"],
     help='Cache the sidebar file tree creation.')
 parser.add_argument(
     '--front_page_message', dest='front_page_message', default=50,
@@ -341,6 +343,10 @@ def _make_tree(path):
     else:
         for name in lst:
             fn = os.path.join(path, name)
+
+            if check_match(fn):
+               continue
+
             if os.path.isdir(fn):
                 tree['children'].append(_make_tree(fn))
             else:
