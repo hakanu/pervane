@@ -1,4 +1,4 @@
-"""Simple server to serve  files with directory hierarchy.
+"""Simple server to serve and files with directory hierarchy.
 
 # Dependencies:
 
@@ -71,234 +71,13 @@ print('loaded args %s', args)
 
 logging.basicConfig(level=logging.DEBUG)
 cache = Cache(config={'CACHE_TYPE': 'simple'})
-app = Flask(__name__)
+app = Flask(__name__, template_folder='templates')
 cache.init_app(app)
 auth = HTTPBasicAuth()
 
 users = {
     args.username: generate_password_hash(args.password),
 }
-
-_INDEX_TEMPLATE = """
-<html>
- <head>
-    <title>Pervane - Plain text based note taking app</title>
-    <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.17.1/build/styles/default.min.css">
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" rel="stylesheet" >
-    <link rel="stylesheet" href="https://uicdn.toast.com/tui-editor/latest/tui-editor.css"></link>
-    <link rel="stylesheet" href="https://uicdn.toast.com/tui-editor/latest/tui-editor-contents.css"></link>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/codemirror.css"></link>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css"></link>
-    <link href="https://fonts.googleapis.com/css?family=PT+Sans&display=swap" rel="stylesheet">
-    <style>
-      body {
-        margin: 10px;
-	font-family: 'PT Sans', sans-serif;
-	/*        font-size: 1.5vw;*/
-      }
-
-      ul {
-        padding-left: 10px;
-      }
-
-      ul li ul {
-        display: none;
-        padding-left: 10px;
-      }
-    </style>
- </head>
- <body>
-    <div class="">
-	<div class="row">
-	    <div class="col-md-10">
-		<div class="">
-		  <form action="/search" method="GET">
-		      <input type="text" class="form-control" name="query" placeholder="Search files with ag" aria-label="query" aria-describedby="basic-addon1">
-		  </form>
-		</div>
-	    </div>
-	    <div class="col-md-2">
-                <p><a href="https://github.com/hakanu/pervane" target="_blank">About</a></p>
-	    </div>
-	</div>
-
-        <div class="row">
-            <div class="col-md-2">
-		<p><a href="/">{{ tree.name }}</a></p>
-		<ul>
-		{%- for item in tree.children recursive %}
-		    <li>
-			{% if '.' in item.name and not item.name.startswith('.')  %}
-			    <a href="/file?f={{ item.path }}">+{{ item.name }}</a>
-			{% else %}
-                            <a href="#" data-href="/dir?d={{ item.path }}" class="expand">/{{ item.name }}</a>&nbsp;&nbsp;
-			    <span>
-                              <a href="#" onclick="addNode('{{ item.path }}')">⊕</a>
-                            </span>
-			{% endif %}
-
-			{%- if item.children -%}
-			    <ul>{{ loop(item.children) }}</ul>
-			{%- endif %}
-		    </li>
-		{%- endfor %}
-		</ul>
-            </div>
-
-            <div class="col-md-10">
-                {% if not search_results %}
-		    <h6>
-                        <a id="a-path" href="file://{{path}}" target="_blank">{{ path }}</a>&nbsp;&nbsp;
-                        <span><a href="#" onclick="update()">💾</a></span>
-                        <sub id="status"></sub>
-                    </h6>
-		    {% if ext == '.md' %}
-                        {% if not md_content and html_content %}
-                            <div>{{ html_content|safe }}</div>
-                        {% else %}
-                            <div id="editorSection"></div>
-                        {% endif %}
-		    {% else %}
-			<pre><code class="{{ext|replace('.', '')}}">{{ html_content|e }}</code></pre>
-		    {% endif %}
-                {% else %}
-                    <h6>Results for <b>{{ query|e }}</b></h6>
-                    <p><sub>{{ stats }}</sub></p>
-                    {% for result in search_results %}
-		       <a href="/file?f={{ result.file}}" target="_blank">{{ result.file }}</a>
-                       <ul>
-                          {% for match in result.matches %}
-			      <li><pre>{{match.snippet}}</pre></li>
-                          {% endfor %}
-                       </ul>
-                    {% endfor %}
-		{% endif %}
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal -->
-    <div class="modal fade" id="nodeModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered" role="document">
-	<div class="modal-content">
-	  <div class="modal-header">
-	    <h5 class="modal-title" id="exampleModalLongTitle">Create new node</h5>
-	    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-	      <span aria-hidden="true">&times;</span>
-	    </button>
-	  </div>
-          <form action="/api/add_node" method="POST">
-	      <div class="modal-body">
-		<p>Put / at the end if you want to create a directory. Otherwise we append a .md suffix for you.</p>
-		<div class="input-group mb-3">
-		    <input id="modal-input-parent-path" type="hidden" name="parent_path" class="form-control"> 
-		    <div class="input-group-prepend">
-		        <span id="modal-input-prefix" class="input-group-text"></span>
-		    </div>
-		    <input type="text" name="new_node_name" class="form-control" placeholder="Type new node's name">
-		  </div>
-	        </div>
-	      <div class="modal-footer">
-		<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-		<button type="submit" class="btn btn-primary">Add node</button>
-	      </div>
-          </form>
-	</div>
-      </div>
-    </div>
-
-    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
-    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.17.1/build/highlight.min.js"></script>
-    <script src="https://uicdn.toast.com/tui-editor/latest/tui-editor-Editor-full.js"></script>
-<!--    <script src="https://cdnjs.cloudflare.com/ajax/libs/Darkmode.js/1.5.4/darkmode-js.min.js"></script>-->
-    <script>
-    document.addEventListener('DOMContentLoaded', (event) => {
-      document.querySelectorAll('pre code').forEach((block) => {
-        hljs.highlightBlock(block);
-      });
-    }); 
-
-    // Consider enabling dark mode. Need more work though.
-    // TUI Editor doesn't have dark mode.
-    //new Darkmode().showWidget();
-
-    $('.expand').click(function() {
-      $('ul', $(this).parent()).eq(0).toggle();
-    });
-
-    {% if md_content and path %}
-        console.log('initing the editor for path');
-        initEditor('{{path}}');      
-    {% endif %}
-
-    var editor = new tui.Editor({
-        el: document.querySelector('#editorSection'),
-        previewStyle: 'tab',  // vertical|horizontal
-        height: '900px',
-	usageStatistics: false,
-        initialEditType: 'markdown',
-        {% if md_content %}
-//	    initialValue: `{{ "md_content"|escapejs|safe }}`,
-        {% else %}
-	    initialValue: '', 
-        {% endif %}
-	exts: [
-          {
-            name: 'chart',
-            minWidth: 100,
-            maxWidth: 600,
-            minHeight: 100,
-            maxHeight: 300
-          },
-          'scrollSync',
-          'colorSyntax',
-          'uml',
-          'mark',
-          'table'
-        ]
-    });
-
-    function initEditor(path) {
-	$.get( 
-	 "/api/get_content", { 
-	     f: path 
-	 }, 
-	 function(data) { 
-             if (data.result == 'success') {
-	        editor.setValue(data.content);
-	     } else {
-                console.log('something went wrong while fetching the file content', data.result);
-            	$('#status').text('something went wrong while fetching the file content', data.result);
-             }
-	 }); 
-    }
-
-    function update() {
-       var text = editor.getMarkdown();
-       var file_path = $('#a-path').text();
-       $.post('/api/update', {updated_content: text, file_path: file_path}, function(result){
-          console.log('Finished request', result, result.result);
-          if (result.result == 'success') {
-            $('#status').text('Updated @ ' + (new Date()));
-            console.log('Reloading');
-            location.reload();
-          } else {
-            $('#status').text('Failed to update @ ' + (new Date()));
-	  }
-       });
-    }
-
-    function addNode(parent) {
-        console.log('adding node to parent', parent);
-        $('#modal-input-parent-path').attr('value', parent);
-        $('#modal-input-prefix').text(parent + '/');
-        $('#nodeModal').modal();
-    }
-    </script>
- </body>
-</html>
-"""
 
 
 # Add custom jinja filter.
@@ -308,10 +87,10 @@ def escapejs(val):
     return re.sub(r'`', '\`', re.sub(r'\\u', '\\a', val))
 
 
-def _get_template():
+def _get_template(html):
     env = Environment(loader=BaseLoader, autoescape=True)
     env.filters['escapejs'] = escapejs
-    return env.from_string(_INDEX_TEMPLATE)
+    return env.from_string(html)
       
 
 @auth.verify_password
@@ -364,9 +143,9 @@ def check_match(file_path):
 @app.route('/')
 @auth.login_required
 def front_page_handler():
-    rtemplate = _get_template()
-    return rtemplate.render(html_content=args.front_page_message, 
-                            tree=make_tree(args.root_dir))
+    return render_template(
+        'index.html', tree=make_tree(args.root_dir),
+        html_content=args.front_page_message)
 
 
 @app.route('/file')
@@ -390,9 +169,8 @@ def file_handler():
         return 'File reading failed with ' + str(e)
     html_content = 'root_dir'
     _, ext = os.path.splitext(path)
-    rtemplate = _get_template()
     html_content = content
-    return rtemplate.render(
+    return render_template('index.html',
         path=path, html_content=html_content, md_content=content, ext=ext,
         tree=make_tree(args.root_dir)) 
 
@@ -505,8 +283,7 @@ def search_handler():
        }) 
 
     html_body = ''
-    rtemplate = _get_template()
-    return rtemplate.render(
+    return render_template('index.html',
         search_results=results, query=query, stats=stats_str,
         tree=make_tree(args.root_dir))
 

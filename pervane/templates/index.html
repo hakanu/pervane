@@ -1,0 +1,269 @@
+<html>
+ <head>
+    <title>Pervane - Plain text based note taking app</title>
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.17.1/build/styles/default.min.css">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" rel="stylesheet" >
+    <link rel="stylesheet" href="https://uicdn.toast.com/tui-editor/latest/tui-editor.css"></link>
+    <link rel="stylesheet" href="https://uicdn.toast.com/tui-editor/latest/tui-editor-contents.css"></link>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/codemirror.css"></link>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css"></link>
+    <link href="https://fonts.googleapis.com/css?family=PT+Sans&display=swap" rel="stylesheet">
+    <style>
+      body {
+        margin: 10px;
+        font-family: 'PT Sans', sans-serif;
+        padding-top: 3rem;
+        padding-bottom: 3rem;
+        color: #5a5a5a;
+  /*        font-size: 1.5vw;*/
+      }
+
+      ul {
+        padding-left: 15px;
+      }
+
+      ul li ul {
+        display: none;
+        padding-left: 15px;
+      }
+    </style>
+ </head>
+ <body>
+
+<header>
+  <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+    <a class="navbar-brand" href="#">Pervane</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarCollapse">
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item active">
+          <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="https://github.com/hakanu/pervane">Pervane</a>
+        </li>
+      </ul>
+      <form class="form-inline mt-2 mt-md-0" action="/search" method="GET">
+        <input class="form-control mr-sm-2" type="text" name="query" placeholder="Search files with ag" aria-label="Search">
+      </form>
+    </div>
+  </nav>
+</header>
+<br><br>
+
+<div class="">
+    <div class="row">
+        <div class="col-md-3">
+          <p>
+            <a href="/">{{ tree.name }}</a>
+            <span>
+              <a href="#" onclick="addNode('{{ tree.path }}')">
+                <svg class="bi bi-plus" width="1em" height="1em" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                  <path fill-rule="evenodd" d="M10 5.5a.5.5 0 01.5.5v4a.5.5 0 01-.5.5H6a.5.5 0 010-1h3.5V6a.5.5 0 01.5-.5z" clip-rule="evenodd"/>
+                  <path fill-rule="evenodd" d="M9.5 10a.5.5 0 01.5-.5h4a.5.5 0 010 1h-3.5V14a.5.5 0 01-1 0v-4z" clip-rule="evenodd"/>
+              </svg></a>
+            </span>
+          </p>
+
+          <ul>
+          {%- for item in tree.children recursive %}
+              <li>
+            {% if '.' in item.name and not item.name.startswith('.')  %}
+              <a href="/file?f={{ item.path }}">
+
+                {% if item.path.endswith('.md') %}
+                  <svg class="bi bi-document-text" width="1em" height="1em" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" d="M6 3h8a2 2 0 012 2v10a2 2 0 01-2 2H6a2 2 0 01-2-2V5a2 2 0 012-2zm0 1a1 1 0 00-1 1v10a1 1 0 001 1h8a1 1 0 001-1V5a1 1 0 00-1-1H6z" clip-rule="evenodd"/>
+                    <path fill-rule="evenodd" d="M6.5 14a.5.5 0 01.5-.5h3a.5.5 0 010 1H7a.5.5 0 01-.5-.5zm0-2a.5.5 0 01.5-.5h6a.5.5 0 010 1H7a.5.5 0 01-.5-.5zm0-2a.5.5 0 01.5-.5h6a.5.5 0 010 1H7a.5.5 0 01-.5-.5zm0-2a.5.5 0 01.5-.5h6a.5.5 0 010 1H7a.5.5 0 01-.5-.5zm0-2a.5.5 0 01.5-.5h6a.5.5 0 010 1H7a.5.5 0 01-.5-.5z" clip-rule="evenodd"/>
+                  </svg>
+                {% else %}
+                  <svg class="bi bi-document-code" width="1em" height="1em" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" d="M6 3h8a2 2 0 012 2v10a2 2 0 01-2 2H6a2 2 0 01-2-2V5a2 2 0 012-2zm0 1a1 1 0 00-1 1v10a1 1 0 001 1h8a1 1 0 001-1V5a1 1 0 00-1-1H6z" clip-rule="evenodd"/>
+                    <path fill-rule="evenodd" d="M10.646 7.646a.5.5 0 01.708 0l2 2a.5.5 0 010 .708l-2 2a.5.5 0 01-.708-.708L12.293 10l-1.647-1.646a.5.5 0 010-.708zm-1.292 0a.5.5 0 00-.708 0l-2 2a.5.5 0 000 .708l2 2a.5.5 0 00.708-.708L7.707 10l1.647-1.646a.5.5 0 000-.708z" clip-rule="evenodd"/>
+                  </svg>
+                {% endif %}
+                {{ item.name }}
+              </a>
+            {% else %}
+                <a href="#" data-href="/dir?d={{ item.path }}" class="expand">
+                 <svg class="bi bi-folder" width="1em" height="1em" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M11.828 6a3 3 0 01-2.12-.879l-.83-.828A1 1 0 008.173 4H4.5a1 1 0 00-1 .981L3.546 6h-1L2.5 5a2 2 0 012-2h3.672a2 2 0 011.414.586l.828.828A2 2 0 0011.828 5v1z"/>
+                  <path fill-rule="evenodd" d="M15.81 6H4.19a1 1 0 00-.996 1.09l.637 7a1 1 0 00.995.91h10.348a1 1 0 00.995-.91l.637-7A1 1 0 0015.81 6zM4.19 5a2 2 0 00-1.992 2.181l.637 7A2 2 0 004.826 16h10.348a2 2 0 001.991-1.819l.637-7A2 2 0 0015.81 5H4.19z" clip-rule="evenodd"/>
+                </svg>
+                /{{ item.name }}
+              </a>
+
+              &nbsp;&nbsp;
+              <span>
+                <a href="#" onclick="addNode('{{ item.path }}')">
+                  <svg class="bi bi-plus" width="1em" height="1em" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" d="M10 5.5a.5.5 0 01.5.5v4a.5.5 0 01-.5.5H6a.5.5 0 010-1h3.5V6a.5.5 0 01.5-.5z" clip-rule="evenodd"/>
+                    <path fill-rule="evenodd" d="M9.5 10a.5.5 0 01.5-.5h4a.5.5 0 010 1h-3.5V14a.5.5 0 01-1 0v-4z" clip-rule="evenodd"/>
+                  </svg>
+                </a>
+              </span>
+            {% endif %}
+
+            {%- if item.children -%}
+                <ul>{{ loop(item.children) }}</ul>
+            {%- endif %}
+              </li>
+          {%- endfor %}
+          </ul>
+        </div>
+
+        <div class="col-md-9">
+            {% if not search_results %}
+                <h6>
+                    <a id="a-path" href="file://{{path}}" target="_blank">{{ path }}</a>&nbsp;&nbsp;
+                    <span><a href="#" onclick="update()">💾</a></span>
+                    <sub id="status"></sub>
+                </h6>
+                {% if ext == '.md' %}
+                    {% if not md_content and html_content %}
+                        <div>{{ html_content|safe }}</div>
+                    {% else %}
+                        <div id="editorSection"></div>
+                    {% endif %}
+                {% else %}
+                    <pre><code class="{{ext|replace('.', '')}}">{{ html_content|e }}</code></pre>
+                {% endif %}
+            {% else %}
+                <h6>Results for <b>{{ query|e }}</b></h6>
+                <p><sub>{{ stats }}</sub></p>
+                {% for result in search_results %}
+                   <a href="/file?f={{ result.file}}" target="_blank">{{ result.file }}</a>
+                   <ul>
+                      {% for match in result.matches %}
+                              <li><pre>{{match.snippet}}</pre></li>
+                      {% endfor %}
+                   </ul>
+                {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="nodeModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLongTitle">Create new node</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form action="/api/add_node" method="POST">
+        <div class="modal-body">
+          <p>Put / at the end if you want to create a directory. Otherwise we append a .md suffix for you.</p>
+          <div class="input-group mb-3">
+              <input id="modal-input-parent-path" type="hidden" name="parent_path" class="form-control"> 
+              <div class="input-group-prepend">
+                  <span id="modal-input-prefix" class="input-group-text"></span>
+              </div>
+              <input type="text" name="new_node_name" class="form-control" placeholder="Type new node's name">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-primary">Add node</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
+<script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.17.1/build/highlight.min.js"></script>
+<script src="https://uicdn.toast.com/tui-editor/latest/tui-editor-Editor-full.js"></script>
+<!--    <script src="https://cdnjs.cloudflare.com/ajax/libs/Darkmode.js/1.5.4/darkmode-js.min.js"></script>-->
+<script>
+    document.addEventListener('DOMContentLoaded', (event) => {
+      document.querySelectorAll('pre code').forEach((block) => {
+        hljs.highlightBlock(block);
+      });
+    }); 
+
+    // Consider enabling dark mode. Need more work though.
+    // TUI Editor doesn't have dark mode.
+    //new Darkmode().showWidget();
+
+    $('.expand').click(function() {
+      console.log('expanding');
+      $('ul', $(this).parent()).eq(0).toggle();
+    });
+
+    {% if md_content and path %}
+        console.log('initing the editor for path');
+        initEditor('{{path}}');      
+    {% endif %}
+
+    var editor = new tui.Editor({
+        el: document.querySelector('#editorSection'),
+        previewStyle: 'tab',  // vertical|horizontal
+        height: '900px',
+          usageStatistics: false,
+        initialEditType: 'markdown',
+        {% if md_content %}
+        {% else %}
+          initialValue: '', 
+        {% endif %}
+        exts: [
+          {
+            name: 'chart',
+            minWidth: 100,
+            maxWidth: 600,
+            minHeight: 100,
+            maxHeight: 300
+          },
+          'scrollSync',
+          'colorSyntax',
+          'uml',
+          'mark',
+          'table'
+        ]
+    });
+
+    function initEditor(path) {
+  $.get( 
+   "/api/get_content", { 
+       f: path 
+   }, 
+   function(data) { 
+             if (data.result == 'success') {
+          editor.setValue(data.content);
+       } else {
+                console.log('something went wrong while fetching the file content', data.result);
+              $('#status').text('something went wrong while fetching the file content', data.result);
+             }
+   }); 
+    }
+
+    function update() {
+       var text = editor.getMarkdown();
+       var file_path = $('#a-path').text();
+       $.post('/api/update', {updated_content: text, file_path: file_path}, function(result){
+          console.log('Finished request', result, result.result);
+          if (result.result == 'success') {
+            $('#status').text('Updated @ ' + (new Date()));
+            console.log('Reloading');
+            location.reload();
+          } else {
+            $('#status').text('Failed to update @ ' + (new Date()));
+    }
+       });
+    }
+
+    function addNode(parent) {
+        console.log('adding node to parent', parent);
+        $('#modal-input-parent-path').attr('value', parent);
+        $('#modal-input-prefix').text(parent + '/');
+        $('#nodeModal').modal();
+    }
+</script>
+</body>
+</html>
