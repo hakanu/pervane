@@ -150,9 +150,6 @@
                     <a id="a-path" href="file://{{path}}" target="_blank">{{ path }}</a>&nbsp;&nbsp;
                     <span><a href="#" onclick="update()">💾</a></span>
                     <sub id="status"></sub>
-                    <button id="watch-btn">Preview</button>
-                    <button id="unwatch-btn">Hide preview</button>
-                    <button id="fullscreen-btn">Fullscreen (F11 into, ESC exit)</button>
                 </h6>
                 {% if ext == '.md' %}
                     {% if not md_content and html_content %}
@@ -188,15 +185,15 @@
 <header>
     <h1>Themes</h1>
     <p>
-        <select id="editormd-theme-select">
-            <option selected="selected" value="">select Editor.md themes</option>
-        </select>
-        <select id="editor-area-theme-select">
-            <option selected="selected" value="">select editor area themes</option>
-        </select>
-        <select id="preview-area-theme-select">
-            <option selected="selected" value="">select preview area themes</option>
-        </select>
+      <select id="editormd-theme-select">
+          <option selected="selected" value="">select Editor.md themes</option>
+      </select>
+      <select id="editor-area-theme-select">
+          <option selected="selected" value="">select editor area themes</option>
+      </select>
+      <select id="preview-area-theme-select">
+          <option selected="selected" value="">select preview area themes</option>
+      </select>
     </p>
 </header>
 
@@ -235,8 +232,6 @@
 <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.17.1/build/highlight.min.js"></script>
 <script src="/static/js/editormd.min.js"></script>
 <script src="/static/js/en.js"></script>
-<!-- <script src="https://uicdn.toast.com/tui-editor/latest/tui-editor-Editor-full.js"></script> -->
-<!--    <script src="https://cdnjs.cloudflare.com/ajax/libs/Darkmode.js/1.5.4/darkmode-js.min.js"></script>-->
 <script>
     // Get expand/collapse memory from localstorage.
     for (var i = 0; i < localStorage.length; i++) {
@@ -291,6 +286,8 @@
                         autoHeight : true,
                         codeFold         : true,
                         searchReplace    : true,
+                        flowChart : true,
+                        sequenceDiagram : true,
                         theme        : (localStorage.theme) ? localStorage.theme : "dark",
                         previewTheme : (localStorage.previewTheme) ? localStorage.previewTheme : "dark", 
                         editorTheme  : (localStorage.editorTheme) ? localStorage.editorTheme : "pastel-on-dark", 
@@ -348,7 +345,6 @@
         return select;
     }
 
-
     themeSelect("editormd-theme-select", editormd.themes, "theme", function($this, theme) {
         editor.setTheme(theme);
     });
@@ -360,18 +356,6 @@
     themeSelect("preview-area-theme-select", editormd.previewThemes, "previewTheme", function($this, theme) {
         editor.setPreviewTheme(theme);
     }); 
-
-    $("#fullscreen-btn").bind("click", function() {
-        editor.fullscreen();
-    });
-
-    $("#watch-btn").bind('click', function() {
-        editor.watch();
-    });                 
-
-    $("#unwatch-btn").bind('click', function() {
-        editor.unwatch();
-    });  
 </script>
 </body>
 </html>
