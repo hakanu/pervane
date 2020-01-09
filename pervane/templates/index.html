@@ -150,6 +150,8 @@
                     <a id="a-path" href="file://{{path}}" target="_blank">{{ path }}</a>&nbsp;&nbsp;
                     <span><a href="#" onclick="update()">💾</a></span>
                     <sub id="status"></sub>
+                    <button id="watch-btn">Preview</button>
+                    <button id="unwatch-btn">Hide preview</button>
                     <button id="fullscreen-btn">Fullscreen (F11 into, ESC exit)</button>
                 </h6>
                 {% if ext == '.md' %}
@@ -362,6 +364,14 @@
     $("#fullscreen-btn").bind("click", function() {
         editor.fullscreen();
     });
+
+    $("#watch-btn").bind('click', function() {
+        editor.watch();
+    });                 
+
+    $("#unwatch-btn").bind('click', function() {
+        editor.unwatch();
+    });  
 </script>
 </body>
 </html>
