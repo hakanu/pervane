@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="pervane", # Replace with your own username
-    version="0.0.19",
+    version="0.0.21",
     author="hakanu",
     author_email="hi@hakanu.net",
     description="Plain text backed web based note taking app",
@@ -27,4 +27,5 @@ setuptools.setup(
     python_requires='>=3.6',
     #scripts=['bin/pervane'],
     entry_points={"console_scripts": ["pervane = pervane.cli:main"]},
+    include_package_data=True,
 )
