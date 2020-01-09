@@ -180,6 +180,23 @@
     </div>
 </div>
 
+<br>
+<br>
+<header>
+    <h1>Themes</h1>
+    <p>
+        <select id="editormd-theme-select">
+            <option selected="selected" value="">select Editor.md themes</option>
+        </select>
+        <select id="editor-area-theme-select">
+            <option selected="selected" value="">select editor area themes</option>
+        </select>
+        <select id="preview-area-theme-select">
+            <option selected="selected" value="">select preview area themes</option>
+        </select>
+    </p>
+</header>
+
 <!-- Modal -->
 <div class="modal fade" id="nodeModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered" role="document">
@@ -266,15 +283,15 @@
                     // editor.setMarkdown(data.content);
                     editor = editormd("editor", {
                         width: "100%",
-                        height: "300%",
-                        theme: "dark",
-                        markdown: data.content,  // Need to load like this.
+                        // height: "300%",
+                        taskList : true,
+                        autoHeight : true,
+                        theme        : (localStorage.theme) ? localStorage.theme : "dark",
+                        previewTheme : (localStorage.previewTheme) ? localStorage.previewTheme : "dark", 
+                        editorTheme  : (localStorage.editorTheme) ? localStorage.editorTheme : "pastel-on-dark", 
+                        markdown: data.content,  // TODO(hakanu): Needed to load like this.
                         path : "/static/js/lib/"  // Autoload modules mode, codemirror, marked... dependents libs path
                     });
-                    editor.setPreviewTheme('dark');
-                    // editor.setTheme('monokai');
-                    editor.setEditorTheme('monokai');
-                    console.log('editor', editor);
                  } else {
                     console.log('something went wrong while fetching the file content', data.result);
                     $('#status').text('something went wrong while fetching the file content', data.result);
@@ -304,6 +321,40 @@
         $('#modal-input-prefix').text(parent + '/');
         $('#nodeModal').modal();
     }
+
+    function themeSelect(id, themes, lsKey, callback) {
+        var select = $("#" + id);
+        for (var i = 0, len = themes.length; i < len; i ++) {                    
+            var theme    = themes[i];
+            var selected = (localStorage[lsKey] == theme) ? " selected=\"selected\"" : "";
+            select.append("<option value=\"" + theme + "\"" + selected + ">" + theme + "</option>");
+        }
+        
+        select.bind("change", function(){
+            var theme = $(this).val();
+            if (theme === "") {
+                alert("theme == \"\"");
+                return false;
+            }
+            console.log("lsKey =>", lsKey, theme);
+            localStorage[lsKey] = theme;
+            callback(select, theme);
+        }); 
+        return select;
+    }
+
+
+    themeSelect("editormd-theme-select", editormd.themes, "theme", function($this, theme) {
+        editor.setTheme(theme);
+    });
+    
+    themeSelect("editor-area-theme-select", editormd.editorThemes, "editorTheme", function($this, theme) {
+        editor.setCodeMirrorTheme(theme); 
+    });
+    
+    themeSelect("preview-area-theme-select", editormd.previewThemes, "previewTheme", function($this, theme) {
+        editor.setPreviewTheme(theme);
+    }); 
 </script>
 </body>
 </html>
