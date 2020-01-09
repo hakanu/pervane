@@ -150,6 +150,7 @@
                     <a id="a-path" href="file://{{path}}" target="_blank">{{ path }}</a>&nbsp;&nbsp;
                     <span><a href="#" onclick="update()">💾</a></span>
                     <sub id="status"></sub>
+                    <button id="fullscreen-btn">Fullscreen (F11 into, ESC exit)</button>
                 </h6>
                 {% if ext == '.md' %}
                     {% if not md_content and html_content %}
@@ -286,6 +287,8 @@
                         // height: "300%",
                         taskList : true,
                         autoHeight : true,
+                        codeFold         : true,
+                        searchReplace    : true,
                         theme        : (localStorage.theme) ? localStorage.theme : "dark",
                         previewTheme : (localStorage.previewTheme) ? localStorage.previewTheme : "dark", 
                         editorTheme  : (localStorage.editorTheme) ? localStorage.editorTheme : "pastel-on-dark", 
@@ -355,6 +358,10 @@
     themeSelect("preview-area-theme-select", editormd.previewThemes, "previewTheme", function($this, theme) {
         editor.setPreviewTheme(theme);
     }); 
+
+    $("#fullscreen-btn").bind("click", function() {
+        editor.fullscreen();
+    });
 </script>
 </body>
 </html>
