@@ -9,11 +9,12 @@
 
     <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.17.1/build/styles/default.min.css">
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" rel="stylesheet" >
-    <link rel="stylesheet" href="https://uicdn.toast.com/tui-editor/latest/tui-editor.css"></link>
+<!--     <link rel="stylesheet" href="https://uicdn.toast.com/tui-editor/latest/tui-editor.css"></link>
     <link rel="stylesheet" href="https://uicdn.toast.com/tui-editor/latest/tui-editor-contents.css"></link>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/codemirror.css"></link>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css"></link>
-    <link href="https://fonts.googleapis.com/css?family=PT+Sans&display=swap" rel="stylesheet">
+ -->    <link href="https://fonts.googleapis.com/css?family=PT+Sans&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/editormd.min.css" />
     <style>
       body {
         margin: 10px;
@@ -22,6 +23,7 @@
         padding-bottom: 3rem;
         color: #5a5a5a;
   /*        font-size: 1.5vw;*/
+        background-color:rgb(90, 90, 90);
       }
 
       ul {
@@ -41,6 +43,19 @@
 
       nav {
         max-height: 38;
+      }
+
+      .sidebar {
+        background-color:rgb(90, 90, 90);
+        color: white;
+      }
+
+      .sidebar a {
+        color: white;
+      }
+
+      .col-md-9 a {
+        color: white;
       }
     </style>
  </head>
@@ -70,7 +85,7 @@
 
 <div class="">
     <div class="row">
-        <div class="col-md-3">
+        <div class="col-md-3 sidebar">
           <p>
             <a href="/">{{ tree.path}}</a>
             <span>
@@ -140,7 +155,11 @@
                     {% if not md_content and html_content %}
                         <div>{{ html_content|safe }}</div>
                     {% else %}
-                        <div id="editorSection"></div>
+                        <!-- <div id="editorSection"></div> -->
+                        <div id="editor">
+                            <!-- Tips: Editor.md can auto append a `<textarea>` tag -->
+                            <textarea style="display:none;">### Hello Editor.md !</textarea>
+                        </div>
                     {% endif %}
                 {% else %}
                     <pre><code class="{{ext|replace('.', '')}}">{{ html_content|e }}</code></pre>
@@ -194,18 +213,18 @@
 <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
 <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.17.1/build/highlight.min.js"></script>
-<script src="https://uicdn.toast.com/tui-editor/latest/tui-editor-Editor-full.js"></script>
+<script src="/static/js/editormd.min.js"></script>
+<script src="/static/js/en.js"></script>
+<!-- <script src="https://uicdn.toast.com/tui-editor/latest/tui-editor-Editor-full.js"></script> -->
 <!--    <script src="https://cdnjs.cloudflare.com/ajax/libs/Darkmode.js/1.5.4/darkmode-js.min.js"></script>-->
 <script>
     // Get expand/collapse memory from localstorage.
     for (var i = 0; i < localStorage.length; i++) {
       var key = localStorage.key(i);
       var value = localStorage.getItem(key);
-      console.log('Key: ' + key + ', Value: ' + value);  
       // Hacky but useful way to generate ids from folder paths.
       // needed to use false as a str because is(visible) is serialized :/
       if (value != 'false') {
-        console.log('making it visible: ', $('#' + key)[0]);
         $('#' + key).eq(0).css("display", "block");
       }
     }
@@ -222,56 +241,46 @@
 
     $('.expand').click(function() {
       var nearest_ul = $('ul', $(this).parent()).eq(0);
-      console.log('expanding', nearest_ul.attr('id'), nearest_ul.is(':visible')); 
       nearest_ul.toggle();
       window.localStorage.setItem(nearest_ul.attr('id'),
                                   nearest_ul.is(':visible'));
     });
 
     {% if md_content and path %}
-        console.log('initing the editor for path');
         initEditor('{{path}}');      
     {% endif %}
 
-    var editor = new tui.Editor({
-        el: document.querySelector('#editorSection'),
-        previewStyle: 'tab',  // vertical|horizontal
-        height: '900px',
-          usageStatistics: false,
-        initialEditType: 'markdown',
-        {% if md_content %}
-        {% else %}
-          initialValue: '', 
-        {% endif %}
-        exts: [
-          {
-            name: 'chart',
-            minWidth: 100,
-            maxWidth: 600,
-            minHeight: 100,
-            maxHeight: 300
-          },
-          'scrollSync',
-          'colorSyntax',
-          'uml',
-          'mark',
-          'table'
-        ]
-    });
+    var editor = null;
 
     function initEditor(path) {
-  $.get( 
-   "/api/get_content", { 
-       f: path 
-   }, 
-   function(data) { 
-             if (data.result == 'success') {
-          editor.setValue(data.content);
-       } else {
-                console.log('something went wrong while fetching the file content', data.result);
-              $('#status').text('something went wrong while fetching the file content', data.result);
-             }
-   }); 
+        console.log('initing editor', path);
+        if (path) {
+          $.get( 
+             "/api/get_content", { 
+                 f: path 
+             }, 
+             function(data) { 
+                 if (data.result == 'success') {
+                    // TODO(hakanu): No idea why this is not working.
+                    // editor.setValue(data.content);
+                    // editor.setMarkdown(data.content);
+                    editor = editormd("editor", {
+                        width: "100%",
+                        height: "300%",
+                        theme: "dark",
+                        markdown: data.content,  // Need to load like this.
+                        path : "/static/js/lib/"  // Autoload modules mode, codemirror, marked... dependents libs path
+                    });
+                    editor.setPreviewTheme('dark');
+                    // editor.setTheme('monokai');
+                    editor.setEditorTheme('monokai');
+                    console.log('editor', editor);
+                 } else {
+                    console.log('something went wrong while fetching the file content', data.result);
+                    $('#status').text('something went wrong while fetching the file content', data.result);
+                 }
+             }); 
+        }
     }
 
     function update() {
