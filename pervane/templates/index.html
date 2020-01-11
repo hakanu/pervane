@@ -5,58 +5,15 @@
     <link rel="apple-touch-icon" sizes="180x180" href="static/img/favicon/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="static/img/favicon/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="static/img/favicon/favicon-16x16.png">
-    <link rel="manifest" href="/site.webmanifest">
+    <!-- <link rel="manifest" href="/site.webmanifest"> -->
 
     <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.17.1/build/styles/default.min.css">
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" rel="stylesheet" >
-<!--     <link rel="stylesheet" href="https://uicdn.toast.com/tui-editor/latest/tui-editor.css"></link>
-    <link rel="stylesheet" href="https://uicdn.toast.com/tui-editor/latest/tui-editor-contents.css"></link>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/codemirror.css"></link>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css"></link>
- -->    <link href="https://fonts.googleapis.com/css?family=PT+Sans&display=swap" rel="stylesheet">
+    <!-- <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" rel="stylesheet" > -->
+    <link href="https://stackpath.bootstrapcdn.com/bootswatch/4.4.1/darkly/bootstrap.min.css" rel="stylesheet" >
+    <link href="https://fonts.googleapis.com/css?family=PT+Sans&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/editormd.min.css" />
+    <link rel="stylesheet" href="/static/css/styles.css" />
     <style>
-      body {
-        margin: 10px;
-        font-family: 'PT Sans', sans-serif;
-        padding-top: 3rem;
-        padding-bottom: 3rem;
-        color: #5a5a5a;
-  /*        font-size: 1.5vw;*/
-        background-color:rgb(90, 90, 90);
-      }
-
-      ul {
-        padding-left: 15px;
-      }
-
-      ul li ul {
-        display: none;
-        padding-left: 15px;
-      }
-
-      input {
-        max-height: 30px;
-        padding-top: 5px;
-        margin-top: 10px;
-      }
-
-      nav {
-        max-height: 38;
-      }
-
-      .sidebar {
-        background-color:rgb(90, 90, 90);
-        color: white;
-      }
-
-      .sidebar a {
-        color: white;
-      }
-
-      .col-md-9 a {
-        color: white;
-      }
     </style>
  </head>
  <body>
@@ -73,6 +30,9 @@
           <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
         </li>
         <li class="nav-item">
+          <a class="nav-link" href="#" data-toggle="modal" data-target="#settings-modal">Settings</a>
+        </li>
+        <li class="nav-item">
           <a class="nav-link" href="https://github.com/hakanu/pervane">Contribute</a>
         </li>
       </ul>
@@ -84,120 +44,98 @@
 </header>
 
 <div class="">
-    <div class="row">
-        <div class="col-md-3 sidebar">
-          <p>
-            <a href="/">{{ tree.path}}</a>
-            <span>
-              <a href="#" onclick="addNode('{{ tree.path }}')">
-                <svg class="bi bi-plus" width="1em" height="1em" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                  <path fill-rule="evenodd" d="M10 5.5a.5.5 0 01.5.5v4a.5.5 0 01-.5.5H6a.5.5 0 010-1h3.5V6a.5.5 0 01.5-.5z" clip-rule="evenodd"/>
-                  <path fill-rule="evenodd" d="M9.5 10a.5.5 0 01.5-.5h4a.5.5 0 010 1h-3.5V14a.5.5 0 01-1 0v-4z" clip-rule="evenodd"/>
-              </svg></a>
-            </span>
-          </p>
+  <div class="row">
+    <div class="col-md-2 sidebar">
+      <p>
+        <a href="/">
+          <i class="fa fa-folder" aria-hidden="true"></i>
+          {{ tree.path}}
+        </a>
 
-          <ul>
-          {%- for item in tree.children recursive %}
-              <li>
-            {% if '.' in item.name and not item.name.startswith('.')  %}
-              <a href="/file?f={{ item.path }}">
+        <span>
+          <a href="#" onclick="addNode('{{ tree.path }}')">
+            <i class="fa fa-plus-square" aria-hidden="true"></i>
+          </a>
+        </span>
+      </p>
 
-                {% if item.path.endswith('.md') %}
-                  <svg class="bi bi-document-text" width="1em" height="1em" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                    <path fill-rule="evenodd" d="M6 3h8a2 2 0 012 2v10a2 2 0 01-2 2H6a2 2 0 01-2-2V5a2 2 0 012-2zm0 1a1 1 0 00-1 1v10a1 1 0 001 1h8a1 1 0 001-1V5a1 1 0 00-1-1H6z" clip-rule="evenodd"/>
-                    <path fill-rule="evenodd" d="M6.5 14a.5.5 0 01.5-.5h3a.5.5 0 010 1H7a.5.5 0 01-.5-.5zm0-2a.5.5 0 01.5-.5h6a.5.5 0 010 1H7a.5.5 0 01-.5-.5zm0-2a.5.5 0 01.5-.5h6a.5.5 0 010 1H7a.5.5 0 01-.5-.5zm0-2a.5.5 0 01.5-.5h6a.5.5 0 010 1H7a.5.5 0 01-.5-.5zm0-2a.5.5 0 01.5-.5h6a.5.5 0 010 1H7a.5.5 0 01-.5-.5z" clip-rule="evenodd"/>
-                  </svg>
-                {% else %}
-                  <svg class="bi bi-document-code" width="1em" height="1em" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                    <path fill-rule="evenodd" d="M6 3h8a2 2 0 012 2v10a2 2 0 01-2 2H6a2 2 0 01-2-2V5a2 2 0 012-2zm0 1a1 1 0 00-1 1v10a1 1 0 001 1h8a1 1 0 001-1V5a1 1 0 00-1-1H6z" clip-rule="evenodd"/>
-                    <path fill-rule="evenodd" d="M10.646 7.646a.5.5 0 01.708 0l2 2a.5.5 0 010 .708l-2 2a.5.5 0 01-.708-.708L12.293 10l-1.647-1.646a.5.5 0 010-.708zm-1.292 0a.5.5 0 00-.708 0l-2 2a.5.5 0 000 .708l2 2a.5.5 0 00.708-.708L7.707 10l1.647-1.646a.5.5 0 000-.708z" clip-rule="evenodd"/>
-                  </svg>
-                {% endif %}
-                {{ item.name }}
-              </a>
+      <ul>
+      {%- for item in tree.children recursive %}
+          <li>
+        {% if '.' in item.name and not item.name.startswith('.')  %}
+          <a href="/file?f={{ item.path }}">
+            {% if item.path.endswith('.md') %}
+              <i class="fa fa-file-text" aria-hidden="true"></i>
             {% else %}
-                <a href="#" data-href="/dir?d={{ item.path }}" class="expand">
-                 <svg class="bi bi-folder" width="1em" height="1em" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M11.828 6a3 3 0 01-2.12-.879l-.83-.828A1 1 0 008.173 4H4.5a1 1 0 00-1 .981L3.546 6h-1L2.5 5a2 2 0 012-2h3.672a2 2 0 011.414.586l.828.828A2 2 0 0011.828 5v1z"/>
-                  <path fill-rule="evenodd" d="M15.81 6H4.19a1 1 0 00-.996 1.09l.637 7a1 1 0 00.995.91h10.348a1 1 0 00.995-.91l.637-7A1 1 0 0015.81 6zM4.19 5a2 2 0 00-1.992 2.181l.637 7A2 2 0 004.826 16h10.348a2 2 0 001.991-1.819l.637-7A2 2 0 0015.81 5H4.19z" clip-rule="evenodd"/>
-                </svg>
-                {{ item.name }}/
-              </a>
-
-              &nbsp;&nbsp;
-              <span>
-                <a href="#" onclick="addNode('{{ item.path }}')">
-                  <svg class="bi bi-plus" width="1em" height="1em" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                    <path fill-rule="evenodd" d="M10 5.5a.5.5 0 01.5.5v4a.5.5 0 01-.5.5H6a.5.5 0 010-1h3.5V6a.5.5 0 01.5-.5z" clip-rule="evenodd"/>
-                    <path fill-rule="evenodd" d="M9.5 10a.5.5 0 01.5-.5h4a.5.5 0 010 1h-3.5V14a.5.5 0 01-1 0v-4z" clip-rule="evenodd"/>
-                  </svg>
-                </a>
-              </span>
+              <i class="fa fa-file-code-o" aria-hidden="true"></i>
             {% endif %}
+            {{ item.name }}
+          </a>
+        {% else %}
+          <a href="#" data-href="/dir?d={{ item.path }}" class="expand">
+            <i class="fa fa-folder" aria-hidden="true"></i>
+            {{ item.name }}/
+          </a>
 
-            {%- if item.children -%}
-                <ul id="{{item.path|replace(' ', '_')|replace('/', '-'|replace('\\', '-'))}}">{{ loop(item.children) }}</ul>
-            {%- endif %}
-              </li>
-          {%- endfor %}
-          </ul>
-        </div>
+          &nbsp;&nbsp;
+          <span>
+            <a href="#" onclick="addNode('{{ item.path }}')">
+              <i class="fa fa-plus-square" aria-hidden="true"></i>
+            </a>
+          </span>
+        {% endif %}
 
-        <div class="col-md-9">
-            {% if not search_results %}
-                <h6>
-                    <a id="a-path" href="file://{{path}}" target="_blank">{{ path }}</a>&nbsp;&nbsp;
-                    <span><a href="#" onclick="update()">💾</a></span>
-                    <sub id="status"></sub>
-                </h6>
-                {% if ext == '.md' %}
-                    {% if not md_content and html_content %}
-                        <div>{{ html_content|safe }}</div>
-                    {% else %}
-                        <!-- <div id="editorSection"></div> -->
-                        <div id="editor">
-                            <!-- Tips: Editor.md can auto append a `<textarea>` tag -->
-                            <textarea style="display:none;">### Hello Editor.md !</textarea>
-                        </div>
-                    {% endif %}
-                {% else %}
-                    <pre><code class="{{ext|replace('.', '')}}">{{ html_content|e }}</code></pre>
-                {% endif %}
-            {% else %}
-                <h6>Results for <b>{{ query|e }}</b></h6>
-                <p><sub>{{ stats }}</sub></p>
-                {% for result in search_results %}
-                   <a href="/file?f={{ result.file}}" target="_blank">{{ result.file }}</a>
-                   <ul>
-                      {% for match in result.matches %}
-                              <li><pre>{{match.snippet}}</pre></li>
-                      {% endfor %}
-                   </ul>
-                {% endfor %}
-            {% endif %}
-        </div>
+        {%- if item.children -%}
+            <ul id="{{item.path|replace(' ', '_')|replace('/', '-'|replace('\\', '-'))}}">{{ loop(item.children) }}</ul>
+        {%- endif %}
+          </li>
+      {%- endfor %}
+      </ul>
     </div>
+
+    <div class="col-md-10">
+      {% if not search_results %}
+        <h6>
+          <a id="a-path" href="file://{{path}}" target="_blank">{{ path }}</a>&nbsp;&nbsp;
+          <span><a href="#" onclick="update()">💾</a></span>
+          <sub id="status"></sub>
+        </h6>
+        {% if ext == '.md' %}
+          {% if not md_content and html_content %}
+            <div>{{ html_content|safe }}</div>
+          {% else %}
+            <!-- <div id="editorSection"></div> -->
+            <div id="editor">
+              <!-- Tips: Editor.md can auto append a `<textarea>` tag -->
+              <textarea style="display:none;">### Hello Editor.md !</textarea>
+            </div>
+          {% endif %}
+        {% else %}
+          <pre><code class="{{ext|replace('.', '')}}">{{ html_content|e }}</code></pre>
+        {% endif %}
+      {% else %}
+        <h6>Results for <b>{{ query|e }}</b></h6>
+        <p><sub>{{ stats }}</sub></p>
+        {% for result in search_results %}
+          <a href="/file?f={{ result.file}}" target="_blank">{{ result.file }}</a>
+          <ul>
+            {% for match in result.matches %}
+              <li><pre>{{match.snippet}}</pre></li>
+            {% endfor %}
+          </ul>
+        {% endfor %}
+      {% endif %}
+
+      
+    </div>
+  </div>
 </div>
 
 <br>
 <br>
-<header>
-    <h1>Themes</h1>
-    <p>
-      <select id="editormd-theme-select">
-          <option selected="selected" value="">select Editor.md themes</option>
-      </select>
-      <select id="editor-area-theme-select">
-          <option selected="selected" value="">select editor area themes</option>
-      </select>
-      <select id="preview-area-theme-select">
-          <option selected="selected" value="">select preview area themes</option>
-      </select>
-    </p>
-</header>
 
-<!-- Modal -->
+
+<!-- New folder/file Modal -->
 <div class="modal fade" id="nodeModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered" role="document">
     <div class="modal-content">
@@ -227,135 +165,166 @@
   </div>
 </div>
 
+<!-- Settings Modal -->
+<div class="modal fade" id="settings-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Settings</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <header>
+          <h6>Themes</h6>
+          <div class="form-group">
+            <select class="form-control" id="editormd-theme-select">
+              <option selected="selected" value="">select Editor.md themes</option>
+            </select><br>
+            <select class="form-control" id="editor-area-theme-select">
+              <option selected="selected" value="">select editor area themes</option>
+            </select><br>
+            <select class="form-control" id="preview-area-theme-select">
+              <option selected="selected" value="">select preview area themes</option>
+            </select><br>
+          </div>
+        </header>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary">Save changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
 <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.17.1/build/highlight.min.js"></script>
 <script src="/static/js/editormd.min.js"></script>
 <script src="/static/js/en.js"></script>
 <script>
-    // Get expand/collapse memory from localstorage.
-    for (var i = 0; i < localStorage.length; i++) {
-      var key = localStorage.key(i);
-      var value = localStorage.getItem(key);
-      // Hacky but useful way to generate ids from folder paths.
-      // needed to use false as a str because is(visible) is serialized :/
-      if (value != 'false') {
-        $('#' + key).eq(0).css("display", "block");
+// Get expand/collapse memory from localstorage.
+for (var i = 0; i < localStorage.length; i++) {
+  var key = localStorage.key(i);
+  var value = localStorage.getItem(key);
+  // Hacky but useful way to generate ids from folder paths.
+  // needed to use false as a str because is(visible) is serialized :/
+  if (value != 'false') {
+    $('#' + key).eq(0).css("display", "block");
+  }
+}
+
+document.addEventListener('DOMContentLoaded', (event) => {
+  document.querySelectorAll('pre code').forEach((block) => {
+    hljs.highlightBlock(block);
+  });
+}); 
+
+// Consider enabling dark mode. Need more work though.
+// TUI Editor doesn't have dark mode.
+//new Darkmode().showWidget();
+
+$('.expand').click(function() {
+  var nearest_ul = $('ul', $(this).parent()).eq(0);
+  nearest_ul.toggle();
+  window.localStorage.setItem(nearest_ul.attr('id'),
+                              nearest_ul.is(':visible'));
+});
+
+{% if (md_content or md != '') and path %}
+    initEditor('{{path}}');      
+{% endif %}
+
+var editor = null;
+
+function initEditor(path) {
+  if (path) {
+    $.get( 
+      "/api/get_content", { 
+        f: path 
+      }, 
+      function(data) { 
+        if (data.result == 'success') {
+          // TODO(hakanu): No idea why this is not working.
+          // editor.setValue(data.content);
+          // editor.setMarkdown(data.content);
+          editor = editormd("editor", {
+              width: "100%",
+              // height: "300%",
+              taskList: true,
+              autoHeight: true,
+              codeFold: true,
+              searchReplace: true,
+              flowChart : true,
+              sequenceDiagram : true,
+              theme: (localStorage.theme) ? localStorage.theme : "dark",
+              previewTheme: (localStorage.previewTheme) ? localStorage.previewTheme : "dark", 
+              editorTheme: (localStorage.editorTheme) ? localStorage.editorTheme : "pastel-on-dark", 
+              // TODO(hakanu): Needed to load like this. Otherwise editor
+              // puts its own placeholder to the textarea instead of empty.
+              markdown: data.content + '\n',  
+              path : "/static/js/lib/"  // Autoload modules mode.
+          });
+        } else {
+          console.log('something went wrong while fetching the file content', data.result);
+          $('#status').text('something went wrong while fetching the file content', data.result);
+        }
+      }); 
+  }
+}
+
+function update() {
+  var text = editor.getMarkdown();
+  var file_path = $('#a-path').text();
+  $.post('/api/update', {updated_content: text, file_path: file_path}, function(result){
+    if (result.result == 'success') {
+      $('#status').text('Updated @ ' + (new Date()));
+    } else {
+      $('#status').text('Failed to update @ ' + (new Date()));
+    }
+  });
+}
+
+function addNode(parent) {
+  $('#modal-input-parent-path').attr('value', parent);
+  $('#modal-input-prefix').text(parent + '/');
+  $('#nodeModal').modal();
+}
+
+function themeSelect(id, themes, lsKey, callback) {
+  var select = $("#" + id);
+  for (var i = 0, len = themes.length; i < len; i ++) {                    
+      var theme    = themes[i];
+      var selected = (localStorage[lsKey] == theme) ? " selected=\"selected\"" : "";
+      select.append("<option value=\"" + theme + "\"" + selected + ">" + theme + "</option>");
+  }
+  
+  select.bind("change", function(){
+      var theme = $(this).val();
+      if (theme === "") {
+          alert("theme == \"\"");
+          return false;
       }
-    }
+      console.log("lsKey =>", lsKey, theme);
+      localStorage[lsKey] = theme;
+      callback(select, theme);
+  }); 
+  return select;
+}
 
-    document.addEventListener('DOMContentLoaded', (event) => {
-      document.querySelectorAll('pre code').forEach((block) => {
-        hljs.highlightBlock(block);
-      });
-    }); 
+themeSelect("editormd-theme-select", editormd.themes, "theme", function($this, theme) {
+    editor.setTheme(theme);
+});
 
-    // Consider enabling dark mode. Need more work though.
-    // TUI Editor doesn't have dark mode.
-    //new Darkmode().showWidget();
+themeSelect("editor-area-theme-select", editormd.editorThemes, "editorTheme", function($this, theme) {
+    editor.setCodeMirrorTheme(theme); 
+});
 
-    $('.expand').click(function() {
-      var nearest_ul = $('ul', $(this).parent()).eq(0);
-      nearest_ul.toggle();
-      window.localStorage.setItem(nearest_ul.attr('id'),
-                                  nearest_ul.is(':visible'));
-    });
-
-    {% if md_content and path %}
-        initEditor('{{path}}');      
-    {% endif %}
-
-    var editor = null;
-
-    function initEditor(path) {
-        console.log('initing editor', path);
-        if (path) {
-          $.get( 
-             "/api/get_content", { 
-                 f: path 
-             }, 
-             function(data) { 
-                 if (data.result == 'success') {
-                    // TODO(hakanu): No idea why this is not working.
-                    // editor.setValue(data.content);
-                    // editor.setMarkdown(data.content);
-                    editor = editormd("editor", {
-                        width: "100%",
-                        // height: "300%",
-                        taskList : true,
-                        autoHeight : true,
-                        codeFold         : true,
-                        searchReplace    : true,
-                        flowChart : true,
-                        sequenceDiagram : true,
-                        theme        : (localStorage.theme) ? localStorage.theme : "dark",
-                        previewTheme : (localStorage.previewTheme) ? localStorage.previewTheme : "dark", 
-                        editorTheme  : (localStorage.editorTheme) ? localStorage.editorTheme : "pastel-on-dark", 
-                        markdown: data.content,  // TODO(hakanu): Needed to load like this.
-                        path : "/static/js/lib/"  // Autoload modules mode, codemirror, marked... dependents libs path
-                    });
-                 } else {
-                    console.log('something went wrong while fetching the file content', data.result);
-                    $('#status').text('something went wrong while fetching the file content', data.result);
-                 }
-             }); 
-        }
-    }
-
-    function update() {
-       var text = editor.getMarkdown();
-       var file_path = $('#a-path').text();
-       $.post('/api/update', {updated_content: text, file_path: file_path}, function(result){
-          console.log('Finished request', result, result.result);
-          if (result.result == 'success') {
-            $('#status').text('Updated @ ' + (new Date()));
-            console.log('Reloading');
-            //location.reload();
-          } else {
-            $('#status').text('Failed to update @ ' + (new Date()));
-    }
-       });
-    }
-
-    function addNode(parent) {
-        console.log('adding node to parent', parent);
-        $('#modal-input-parent-path').attr('value', parent);
-        $('#modal-input-prefix').text(parent + '/');
-        $('#nodeModal').modal();
-    }
-
-    function themeSelect(id, themes, lsKey, callback) {
-        var select = $("#" + id);
-        for (var i = 0, len = themes.length; i < len; i ++) {                    
-            var theme    = themes[i];
-            var selected = (localStorage[lsKey] == theme) ? " selected=\"selected\"" : "";
-            select.append("<option value=\"" + theme + "\"" + selected + ">" + theme + "</option>");
-        }
-        
-        select.bind("change", function(){
-            var theme = $(this).val();
-            if (theme === "") {
-                alert("theme == \"\"");
-                return false;
-            }
-            console.log("lsKey =>", lsKey, theme);
-            localStorage[lsKey] = theme;
-            callback(select, theme);
-        }); 
-        return select;
-    }
-
-    themeSelect("editormd-theme-select", editormd.themes, "theme", function($this, theme) {
-        editor.setTheme(theme);
-    });
-    
-    themeSelect("editor-area-theme-select", editormd.editorThemes, "editorTheme", function($this, theme) {
-        editor.setCodeMirrorTheme(theme); 
-    });
-    
-    themeSelect("preview-area-theme-select", editormd.previewThemes, "previewTheme", function($this, theme) {
-        editor.setPreviewTheme(theme);
-    }); 
+themeSelect("preview-area-theme-select", editormd.previewThemes, "previewTheme", function($this, theme) {
+    editor.setPreviewTheme(theme);
+}); 
 </script>
 </body>
 </html>
