@@ -1,4 +1,5 @@
-"""Simple server to serve and files with directory hierarchy.
+"""Simple plain text based note taking app to serve and files
+with directory hierarchy.
 
 # Dependencies:
 
@@ -24,7 +25,7 @@ should be fairly fast and cached.
 # Init:
 virtualenv -p python3 env
 source env/bin/activate
-pip install flask markdown2 Flask-Caching Flask-HTTPAuth mistune
+pip install flask markdown2 Flask-Caching Flask-HTTPAuth 
 
 # Run simple:
 python3 serve.py 
@@ -57,14 +58,14 @@ parser.add_argument('--username', dest='username', default='hakuna',
                     help='Authentication username')
 parser.add_argument('--password', dest='password', default='matata',
                     help='Authentication password')
-parser.add_argument('--cache_seconds', dest='cache_seconds', default=50,
+parser.add_argument('--cache_seconds', dest='cache_seconds', default=2,
                     help='Cache the sidebar file tree creation.')
 parser.add_argument(
     '--ignore_patterns', dest='ignore_patterns', nargs='*',
     default=["env/.*", ".git", ".*.swp", ".*.pyc", "__pycache__", ".allmark",
              "_vnote.json", "!!!meta.json", "PaxHeader", ".nojekyll",
              ".*.sqlite"],
-    help='Cache the sidebar file tree creation.')
+    help='Ignored file patterns during file tree creation.')
 parser.add_argument(
     '--front_page_message', dest='front_page_message', default=50,
     help='Cache the sidebar file tree creation.')

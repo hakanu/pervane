@@ -9,7 +9,79 @@ Main use case is to edit, serve and search the markdown notes in combination wit
 
 If you are using plain text based note taking, this can be helpful for adhoc mediums like operating systems which don't have large desktop app ecosystem like ChromeOS or mobile OS like Android and iOS.
 
-Personally tried many alternatives like [allmark](https://github.com/andreaskoch/allmark), [mdserv](https://www.npmjs.com/package/markserv), [markdown-server](https://pypi.org/project/markdown-server/) but none of them seem like providing all features I'm looking for. I just want to be able to see the folder hierarchy and fuzzy text search and some better-than-basic markdown rendering.
+Personally tried many alternatives as file server like [allmark](https://github.com/andreaskoch/allmark), [mdserv](https://www.npmjs.com/package/markserv), [markdown-server](https://pypi.org/project/markdown-server/) but none of them seem like providing all features I'm looking for. I just want to be able to see the folder hierarchy and fuzzy text search and some better-than-basic markdown rendering.
+
+For the other note taking and knowledge base building apps, there is always something missing
+although how advanced they go.
+
+What I need:
+
+* Privacy, my notes are my eyes only.
+* Be able take notes from multiple entry points: desktop, web, phone, tablet.
+* Quickly search notes in any medium.
+* Hold my whole knowledge accumulated over the course of the years (around 4k notes).
+* Easy export so it doesn't lock me in.
+* Easy import so I can onboard without any problems.
+* Be able to self host
+* Nice markdown editor
+* Respect my folder hierarchy
+* Don't mess with my file names
+* git-able so that I can maintain the versions.
+* Hackable with standard CLI tools (ag, rsync, scp, tar, git etc)
+* Be able to show source code files not only markdown.
+* 
+
+## Comparison
+
+Inspried from this one from notable author.
+
+![](https://notable.md/static/images/comparison.png)
+
+* Google Keep: Always my choice on mobile. Need a long term place for my things.
+  * Can not do markdown - only bullet lists. 
+  * Can not do inline images.
+  * Really hard to export.
+  * Note limit is not that big.
+* Notion.so: Want to love it but...
+  * Impossible to bulk import multiple files. 
+  * Copy/paste is a hussle. It has its own blocking system which makes it hard
+  to copy all and paste somewhere else.
+  * Not free.
+* Trello: Kanban approach is great, 
+  * not so good for knowledgebase building.
+  * Search is weird, hard to make it one shot. 
+* Notable: Good for desktop use, no mobile option.
+  * I can not control file names. It has its own convention for folders (folder != notebook).
+  * Source is closed. 
+  * Could be used as a markdown editor.
+  * Bulk import is hard to use.
+* Trilium: My all time favorite. 
+  * Based on a database which causes lots of conflicts to me in each upgrade. 
+  * Web UI is not so good in mobile browsers especially on iPad.
+* Evernote
+  * Hierarchy level is limited.
+  * Overall free sync size is also limited.
+* Onenote: Old favorite
+  * Hierarchy is limited
+  * Hard to bulk import 
+  * Hard to bulk export
+* Joplin
+  * Renames the files in its own way.
+  * Hard to integrate with any other system.
+* Boostnote: Another old favorite
+  * Uses files but uses cjson format which is not actually markdown.
+  * Not under active development
+* QOwnNotes: Nice but meh
+  * Doesn't give much joy while using. 
+* Vnote: Perfect for desktop use.
+  * No web option
+  * Creates \_vnote.json files.
+  * Creates index for search.
+* NextCloud with carnet and NC notes
+  * Extremely slow.
+  * Not so pleasent in mobile.
+
+Please shoot an email if I miss anything.
 
 ## [Discuss](https://reddit.com/r/pervane/)
 
@@ -29,7 +101,7 @@ Personally tried many alternatives like [allmark](https://github.com/andreaskoch
 * File tree with proper infinite number of nesting, works well for hierarchical note taking and knowledge base building.
 * Basic http authentication.
 * No stats collection, all private.
-* Rich text editing experience thanks to [TUI Editor](https://github.com/nhn/tui.editor)
+* Rich text editing experience thanks to [editor.md](https://pandao.github.io/editor.md/)
 
 ## Install
 
@@ -53,7 +125,9 @@ Package details here: https://pypi.org/project/pervane/
 screen
 
 # Download the latest version.
-wget -O -N - https://raw.githubusercontent.com/hakanu/pervane/master/init.sh | bash
+git clone https://github.com/hakanu/pervane.git
+cd pervane/pervane
+python3 serve.py --username=foo --password=bar
 ```
 
 ## Options
