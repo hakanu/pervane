@@ -34,7 +34,7 @@ Hello
 > Blockquotes
 
 Blockquotes
-                    
+
 > With the link [link](https://github.com/hakanu/pervane)。
 
 ### Links
@@ -45,79 +45,30 @@ Blockquotes
 
 Direct link：<https://github.com/hakanu/pervane>
 
-[锚点链接][anchor-id] 
-
 [anchor-id]: http://www.this-anchor-link.com/
 
 [mailto:test.test@gmail.com](mailto:test.test@gmail.com)
 
-GFM a-tail link @pandao  邮箱地址自动链接 test.test@gmail.com  www@vip.qq.com
+#### Inline code
 
-> @pandao
+`pip install pervane`
 
-### 多语言代码高亮 Codes
-
-#### 行内代码 Inline code
-
-执行命令：`npm install marked`
-
-#### 缩进风格
-
-即缩进四个空格，也做为实现类似 `<pre>` 预格式化文本 ( Preformatted Text ) 的功能。
-
-    <?php
-        echo "Hello world!";
-    ?>
-    
-预格式化文本：
+#### Table
 
     | First Header  | Second Header |
     | ------------- | ------------- |
     | Content Cell  | Content Cell  |
     | Content Cell  | Content Cell  |
 
-#### JS代码　
+#### JS
 
 ```javascript
 function test() {
   console.log("Hello world!");
 }
- 
-(function(){
-    var box = function() {
-        return box.fn.init();
-    };
-
-    box.prototype = box.fn = {
-        init : function(){
-            console.log('box.init()');
-
-      return this;
-        },
-
-    add : function(str) {
-      alert("add", str);
-
-      return this;
-    },
-
-    remove : function(str) {
-      alert("remove", str);
-
-      return this;
-    }
-    };
-    
-    box.fn.init.prototype = box.fn;
-    
-    window.box =box;
-})();
-
-var testBox = box();
-testBox.add("jQuery").remove("jQuery");
 ```
 
-#### HTML 代码 HTML codes
+#### HTML
 
 ```html
 <!DOCTYPE html>
@@ -127,9 +78,9 @@ testBox.add("jQuery").remove("jQuery");
         <meta name="keywords" content="Editor.md, Markdown, Editor" />
         <title>Hello world!</title>
         <style type="text/css">
-            body{font-size:14px;color:#444;font-family: "Microsoft Yahei", Tahoma, "Hiragino Sans GB", Arial;background:#fff;}
-            ul{list-style: none;}
-            img{border:none;vertical-align: middle;}
+            body { color:#444;font-family: Arial;background:#fff; }
+            ul { list-style: none;}
+            img { border:none;vertical-align: middle; }
         </style>
     </head>
     <body>
@@ -139,57 +90,51 @@ testBox.add("jQuery").remove("jQuery");
 </html>
 ```
 
-### 图片 Images
+### Images
 
 Image:
 
-![](https://pandao.github.io/editor.md/examples/images/4.jpg)
+![](https://images.unsplash.com/photo-1578241561880-0a1d5db3cb8a?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=750&q=80)
 
 > Follow your heart.
 
-![](https://pandao.github.io/editor.md/examples/images/8.jpg)
+![](https://images.unsplash.com/photo-1578165219176-ece04edbd053?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=750&q=80)
 
-> 图为：厦门白城沙滩
+#### (Image + Link)：
 
-图片加链接 (Image + Link)：
+[![](https://images.unsplash.com/photo-1577998076239-ea6d9a7dcd82?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1050&q=80)](https://github.com/hakanu/pervane)
 
-[![](https://pandao.github.io/editor.md/examples/images/7.jpg)](https://pandao.github.io/editor.md/images/7.jpg "李健首张专辑《似水流年》封面")
+### Lists
 
-> 图为：李健首张专辑《似水流年》封面
-                
-----
+#### Unordered Lists (-)
 
-### 列表 Lists
+- One
+- Two
+- Three
 
-#### 无序列表（减号）Unordered Lists (-)
-                
-- 列表一
-- 列表二
-- 列表三
-     
-#### 无序列表（星号）Unordered Lists (*)
+#### Unordered Lists (*)
 
-* 列表一
-* 列表二
-* 列表三
+* One
+* Two
+* Three
 
-#### 无序列表（加号和嵌套）Unordered Lists (+)
-                
-+ 列表一
-+ 列表二
-    + 列表二-1
-    + 列表二-2
-    + 列表二-3
-+ 列表三
-    * 列表一
-    * 列表二
-    * 列表三
+#### Unordered Lists (+)
 
-#### 有序列表 Ordered Lists (-)
-                
-1. 第一行
-2. 第二行
-3. 第三行
++ One
++ Two
+    + One-1
+    + Two-2
+    + Three-3
++ Three
+    * One
+    * Two
+    * Three
+
+#### Ordered Lists (-)
+
+1. One
+2. Two
+3. Three
 
 #### GFM task list
 
@@ -202,17 +147,17 @@ Image:
 - [ ] GFM task list 4
     - [ ] GFM task list 4-1
     - [ ] GFM task list 4-2
-                
-----
-                    
-### 绘制表格 Tables
 
-| 项目        | 价格   |  数量  |
+----
+
+### Tables
+
+| Text       | Price   |  Amount  |
 | --------   | -----:  | :----:  |
-| 计算机      | $1600   |   5     |
-| 手机        |   $12   |   12   |
-| 管线        |    $1    |  234  |
-                    
+| Cell      | $1600   |   5     |
+| Cell        |   $12   |   12   |
+| Cell       |    $1    |  234  |
+
 First Header  | Second Header
 ------------- | -------------
 Content Cell  | Content Cell
@@ -239,13 +184,13 @@ Content Cell  | Content Cell
 | Computer  | $1600 |
 | Phone     |   $12 |
 | Pipe      |    $1 |
-                
+
 ----
 
-#### 特殊符号 HTML Entities Codes
+#### HTML Entities Codes
 
 &copy; &  &uml; &trade; &iexcl; &pound;
-&amp; &lt; &gt; &yen; &euro; &reg; &plusmn; &para; &sect; &brvbar; &macr; &laquo; &middot; 
+&amp; &lt; &gt; &yen; &euro; &reg; &plusmn; &para; &sect; &brvbar; &macr; &laquo; &middot;
 
 X&sup2; Y&sup3; &frac34; &frac14;  &times;  &divide;   &raquo;
 
@@ -253,7 +198,7 @@ X&sup2; Y&sup3; &frac34; &frac14;  &times;  &divide;   &raquo;
 
 [========]
 
-### Emoji表情 :smiley:
+### Emoji :smiley:
 
 > Blockquotes :star:
 
@@ -267,13 +212,13 @@ X&sup2; Y&sup3; &frac34; &frac14;  &times;  &divide;   &raquo;
     - [ ] :smiley: this is an incomplete item [test link](#) :fa-star: :fa-gear:;
     - [ ] :smiley: this is  :fa-star: :fa-gear: an incomplete item [test link](#);
  
-#### 反斜杠 Escape
+#### Escape
 
 \*literal asterisks\*
 
 [========]
             
-### 科学公式 TeX(KaTeX)
+### TeX(KaTeX) - math formulas
 
 $$E=mc^2$$
 
@@ -282,10 +227,8 @@ $$E=mc^2$$
 $$x > y$$
 
 $$\(\sqrt{3x-1}+(1+x)^2\)$$
-                    
-$$\sin(\alpha)^{\theta}=\sum_{i=0}^{n}(x^i + \cos(f))$$
 
-多行公式：
+$$\sin(\alpha)^{\theta}=\sum_{i=0}^{n}(x^i + \cos(f))$$
 
 ```math
 \displaystyle
@@ -313,19 +256,19 @@ f(x) = \int_{-\infty}^\infty
     \,d\xi
 ```
 
-### 分页符 Page break
+### Page break
 
 > Print Test: Ctrl + P
 
 [========]
 
-### 绘制流程图 Flowchart
+### Flowchart
 
 ```flow
-st=>start: 用户登陆
-op=>operation: 登陆操作
-cond=>condition: 登陆成功 Yes or No?
-e=>end: 进入后台
+st=>start: start the process
+op=>operation: Pull records from db
+cond=>condition: User exists Yes or No?
+e=>end: stop
 
 st->op->cond
 cond(yes)->e
@@ -337,10 +280,16 @@ cond(no)->op
 ### 绘制序列图 Sequence Diagram
                     
 ```seq
-Andrew->China: Says Hello 
-Note right of China: China thinks\nabout it 
-China-->Andrew: How are you? 
-Andrew->>China: I am good thanks!
+Bob->Lucy: Says Hello
+Note right of Lucy: Lucy thinks\nabout it
+Lucy-->Bob: How are you?
+Bob->>Lucy: I am good thanks!
 ```
 
 ### End
+
+
+
+
+
+

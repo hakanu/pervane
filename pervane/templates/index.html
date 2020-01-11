@@ -85,7 +85,7 @@
         {% endif %}
 
         {%- if item.children -%}
-            <ul id="{{item.path|replace(' ', '_')|replace('/', '-'|replace('\\', '-'))}}">{{ loop(item.children) }}</ul>
+            <ul id="{{item.path|replace('.', '_')|replace(' ', '_')|replace('/', '-'|replace('\\', '-'))}}">{{ loop(item.children) }}</ul>
         {%- endif %}
           </li>
       {%- endfor %}
@@ -277,12 +277,19 @@ function initEditor(path) {
 function update() {
   var text = editor.getMarkdown();
   var file_path = $('#a-path').text();
-  $.post('/api/update', {updated_content: text, file_path: file_path}, function(result){
-    if (result.result == 'success') {
-      $('#status').text('Updated @ ' + (new Date()));
-    } else {
-      $('#status').text('Failed to update @ ' + (new Date()));
-    }
+
+  $.post(
+    '/api/update', {
+        updated_content: text,
+        file_path: file_path
+    }, function(result){
+      console.log('result', result);
+      if (result.result == 'success') {
+        console.log('updating status');
+        $('#status').text('Updated @ ' + (new Date()));
+      } else {
+        $('#status').text('Failed to update @ ' + (new Date()));
+      }
   });
 }
 
