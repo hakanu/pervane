@@ -35,6 +35,7 @@ export FLASK_APP=serve.py; export FLASK_ENV=development; flask run
 import argparse
 import json
 import logging
+import mimetypes
 import os
 import re
 import subprocess
@@ -45,6 +46,8 @@ from flask import Flask, render_template, request, jsonify, redirect
 from flask_caching import Cache
 from flask_httpauth import HTTPBasicAuth
 from werkzeug.security import generate_password_hash, check_password_hash
+
+mimetypes.init()
 
 parser = argparse.ArgumentParser(description='Process input from user.')
 parser.add_argument('--host', dest='host', default='0.0.0.0',
@@ -95,6 +98,10 @@ def _get_template(html):
     env = Environment(loader=BaseLoader, autoescape=True)
     env.filters['escapejs'] = escapejs
     return env.from_string(html)
+
+
+def get_mime_type(path):
+  return mimetypes.guess_type(path)[0]
       
 
 @auth.verify_password
@@ -165,18 +172,29 @@ def file_handler():
             'Not authorized to see this dir, must be under: ' +
             args.root_dir)
     path = path.strip()
-    try:
+    html_content = ''
+    content = ''
+    mime_type = get_mime_type(path)
+    logging.info('mime_type: %s', mime_type)
+    if (not mime_type.startswith('image/') and 
+        not mime_type.startswith('video/') and
+        not mime_type.startswith('text/')):
+      return ('No idea how to show this file %s' % path)
+
+    # Text is our main interest.
+    if mime_type.startswith('text/'):
+      try:
         with open(path, 'r') as f:
-            content = f.read()
-    except Exception as e:
+          content = f.read()
+        html_content = content
+      except Exception as e:
         logging.error('There is an error while reading: %s', str(e))
         return 'File reading failed with ' + str(e)
-    html_content = 'root_dir'
+
     _, ext = os.path.splitext(path)
-    html_content = content
     return render_template('index.html',
         path=path, html_content=html_content, md_content=content, ext=ext,
-        tree=make_tree(args.root_dir)) 
+        tree=make_tree(args.root_dir), mime_type=mime_type)
 
 
 @app.route('/api/get_content')
@@ -188,7 +206,7 @@ def api_get_content_handler():
         return 'Not authorized to see this dir, must be under: ' + args.root_dir
     try:
         with open(path, 'r') as f:
-            content = f.read()
+          content = f.read()
         return jsonify({'result': 'success', 'content': content})
     except Exception as e:
         return jsonify({'result': 'smt went wrong ' + e})

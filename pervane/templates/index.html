@@ -96,10 +96,15 @@
     <div class="col-md-10">
       {% if not search_results %}
         <h6>
-          <a id="a-path" href="file://{{path}}" target="_blank">{{ path }}</a>&nbsp;&nbsp;
+          <a id="a-path" href="file://{{path}}" target="_blank">{{ path }} </a>&nbsp;&nbsp;
           <span><a href="#" onclick="update()"><i class="fa fa-floppy-o" aria-hidden="true"></i>&nbsp;&nbsp;Save</a></span>
           <sub id="status"></sub>
+          <span>{{mime_type}}</span>
         </h6>
+        {% if mime_type.startswith('image/') %}
+          <img src="../{{ path }}" class="img-fluid" alt="{{ path }}"> 
+        {% endif %}
+
         {% if ext == '.md' %}
           {% if not md_content and html_content %}
             <div>{{ html_content|safe }}</div>
@@ -113,6 +118,7 @@
         {% else %}
           <pre><code class="{{ext|replace('.', '')}}">{{ html_content|e }}</code></pre>
         {% endif %}
+        <p>{{ mime_type }}</p>
       {% else %}
         <h6>Results for <b>{{ query|e }}</b></h6>
         <p><sub>{{ stats }}</sub></p>
@@ -133,7 +139,6 @@
 
 <br>
 <br>
-
 
 <!-- New folder/file Modal -->
 <div class="modal fade" id="nodeModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
