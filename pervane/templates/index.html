@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
  <head>
     <title>Pervane - Plain text based note taking app</title>
@@ -29,7 +30,7 @@
           <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="#" data-toggle="modal" data-target="#settings-modal">Settings</a>
+          <a class="nav-link" href="#" data-toggle="modal" onclick="showSettingsModal()">Settings</a>
         </li>
         <li class="nav-item">
           <a class="nav-link" href="https://github.com/hakanu/pervane">Contribute</a>
@@ -176,29 +177,32 @@
       </div>
       <div class="modal-body">
         <header>
-	  <h6>Enabled Features</h6>
-  	  <div class="form-check">
-	    <input class="form-check-input" type="checkbox" value="" id="settings-katex">
-	    <label class="form-check-label" for="defaultCheck1">KaTEX</label>
+    <h6>Enabled Features</h6>
+      <div class="form-check">
+      <input class="form-check-input" type="checkbox" value="" id="settings-katex">
+      <label class="form-check-label" for="defaultCheck1">TEX / KaTEX</label>
             <br>
 
-	    <input class="form-check-input" type="checkbox" value="" id="settings-charts">
-	    <label class="form-check-label" for="defaultCheck2">Charts</label>
+      <input class="form-check-input" type="checkbox" value="" id="settings-charts">
+      <label class="form-check-label" for="defaultCheck2">Charts</label>
             <br>
 
-	    <input class="form-check-input" type="checkbox" value="" id="settings-task-lists">
-	    <label class="form-check-label" for="defaultCheck3">Task Lists</label>
+      <input class="form-check-input" type="checkbox" value="" id="settings-task-lists">
+      <label class="form-check-label" for="defaultCheck3">Task Lists</label>
             <br>
 
-	    <input class="form-check-input" type="checkbox" value="" id="settings-sequences">
-	    <label class="form-check-label" for="defaultCheck4">Sequence diagrams</label>
+      <input class="form-check-input" type="checkbox" value="" id="settings-sequences">
+      <label class="form-check-label" for="defaultCheck4">Sequence diagrams</label>
             <br>
 
-	    <input class="form-check-input" type="checkbox" value="" id="settings-code-folding">
-	    <label class="form-check-label" for="defaultCheck5">Code folding</label>
+      <input class="form-check-input" type="checkbox" value="" id="settings-code-folding">
+      <label class="form-check-label" for="defaultCheck5">Code folding</label>
+
+      <input class="form-check-input" type="checkbox" value="" id="settings-emoji">
+      <label class="form-check-label" for="defaultCheck5">Emoji rendering</label>
             <br>
             <br>
-	  </div>
+    </div>
 
           <h6>Themes</h6>
           <div class="form-group">
@@ -238,25 +242,35 @@ for (var i = 0; i < localStorage.length; i++) {
   }
 }
 
-// Init settings.
-if (localStorage.settingsKatex)  {
-  $('#settings-katex').checked = localStorage.settingsKatex == '1';
-}
+function showSettingsModal() {
+  // Show the modal upon click.
+  $('#settings-modal').modal();
 
-if (localStorage.settingsTaskLists)  {
-  $('#settings-task-lists').checked = localStorage.settingsTaskLists == '1';
-}
+  // Init settings.
+  // Modal should be initialized for these.
+  if (localStorage.settingsKatex)  {
+    $('#settings-katex')[0].checked = localStorage.settingsKatex == '1';
+  }
 
-if (localStorage.settingsCharts)  {
-  $('#settings-charts').checked = localStorage.settingsCharts == '1';
-}
+  if (localStorage.settingsTaskLists)  {
+    $('#settings-task-lists')[0].checked = localStorage.settingsTaskLists == '1';
+  }
 
-if (localStorage.settingsSequences) {
-  $('#settings-sequences').checked = localStorage.settingsSequences == '1';
-}
+  if (localStorage.settingsCharts)  {
+    $('#settings-charts')[0].checked = localStorage.settingsCharts == '1';
+  }
 
-if (localStorage.settingsCodeFolding) {
-  $('#settings-code-folding').checked = localStorage.settingsCodeFolding == '1';
+  if (localStorage.settingsSequences) {
+    $('#settings-sequences')[0].checked = localStorage.settingsSequences == '1';
+  }
+
+  if (localStorage.settingsCodeFolding) {
+    $('#settings-code-folding')[0].checked = localStorage.settingsCodeFolding == '1';
+  }
+
+  if (localStorage.settingsEmoji) {
+    $('#settings-emoji')[0].checked = localStorage.settingsEmoji == '1';
+  }
 }
 
 document.addEventListener('DOMContentLoaded', (event) => {
@@ -302,6 +316,8 @@ function initEditor(path) {
               searchReplace: true,
               flowChart: (localStorage.settingsCharts) ? (localStorage.settingsCharts == '1'): false,
               sequenceDiagram: (localStorage.settingsSequences) ? (localStorage.settingsSequences == '1'): false,
+              tex: (localStorage.settingsKatex) ? (localStorage.settingsKatex == '1'): false,
+              emoji: (localStorage.settingsEmoji) ? (localStorage.settingsEmoji == '1'): false,
               theme: (localStorage.theme) ? localStorage.theme : "dark",
               previewTheme: (localStorage.previewTheme) ? localStorage.previewTheme : "dark", 
               editorTheme: (localStorage.editorTheme) ? localStorage.editorTheme : "pastel-on-dark", 
@@ -327,9 +343,7 @@ function update() {
         updated_content: text,
         file_path: file_path
     }, function(result){
-      console.log('result', result);
       if (result.result == 'success') {
-        console.log('updating status');
         $('#status').text('Updated @ ' + (new Date()));
       } else {
         $('#status').text('Failed to update @ ' + (new Date()));
@@ -357,7 +371,6 @@ function themeSelect(id, themes, lsKey, callback) {
           alert("theme == \"\"");
           return false;
       }
-      console.log("lsKey =>", lsKey, theme);
       localStorage[lsKey] = theme;
       callback(select, theme);
   }); 
@@ -415,6 +428,15 @@ $('#settings-code-folding').change(function() {
      localStorage.setItem('settingsCodeFolding', 0);
    }
 });
+
+$('#settings-emoji').change(function() {
+   if (this.checked) {
+     localStorage.setItem('settingsEmoji', 1);
+   } else {
+     localStorage.setItem('settingsEmoji', 0);
+   }
+});
+
 </script>
 </body>
 </html>
