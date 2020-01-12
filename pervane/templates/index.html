@@ -96,7 +96,7 @@
       {% if not search_results %}
         <h6>
           <a id="a-path" href="file://{{path}}" target="_blank">{{ path }}</a>&nbsp;&nbsp;
-          <span><a href="#" onclick="update()">💾</a></span>
+          <span><a href="#" onclick="update()"><i class="fa fa-floppy-o" aria-hidden="true"></i>&nbsp;&nbsp;Save</a></span>
           <sub id="status"></sub>
         </h6>
         {% if ext == '.md' %}
@@ -176,6 +176,30 @@
       </div>
       <div class="modal-body">
         <header>
+	  <h6>Enabled Features</h6>
+  	  <div class="form-check">
+	    <input class="form-check-input" type="checkbox" value="" id="settings-katex">
+	    <label class="form-check-label" for="defaultCheck1">KaTEX</label>
+            <br>
+
+	    <input class="form-check-input" type="checkbox" value="" id="settings-charts">
+	    <label class="form-check-label" for="defaultCheck2">Charts</label>
+            <br>
+
+	    <input class="form-check-input" type="checkbox" value="" id="settings-task-lists">
+	    <label class="form-check-label" for="defaultCheck3">Task Lists</label>
+            <br>
+
+	    <input class="form-check-input" type="checkbox" value="" id="settings-sequences">
+	    <label class="form-check-label" for="defaultCheck4">Sequence diagrams</label>
+            <br>
+
+	    <input class="form-check-input" type="checkbox" value="" id="settings-code-folding">
+	    <label class="form-check-label" for="defaultCheck5">Code folding</label>
+            <br>
+            <br>
+	  </div>
+
           <h6>Themes</h6>
           <div class="form-group">
             <select class="form-control" id="editormd-theme-select">
@@ -192,7 +216,6 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary">Save changes</button>
       </div>
     </div>
   </div>
@@ -213,6 +236,27 @@ for (var i = 0; i < localStorage.length; i++) {
   if (value != 'false') {
     $('#' + key).eq(0).css("display", "block");
   }
+}
+
+// Init settings.
+if (localStorage.settingsKatex)  {
+  $('#settings-katex').checked = localStorage.settingsKatex == '1';
+}
+
+if (localStorage.settingsTaskLists)  {
+  $('#settings-task-lists').checked = localStorage.settingsTaskLists == '1';
+}
+
+if (localStorage.settingsCharts)  {
+  $('#settings-charts').checked = localStorage.settingsCharts == '1';
+}
+
+if (localStorage.settingsSequences) {
+  $('#settings-sequences').checked = localStorage.settingsSequences == '1';
+}
+
+if (localStorage.settingsCodeFolding) {
+  $('#settings-code-folding').checked = localStorage.settingsCodeFolding == '1';
 }
 
 document.addEventListener('DOMContentLoaded', (event) => {
@@ -252,12 +296,12 @@ function initEditor(path) {
           editor = editormd("editor", {
               width: "100%",
               // height: "300%",
-              taskList: true,
+              taskList: (localStorage.settingsTaskLists) ? (localStorage.settingsTaskLists == '1'): false,
               autoHeight: true,
-              codeFold: true,
+              codeFold: (localStorage.settingsCodeFolding) ? (localStorage.settingsCodeFolding == '1'): false,
               searchReplace: true,
-              flowChart : true,
-              sequenceDiagram : true,
+              flowChart: (localStorage.settingsCharts) ? (localStorage.settingsCharts == '1'): false,
+              sequenceDiagram: (localStorage.settingsSequences) ? (localStorage.settingsSequences == '1'): false,
               theme: (localStorage.theme) ? localStorage.theme : "dark",
               previewTheme: (localStorage.previewTheme) ? localStorage.previewTheme : "dark", 
               editorTheme: (localStorage.editorTheme) ? localStorage.editorTheme : "pastel-on-dark", 
@@ -331,6 +375,46 @@ themeSelect("editor-area-theme-select", editormd.editorThemes, "editorTheme", fu
 themeSelect("preview-area-theme-select", editormd.previewThemes, "previewTheme", function($this, theme) {
     editor.setPreviewTheme(theme);
 }); 
+
+$('#settings-katex').change(function() {
+   if (this.checked) {
+     localStorage.setItem('settingsKatex', 1);
+   } else {
+     localStorage.setItem('settingsKatex', 0);
+   }
+});
+
+$('#settings-charts').change(function() {
+   if (this.checked) {
+     localStorage.setItem('settingsCharts', 1);
+   } else {
+     localStorage.setItem('settingsCharts', 0);
+   }
+});
+
+$('#settings-task-lists').change(function() {
+   if (this.checked) {
+     localStorage.setItem('settingsTaskLists', 1);
+   } else {
+     localStorage.setItem('settingsTaskLists', 0);
+   }
+});
+
+$('#settings-sequences').change(function() {
+   if (this.checked) {
+     localStorage.setItem('settingsSequences', 1);
+   } else {
+     localStorage.setItem('settingsSequences', 0);
+   }
+});
+
+$('#settings-code-folding').change(function() {
+   if (this.checked) {
+     localStorage.setItem('settingsCodeFolding', 1);
+   } else {
+     localStorage.setItem('settingsCodeFolding', 0);
+   }
+});
 </script>
 </body>
 </html>

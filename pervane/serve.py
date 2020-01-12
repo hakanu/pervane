@@ -7,8 +7,7 @@ with directory hierarchy.
 - Jinja2 for templating.
 - Bootstrap
 - A little jquery
-- TUI editor for markdown editing.
-   - Actually no more, transitioned to editor.md
+- Actually no more, transitioned to editor.md
    https://pandao.github.io/editor.md
 - highlight.js for simple code highlighting for non-md files.
 
@@ -67,7 +66,9 @@ parser.add_argument(
              ".*.sqlite"],
     help='Ignored file patterns during file tree creation.')
 parser.add_argument(
-    '--front_page_message', dest='front_page_message', default=50,
+    '--front_page_message',
+    dest='front_page_message',
+    default='Welcome to Pervane! This is default welcome message.',
     help='Cache the sidebar file tree creation.')
 args = parser.parse_args()
 print('loaded args %s', args)
