@@ -99,22 +99,25 @@
           <a id="a-path" href="file://{{path}}" target="_blank">{{ path }} </a>&nbsp;&nbsp;
           <span><a href="#" onclick="update()"><i class="fa fa-floppy-o" aria-hidden="true"></i>&nbsp;&nbsp;Save</a></span>
           <sub id="status"></sub>
-          <span>{{mime_type}}</span>
+	
+	  {% if mime_type %}
+            <span>{{mime_type}}</span>
+	  {% endif %}
         </h6>
-        {% if mime_type.startswith('image/') %}
-          <img src="../{{ path }}" class="img-fluid" alt="{{ path }}"> 
-        {% endif %}
 
         {% if ext == '.md' %}
           {% if not md_content and html_content %}
             <div>{{ html_content|safe }}</div>
           {% else %}
-            <!-- <div id="editorSection"></div> -->
             <div id="editor">
               <!-- Tips: Editor.md can auto append a `<textarea>` tag -->
               <textarea style="display:none;">### Hello Editor.md !</textarea>
             </div>
           {% endif %}
+        {% elif mime_type and mime_type.startswith('image/') %}
+	  <div>
+            <img src="data:image/png;base64,{{ html_content }}" class="img-fluid" alt="{{ path }}"> 
+	  </div>
         {% else %}
           <pre><code class="{{ext|replace('.', '')}}">{{ html_content|e }}</code></pre>
         {% endif %}
@@ -304,8 +307,11 @@ $('.expand').click(function() {
                               nearest_ul.is(':visible'));
 });
 
-{% if (md_content or md != '') and path %}
-    initEditor('{{path}}');      
+{% if (md_content or md != '') and path and not mime_type.startswith('image/') %}
+  console.log('initing the editor');
+  initEditor('{{path}}');
+{% else %}
+  console.log('no need to init the editor');
 {% endif %}
 
 var editor = null;

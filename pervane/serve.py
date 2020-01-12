@@ -33,6 +33,7 @@ python3 serve.py
 export FLASK_APP=serve.py; export FLASK_ENV=development; flask run 
 """
 import argparse
+import base64
 import json
 import logging
 import mimetypes
@@ -190,6 +191,14 @@ def file_handler():
       except Exception as e:
         logging.error('There is an error while reading: %s', str(e))
         return 'File reading failed with ' + str(e)
+    elif mime_type.startswith('image/'):
+      try:
+        with open(path, 'rb') as f:
+          content = base64.b64encode(f.read()).decode('ascii')
+        html_content = content
+      except Exception as e:
+        logging.error('There is an error while reading: %s', str(e))
+        return 'File reading failed with ' + str(e)
 
     _, ext = os.path.splitext(path)
     return render_template('index.html',
@@ -203,13 +212,13 @@ def api_get_content_handler():
     path = request.args.get('f', '')
     if not path.startswith(args.root_dir):
         logging.info('no auth')
-        return 'Not authorized to see this dir, must be under: ' + args.root_dir
+        return 'Not authorized to see this dir, must be under: %s' % args.root_dir
     try:
         with open(path, 'r') as f:
           content = f.read()
         return jsonify({'result': 'success', 'content': content})
     except Exception as e:
-        return jsonify({'result': 'smt went wrong ' + e})
+        return jsonify({'result': 'smt went wrong ' + str(e)})
 
 
 @app.route('/api/update', methods=['POST'])
@@ -245,12 +254,7 @@ def add_node_handler():
     if not parent_path.startswith(args.root_dir):
         return jsonify({'result': 'Unauth file modification'})
 
-    # if parent_path == args.root_dir:
-    #     logging.info('Creating in the root dir')
-    #     parent_path = ''
-
     if new_node_name.endswith('/'):
-        # path = os.path.join(args.root_dir, parent_path, new_node_name)
         path = os.path.join(parent_path, new_node_name)
         logging.info('Creating new node as dir %s', path)
         try:
@@ -261,7 +265,6 @@ def add_node_handler():
             return redirect('/?message=created_dir:' + path, code=302)
     else:
         suffix = '' if new_node_name.endswith('.md') else '.md'
-        # path = os.path.join(args.root_dir, parent_path, new_node_name + suffix)
         path = os.path.join(parent_path, new_node_name + suffix)
         try:
             f = open(path, 'x')
@@ -314,7 +317,6 @@ def search_handler():
     return render_template('index.html',
         search_results=results, query=query, stats=stats_str,
         tree=make_tree(args.root_dir))
-
 
 
 def cli_main():
