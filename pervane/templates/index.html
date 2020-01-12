@@ -19,7 +19,7 @@
  <body>
 
 <header>
-  <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+  <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark nav-narrow">
     <a class="navbar-brand" href="#">Pervane</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
@@ -177,43 +177,48 @@
       </div>
       <div class="modal-body">
         <header>
-    <h6>Enabled Features</h6>
-      <div class="form-check">
-      <input class="form-check-input" type="checkbox" value="" id="settings-katex">
-      <label class="form-check-label" for="defaultCheck1">TEX / KaTEX</label>
+          <h6>Enabled Features</h6>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" value="" id="settings-katex">
+            <label class="form-check-label" for="settings-katex">TEX / KaTEX</label>
             <br>
 
-      <input class="form-check-input" type="checkbox" value="" id="settings-charts">
-      <label class="form-check-label" for="defaultCheck2">Charts</label>
+            <input class="form-check-input" type="checkbox" value="" id="settings-charts">
+            <label class="form-check-label" for="settings-charts">Charts</label>
             <br>
 
-      <input class="form-check-input" type="checkbox" value="" id="settings-task-lists">
-      <label class="form-check-label" for="defaultCheck3">Task Lists</label>
+            <input class="form-check-input" type="checkbox" value="" id="settings-task-lists">
+            <label class="form-check-label" for="settings-task-lists">Task Lists</label>
             <br>
 
-      <input class="form-check-input" type="checkbox" value="" id="settings-sequences">
-      <label class="form-check-label" for="defaultCheck4">Sequence diagrams</label>
+            <input class="form-check-input" type="checkbox" value="" id="settings-sequences">
+            <label class="form-check-label" for="settings-sequences">Sequence diagrams</label>
             <br>
 
-      <input class="form-check-input" type="checkbox" value="" id="settings-code-folding">
-      <label class="form-check-label" for="defaultCheck5">Code folding</label>
+            <input class="form-check-input" type="checkbox" value="" id="settings-code-folding">
+            <label class="form-check-label" for="settings-code-folding">Code folding</label>
+            <br>
 
-      <input class="form-check-input" type="checkbox" value="" id="settings-emoji">
-      <label class="form-check-label" for="defaultCheck5">Emoji rendering</label>
+            <input class="form-check-input" type="checkbox" value="" id="settings-emoji">
+            <label class="form-check-label" for="settings-emoji">Emoji rendering</label>
+            <br>
+
+            <input class="form-check-input" type="checkbox" value="" id="settings-toolbar">
+            <label class="form-check-label" for="settings-toolbar">Show WYSIWYG toolbar?</label>
             <br>
             <br>
-    </div>
+          </div>
 
           <h6>Themes</h6>
           <div class="form-group">
             <select class="form-control" id="editormd-theme-select">
-              <option selected="selected" value="">select Editor.md themes</option>
+              <option selected="selected" value="">General theme</option>
             </select><br>
             <select class="form-control" id="editor-area-theme-select">
-              <option selected="selected" value="">select editor area themes</option>
+              <option selected="selected" value="">Editor area theme</option>
             </select><br>
             <select class="form-control" id="preview-area-theme-select">
-              <option selected="selected" value="">select preview area themes</option>
+              <option selected="selected" value="">Preview area theme</option>
             </select><br>
           </div>
         </header>
@@ -271,6 +276,10 @@ function showSettingsModal() {
   if (localStorage.settingsEmoji) {
     $('#settings-emoji')[0].checked = localStorage.settingsEmoji == '1';
   }
+
+  if (localStorage.settingsToolbar) {
+    $('#settings-toolbar')[0].checked = localStorage.settingsToolbar == '1';
+  }
 }
 
 document.addEventListener('DOMContentLoaded', (event) => {
@@ -318,6 +327,7 @@ function initEditor(path) {
               sequenceDiagram: (localStorage.settingsSequences) ? (localStorage.settingsSequences == '1'): false,
               tex: (localStorage.settingsKatex) ? (localStorage.settingsKatex == '1'): false,
               emoji: (localStorage.settingsEmoji) ? (localStorage.settingsEmoji == '1'): false,
+              toolbar: (localStorage.settingsToolbar) ? (localStorage.settingsToolbar == '1'): true,
               theme: (localStorage.theme) ? localStorage.theme : "dark",
               previewTheme: (localStorage.previewTheme) ? localStorage.previewTheme : "dark", 
               editorTheme: (localStorage.editorTheme) ? localStorage.editorTheme : "pastel-on-dark", 
@@ -434,6 +444,14 @@ $('#settings-emoji').change(function() {
      localStorage.setItem('settingsEmoji', 1);
    } else {
      localStorage.setItem('settingsEmoji', 0);
+   }
+});
+
+$('#settings-toolbar').change(function() {
+   if (this.checked) {
+     localStorage.setItem('settingsToolbar', 1);
+   } else {
+     localStorage.setItem('settingsToolbar', 0);
    }
 });
 
