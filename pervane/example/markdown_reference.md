@@ -1,6 +1,6 @@
 # Pervane
 
-![](docs/pervane_logo_small.png)
+![](https://github.com/hakanu/pervane/raw/master/docs/pervane_logo_small.png)
 
 Table of Contents
 

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
  <head>
-    <title>Pervane - Plain text based note taking app</title>
+    <title>Pervane - Plain text based note taking app</title> 
 
     <link rel="apple-touch-icon" sizes="180x180" href="static/img/favicon/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="static/img/favicon/favicon-32x32.png">
@@ -318,9 +318,9 @@ function initEditor(path) {
           // editor.setMarkdown(data.content);
           editor = editormd("editor", {
               width: "100%",
-              // height: "300%",
+              height: "300%",
               taskList: (localStorage.settingsTaskLists) ? (localStorage.settingsTaskLists == '1'): false,
-              autoHeight: true,
+              // autoHeight: true,
               codeFold: (localStorage.settingsCodeFolding) ? (localStorage.settingsCodeFolding == '1'): false,
               searchReplace: true,
               flowChart: (localStorage.settingsCharts) ? (localStorage.settingsCharts == '1'): false,

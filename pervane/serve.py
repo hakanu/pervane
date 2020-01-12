@@ -227,8 +227,13 @@ def add_node_handler():
     if not parent_path.startswith(args.root_dir):
         return jsonify({'result': 'Unauth file modification'})
 
+    # if parent_path == args.root_dir:
+    #     logging.info('Creating in the root dir')
+    #     parent_path = ''
+
     if new_node_name.endswith('/'):
-        path = os.path.join(args.root_dir, parent_path, new_node_name)
+        # path = os.path.join(args.root_dir, parent_path, new_node_name)
+        path = os.path.join(parent_path, new_node_name)
         logging.info('Creating new node as dir %s', path)
         try:
             os.mkdir(path)
@@ -238,7 +243,8 @@ def add_node_handler():
             return redirect('/?message=created_dir:' + path, code=302)
     else:
         suffix = '' if new_node_name.endswith('.md') else '.md'
-        path = os.path.join(args.root_dir, parent_path, new_node_name + suffix)
+        # path = os.path.join(args.root_dir, parent_path, new_node_name + suffix)
+        path = os.path.join(parent_path, new_node_name + suffix)
         try:
             f = open(path, 'x')
         except OSError:
@@ -282,8 +288,8 @@ def search_handler():
            })
 
        results.append({
-	  'file': fn.replace(':', ''),
-	  'matches': in_file_results,
+      'file': fn.replace(':', ''),
+      'matches': in_file_results,
        }) 
 
     html_body = ''
