@@ -61,10 +61,10 @@
 
       <ul>
       {%- for item in tree.children recursive %}
-          <li>
-        {% if '.' in item.name and not item.name.startswith('.')  %}
+        <li>
+        {% if item.kind == 'file'  %}
           <a href="/file?f={{ item.path }}">
-            {% if item.path.endswith('.md') %}
+            {% if item.ext in note_extensions %}
               <i class="fa fa-file-text" aria-hidden="true"></i>
             {% else %}
               <i class="fa fa-file-code-o" aria-hidden="true"></i>
@@ -86,9 +86,9 @@
         {% endif %}
 
         {%- if item.children -%}
-            <ul id="{{item.path|replace('.', '_')|replace(' ', '_')|replace('/', '-'|replace('\\', '-'))}}">{{ loop(item.children) }}</ul>
+          <ul id="{{item.path|replace('.', '_')|replace(' ', '_')|replace('/', '-'|replace('\\', '-'))}}">{{ loop(item.children) }}</ul>
         {%- endif %}
-          </li>
+        </li>
       {%- endfor %}
       </ul>
     </div>
@@ -100,12 +100,12 @@
           <span><a href="#" onclick="update()"><i class="fa fa-floppy-o" aria-hidden="true"></i>&nbsp;&nbsp;Save</a></span>
           <sub id="status"></sub>
 	
-	  {% if mime_type %}
+      	  {% if mime_type %}
             <span>{{mime_type}}</span>
-	  {% endif %}
+      	  {% endif %}
         </h6>
 
-        {% if ext == '.md' %}
+        {% if ext in note_extensions %}
           {% if not md_content and html_content %}
             <div>{{ html_content|safe }}</div>
           {% else %}
@@ -115,9 +115,9 @@
             </div>
           {% endif %}
         {% elif mime_type and mime_type.startswith('image/') %}
-	  <div>
+          <div>
             <img src="data:image/png;base64,{{ html_content }}" class="img-fluid" alt="{{ path }}"> 
-	  </div>
+      	  </div>
         {% else %}
           <pre><code class="{{ext|replace('.', '')}}">{{ html_content|e }}</code></pre>
         {% endif %}
@@ -345,7 +345,12 @@ function initEditor(path) {
               // TODO(hakanu): Needed to load like this. Otherwise editor
               // puts its own placeholder to the textarea instead of empty.
               markdown: data.content + '\n',  
-              path : "/static/js/lib/"  // Autoload modules mode.
+              path : "/static/js/lib/",  // Autoload modules mode.
+              onload : function() {
+                  console.log('onload', this);
+                  // Make the preview pane non-default.
+                  this.unwatch();
+              }
           });
         } else {
           console.log('something went wrong while fetching the file content', data.result);
