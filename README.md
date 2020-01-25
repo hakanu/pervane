@@ -3,16 +3,16 @@
 # Pervane
 
 Pervane is a bare minimum plain text file based note taking and knowledge base building tool.
-It doubles as simple file server to render server files in web browser.
-It's like python's built-in SimpleHTTPServer but a little bit feature richer like WYSIWYG note taking experience, infinite number of nesting, blazing fast text search etc.
-Main use case is to edit, serve and search the markdown notes in combination with example source files.
+It doubles as simple file server to render given directories files in web browser.
+It's like python's built-in SimpleHTTPServer but a little bit feature richer like WYSIWYG note taking experience, sidebar with infinite number of nesting, blazing fast text search, file moving, creating from the browser etc.
+
+Main use case is to create, edit, serve and search the markdown notes in combination with example source files.
 
 If you are using plain text based note taking, this can be helpful for adhoc mediums like operating systems which don't have large desktop app ecosystem like ChromeOS or mobile OS like Android and iOS.
 
 Personally tried many alternatives as file server like [allmark](https://github.com/andreaskoch/allmark), [mdserv](https://www.npmjs.com/package/markserv), [markdown-server](https://pypi.org/project/markdown-server/) but none of them seem like providing all features I'm looking for. I just want to be able to see the folder hierarchy and fuzzy text search and some better-than-basic markdown rendering.
 
-For the other note taking and knowledge base building apps, there is always something missing
-although how advanced they go.
+For the other note taking and knowledge base building apps, there is always something missing although how advanced they go.
 
 What I need:
 
@@ -29,6 +29,7 @@ What I need:
 * git-able so that I can maintain the versions.
 * Hackable with standard CLI tools (ag, rsync, scp, tar, git etc)
 * Be able to show source code files not only markdown.
+* Take code notes, create a code snippet repository and be able to find them back easily.
 
 ## Comparison
 
@@ -79,6 +80,10 @@ Inspired from this one from notable author.
 * NextCloud with carnet and NC notes
   * Extremely slow.
   * Not so pleasent in mobile.
+* VSCode: I can hear you are saying I do the same thing with any file editor.
+  * Well, you need a platform which supports that editor.
+* Cloud coding editors like [coder-server](https://github.com/cdr/code-server)
+  * Too CPU intensive in the client side due to heavy js logic.
 
 Please shoot an email if I miss anything.
 
@@ -107,6 +112,19 @@ Please shoot an email if I miss anything.
 * Full screen editing mode with F11 or toolbar
 * Hide/show toolbar
 * Lots of themes thanks to editor.md
+* Move files in between directories with drag & drop functionality.
+* Keyboard shortcuts
+* Quick fuzzy file name search
+* Edit code notes directly 
+* Drag & Drop file upload
+* Image rendering in case you they are in the directory.
+
+## But it's not
+
+* A dropbox replacement
+* Photo album generator
+* FTP server
+* Cloud code editor
 
 ### Screenshots
 
@@ -180,27 +198,22 @@ pip install flask markdown2 Flask-Caching Flask-HTTPAuth
 
 # Run
 python3 serve.py
-
-# Run alternative:
-export FLASK_APP=serve.py ; flask run
 ```
-
-* Modify serve.py's configuration section to add your folder to be searched.
 
 ## TODO
 
 * ~~Fix repetitions in the file tree~~
 * ~~Simple expand/collapse logic in file tree.~~
-* Files with spaces sometimes cause filenotfound
+* ~~Files with spaces sometimes cause filenotfound~~
 * ~~mermaid.js integration~~ (Comes for free with TUI editor)
 * ~~Mindmap and flowchart rendering support.~~ (Comes for free with TUI editor)
 * Maybe delete file/dir functionality? Maybe not - security reasons.
 * ~~Edit the files?~~
 * ~~Some editor view?~~
-* Keyboard shortcuts
-* Image uploads
-* Image/video previews in the folders
-* 
+* ~~Keyboard shortcuts~~
+* ~~Image uploads~~
+* ~~Image previews in the folders~~
+* Embeded pdf reader 
 
 ## Keep the engine running
 
