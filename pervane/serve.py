@@ -118,7 +118,12 @@ def _get_template(html):
 
 
 def get_mime_type(path):
-  return mimetypes.guess_type(path)[0]
+  guessed_type = mimetypes.guess_type(path)
+  if guessed_type[0]:
+    return guessed_type[0]
+  logging.error('Can not extact the mime type, probably OS related problem. %s',
+                guessed_type)
+  return 'text/unknown'
       
 
 @auth.verify_password
@@ -174,10 +179,13 @@ def _get_file_paths_flat(path):
   if check_match(path):
     return 
   leaves = []
-  for name in os.listdir(path):
-    # list.js needs this type of dict.
-    leaves.append({'path': name.replace(args.root_dir, '')}) 
-  print('returning leaves: ', leaves)
+  for root, dirs, files in os.walk(path, topdown=False):
+    for name in files:
+      leaves.append({
+        'name': name,
+        'path': os.path.join(root, name),
+      }) 
+  #print('returning leaves: ', leaves)
   return leaves
 
 
@@ -235,7 +243,8 @@ def file_handler():
   return render_template('index.html',
       path=path, html_content=html_content, md_content=content, ext=ext,
       tree=make_tree(args.root_dir), mime_type=mime_type,
-      note_extensions=args.note_extensions)
+      note_extensions=args.note_extensions,
+      file_paths_flat=json.dumps(_get_file_paths_flat(args.root_dir)))
 
 
 @app.route('/api/get_content')

@@ -39,11 +39,6 @@
       </ul>
 
 			<button class="btn btn-large fileinput-button">Upload file</button>
-			<form action="/upload" class="" id="dropzone" style="max-height: 40px;min-height:unset">
-				<div class="fallback">
-					<input name="file" type="file" />
-				</div>
-			</form>
 
       <form class="form-inline mt-2 mt-md-0" action="/search" method="GET">
         <input class="form-control mr-sm-2" type="text" name="query" placeholder="Search files with ag" aria-label="Search">
@@ -54,7 +49,7 @@
 
 <div class="">
   <div class="row">
-    <div class="col-md-2 sidebar">
+    <div class="col-md-3 sidebar">
       <p>
         <a href="/">
           <i class="fa fa-folder" aria-hidden="true"></i>
@@ -77,6 +72,7 @@
 			<hr>
 
 			<div>
+        <ul>
 				{%- for item in tree.children|sort(attribute='path') recursive %}
 					<li>
 					{% if item.kind == 'file'  %}
@@ -111,7 +107,7 @@
       </div>
     </div>
 
-    <div class="col-md-10">
+    <div class="col-md-9">
       {% if not search_results %}
         <h6>
           <a id="a-path" href="file://{{path}}" target="_blank">{{ path }} </a>&nbsp;&nbsp;
@@ -119,13 +115,13 @@
           <sub id="status"></sub>
         </h6>
 
-        {% if ext in note_extensions %}
+        {% if mime_type.startswith('text/') %}
           {% if not md_content and html_content %}
             <div>{{ html_content|safe }}</div>
           {% else %}
             <div id="editor">
               <!-- Tips: Editor.md can auto append a `<textarea>` tag -->
-              <textarea style="display:none;">### Hello Editor.md !</textarea>
+              <textarea style="display:none;">### Hello Pervane!</textarea>
             </div>
           {% endif %}
         {% elif mime_type and mime_type.startswith('image/') %}
@@ -256,10 +252,16 @@
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
 <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.17.1/build/highlight.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.5.1/min/dropzone.min.js"></script>
-<script src="//cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
 <script src="/static/js/editormd.min.js"></script>
 <script src="/static/js/en.js"></script>
 <script>
+function fuzzy(source, s) {
+    var hay = source.toLowerCase(), i = 0, n = -1, l;
+    s = s.toLowerCase();
+    for (; l = s[i++] ;) if (!~(n = hay.indexOf(l, n + 1))) return false;
+    return true;
+};
+
 // Get expand/collapse memory from localstorage.
 for (var i = 0; i < localStorage.length; i++) {
   var key = localStorage.key(i);
@@ -345,7 +347,7 @@ function initEditor(path) {
           // editor.setMarkdown(data.content);
           editor = editormd("editor", {
               width: "100%",
-              height: "300%",
+              height: "100%",
               taskList: (localStorage.settingsTaskLists) ? (localStorage.settingsTaskLists == '1'): false,
               // autoHeight: true,
               codeFold: (localStorage.settingsCodeFolding) ? (localStorage.settingsCodeFolding == '1'): false,
@@ -508,23 +510,21 @@ $(function() {
 });
 
 // Fuzzy search.
-options = {
-  valueNames: ['path'],
-  item: '<li><a class="path" href="/file?f="></a></li>',
-visibleItems: [],
-};
-
 var values = {{ file_paths_flat|safe }};
-var hackerList = new List('list-sidebar', options, values);
 
 $('#list-sidebar').hide();
 $('#search-field').on('keyup', function() {
   var searchString = $(this).val();
-  console.log('Searching for ', searchString);
   if (searchString == '') {
 		$('#list-sidebar').hide();
   } else {
-		hackerList.search(searchString);
+		$('#list-sidebar').children().remove();
+    for (var i = 0; i < values.length; i++) {
+			var path = values[i].path;
+			if (fuzzy(path, searchString)) {
+				$('#list-sidebar').append('<li><a href="/file?f=' + path +'">' + values[i].name +'</a></li>');
+			}
+		}
 		$('#list-sidebar').show();
 	}
 });
