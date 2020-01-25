@@ -116,8 +116,13 @@ Please shoot an email if I miss anything.
 * Keyboard shortcuts
 * Quick fuzzy file name search
 * Edit code notes directly 
-* Drag & Drop file upload
+* Drag & Drop file upload in anywhere in the page
 * Image rendering in case you they are in the directory.
+
+### Keyboard shortcuts
+
+* Ctrl + s : Save the file.
+* Ctrl + p : Focus on quick search box on the left sidebar 
 
 ## But it's not
 
