@@ -185,7 +185,6 @@ def _get_file_paths_flat(path):
         'name': name,
         'path': os.path.join(root, name),
       }) 
-  #print('returning leaves: ', leaves)
   return leaves
 
 
@@ -365,8 +364,7 @@ def search_handler():
 @app.route('/upload', methods=['POST'])
 @auth.login_required
 def file_upload_handler():
-  print('File upload handler')
-# check if the post request has the file part
+  # check if the post request has the file part
   if 'file' not in request.files:
     flash('No file part')
     return jsonif({'result': 'fail no file part'})

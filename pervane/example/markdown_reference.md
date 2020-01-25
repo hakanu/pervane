@@ -287,9 +287,3 @@ Bob->>Lucy: I am good thanks!
 ```
 
 ### End
-
-
-
-
-
-

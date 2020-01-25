@@ -516,6 +516,15 @@ $('#search-field').on('keyup', function() {
 	}
 });
 
+// Ctrl + s saving.
+$(document).keydown(function(event) {
+    // 19 for Mac Command+S
+    if (!( String.fromCharCode(event.which).toLowerCase() == 's' && event.ctrlKey) && !(event.which == 19)) return true;
+    event.preventDefault();
+    update();
+    return false;
+});
 </script>
 </body>
 </html>
+
