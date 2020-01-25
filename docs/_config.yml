@@ -1,1 +1,7 @@
 theme: jekyll-theme-hacker
+google_analytics: UA-156974636-1
+show_downloads: true
+title: Pervane Plain text file based note taking and knowledge base building tool
+description: Pervane is a bare minimum plain text file based note taking and knowledge base building tool. It doubles as simple file server to render given directories files in web browser. It’s like python’s built-in SimpleHTTPServer but a little bit feature richer like WYSIWYG note taking experience, sidebar with infinite number of nesting, blazing fast text search, file moving, creating from the browser etc.
+
+ 
