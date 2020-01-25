@@ -361,7 +361,8 @@ def file_upload_handler():
     file.save(os.path.join(
         app.config['UPLOAD_FOLDER'], base_name + '_' + 
         datetime.datetime.now().strftime('%Y%m%d_%H%M') + extension))
-    logging.info('Upload is successful, refreshing the current page to show new file')
+    logging.info('Upload is successful, refreshing the current page '
+	         'to show new file')
     return jsonify({'result': 'success'})
 
 

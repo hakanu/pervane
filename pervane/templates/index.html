@@ -69,7 +69,7 @@
       </p>
 
       <ul>
-      {%- for item in tree.children recursive %}
+      {%- for item in tree.children|sort(attribute='path') recursive %}
         <li>
         {% if item.kind == 'file'  %}
           <a href="/file?f={{ item.path }}">
@@ -95,7 +95,7 @@
         {% endif %}
 
         {%- if item.children -%}
-          <ul id="{{item.path|replace('.', '_')|replace(' ', '_')|replace('/', '-'|replace('\\', '-'))}}">{{ loop(item.children) }}</ul>
+          <ul id="{{item.path|replace('.', '_')|replace(' ', '_')|replace('/', '-'|replace('\\', '-'))}}">{{ loop(item.children|sort(attribute='path')) }}</ul>
         {%- endif %}
         </li>
       {%- endfor %}
