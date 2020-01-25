@@ -41,6 +41,7 @@ import logging
 import mimetypes
 import os
 import re
+import shutil
 import subprocess
 import sys
 
@@ -313,6 +314,28 @@ def add_node_handler():
         return redirect('/?message=failed_to_creat_md:' + path, code=302)
       else:
         return redirect('/file?f=' + path, code=302)
+
+
+@app.route('/api/move_file')
+@auth.login_required
+def api_move_handler():
+  source_path = request.args.get('source_path', '')
+  dest_dir = request.args.get('dest_dir', '')
+  if not source_path.startswith(args.root_dir) or not dest_dir.startswith(args.root_dir):
+    logging.info('no auth')
+    return 'Not authorized to see this dir, must be under: %s' % args.root_dir
+  try:
+    base_name = os.path.basename(source_path)
+    dest_path = os.path.join(dest_dir, base_name)
+    logging.info('Moving: %s %s %s %s', source_path, dest_path, base_name, dest_dir)
+    if os.path.exists(dest_path):
+      logging.error('Destination path, exists, renaming the moved file', dest_path)
+      base_name, extension = os.path.splitext(dest_path)
+      dest_path = base_name + '_' + datetime.datetime.now().strftime('%Y%m%d_%H%M') + extension
+    shutil.move(source_path, dest_path)
+    return jsonify({'result': 'success', 'source_path': source_path, 'dest_path': dest_path})
+  except Exception as e:
+    return jsonify({'result': 'smt went wrong ' + str(e)})
 
 
 @app.route('/search')

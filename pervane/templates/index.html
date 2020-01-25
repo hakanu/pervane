@@ -47,7 +47,7 @@
 
 <div class="">
   <div class="row">
-    <div class="col-md-3 sidebar">
+    <div class="col-sm-2 sidebar">
       <p>
         <a href="/">
           <i class="fa fa-folder" aria-hidden="true"></i>
@@ -76,7 +76,7 @@
 				{%- for item in tree.children|sort(attribute='path') recursive %}
 					<li>
 					{% if item.kind == 'file'  %}
-						<a href="/file?f={{ item.path }}" class="path">
+						<a href="/file?f={{ item.path }}" id="{{item.path}}" data-path="{{item.path}}" class="path" draggable="true" ondragstart="drag(event)">
 							{% if item.ext in note_extensions %}
 								<i class="fa fa-file-text" aria-hidden="true"></i>
 							{% else %}
@@ -85,7 +85,7 @@
 							{{ item.name }}
 						</a>
 					{% else %}
-						<a href="#" data-href="/dir?d={{ item.path }}" class="expand path">
+						<a href="#" data-href="/dir?d={{ item.path }}" id="{{item.path}}" data-path="{{item.path}}" class="expand path" draggable="false" ondrop="drop(event)" ondragover="allowDrop(event)">
 							<i class="fa fa-folder" aria-hidden="true"></i>
 							{{ item.name }}/
 						</a>
@@ -107,7 +107,7 @@
       </div>
     </div>
 
-    <div class="col-md-9">
+    <div class="col-sm-10">
       {% if not search_results %}
         <h6>
           <a id="a-path" href="file://{{path}}" target="_blank">{{ path }} </a>&nbsp;&nbsp;
@@ -534,6 +534,35 @@ $(document).keydown(function(event) {
     $('#search-field').focus();
     return false;
 });
+
+// Drag drop file move
+function allowDrop(ev) {
+  ev.preventDefault();
+}
+
+function drag(ev) {
+  ev.dataTransfer.setData('source_path', ev.target.id);
+}
+
+function drop(ev) {
+  ev.preventDefault();
+  var source_path  = ev.dataTransfer.getData('source_path');
+	var dest_dir = ev.target.id;
+
+  $.get(
+    '/api/move_file', {
+        source_path: source_path,
+        dest_dir: dest_dir, 
+    }, function(result){
+      if (result.result == 'success') {
+				console.log('Moved the file, refreshing');
+        window.location.replace('/');
+      } else {
+				console.log('Failed to move the file');
+      }
+  });
+}
+
 </script>
 </body>
 </html>
