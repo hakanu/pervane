@@ -205,6 +205,13 @@ pip install flask markdown2 Flask-Caching Flask-HTTPAuth
 python3 serve.py
 ```
 
+## Stack
+
+Tried to keep the code as simple as possible since I need to take notes today.
+
+* Flask based python web server
+* jquery, bootstrap, bootswatch, dropzone.js, editor.md.
+
 ## TODO
 
 * ~~Fix repetitions in the file tree~~
