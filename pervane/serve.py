@@ -195,6 +195,7 @@ def front_page_handler():
       'index.html', tree=make_tree(args.root_dir),
       html_content=args.front_page_message,
       note_extensions=args.note_extensions,
+      mime_type='',
       file_paths_flat=json.dumps(_get_file_paths_flat(args.root_dir)))
 
 

@@ -61,7 +61,9 @@
         </span>
       </p>
 
-			<input class="search" id="search-field" placeholder="Quick search" />
+			<div class="input-group">
+				<input class="search form-control" id="search-field" placeholder="Quick search" />
+			</div>
 			<div id="list-sidebar">
 				<ul class="list">
 				</ul>
@@ -522,6 +524,14 @@ $(document).keydown(function(event) {
     if (!( String.fromCharCode(event.which).toLowerCase() == 's' && event.ctrlKey) && !(event.which == 19)) return true;
     event.preventDefault();
     update();
+    return false;
+});
+
+$(document).keydown(function(event) {
+    // 19 for Mac Command+S
+    if (!( String.fromCharCode(event.which).toLowerCase() == 'p' && event.ctrlKey) && !(event.which == 19)) return true;
+    event.preventDefault();
+    $('#search-field').focus();
     return false;
 });
 </script>
