@@ -10,3 +10,7 @@ dist
 pervane.egg-info
 bin
 bin/*
+
+# Test content.
+Screenshot_*
+

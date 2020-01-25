@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.17.1/build/styles/default.min.css">
     <!-- <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" rel="stylesheet" > -->
     <link href="https://stackpath.bootstrapcdn.com/bootswatch/4.4.1/darkly/bootstrap.min.css" rel="stylesheet" >
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.5.1/min/dropzone.min.css" rel="stylesheet" >
     <link href="https://fonts.googleapis.com/css?family=PT+Sans&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/editormd.min.css" />
     <link rel="stylesheet" href="/static/css/styles.css" />
@@ -36,6 +37,14 @@
           <a class="nav-link" href="https://github.com/hakanu/pervane">Contribute</a>
         </li>
       </ul>
+
+			<button class="btn btn-large fileinput-button">Upload file</button>
+			<form action="/upload" class="" id="dropzone" style="max-height: 40px;min-height:unset">
+				<div class="fallback">
+					<input name="file" type="file" />
+				</div>
+			</form>
+
       <form class="form-inline mt-2 mt-md-0" action="/search" method="GET">
         <input class="form-control mr-sm-2" type="text" name="query" placeholder="Search files with ag" aria-label="Search">
       </form>
@@ -99,10 +108,6 @@
           <a id="a-path" href="file://{{path}}" target="_blank">{{ path }} </a>&nbsp;&nbsp;
           <span><a href="#" onclick="update()"><i class="fa fa-floppy-o" aria-hidden="true"></i>&nbsp;&nbsp;Save</a></span>
           <sub id="status"></sub>
-	
-      	  {% if mime_type %}
-            <span>{{mime_type}}</span>
-      	  {% endif %}
         </h6>
 
         {% if ext in note_extensions %}
@@ -241,6 +246,7 @@
 <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
 <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.17.1/build/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.5.1/min/dropzone.min.js"></script>
 <script src="/static/js/editormd.min.js"></script>
 <script src="/static/js/en.js"></script>
 <script>
@@ -469,6 +475,26 @@ $('#settings-toolbar').change(function() {
    } else {
      localStorage.setItem('settingsToolbar', 0);
    }
+});
+
+Dropzone.autoDiscover = false;
+
+$(function() {
+  var myDropzone = new Dropzone(document.body, {
+		clickable: '.fileinput-button',
+    url: '/upload',
+		acceptedFiles: 'image/*,application/pdf',
+		maxFilesize: 2,  // MB
+	});
+
+  myDropzone.on('addedfile', function(file) {
+		console.log('File added');
+  });
+
+	myDropzone.on('complete', function(file) {
+		myDropzone.removeFile(file);
+		location.reload();
+	});
 });
 
 </script>

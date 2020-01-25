@@ -10,6 +10,7 @@ with directory hierarchy.
 - Actually no more, transitioned to editor.md
    https://pandao.github.io/editor.md
 - highlight.js for simple code highlighting for non-md files.
+- dropzone.js for drag/drop uploads.
 
 Discuss: https://reddit.com/r/pervane 
 Contribute: https://github.com/hakanu/pervane
@@ -43,10 +44,11 @@ import subprocess
 import sys
 
 from jinja2 import Environment, BaseLoader
-from flask import Flask, render_template, request, jsonify, redirect
+from flask import Flask, render_template, request, jsonify, redirect, url_for
 from flask_caching import Cache
 from flask_httpauth import HTTPBasicAuth
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 
 mimetypes.init()
 
@@ -90,6 +92,15 @@ auth = HTTPBasicAuth()
 users = {
     args.username: generate_password_hash(args.password),
 }
+
+UPLOAD_FOLDER = args.root_dir  #'/path/to/the/uploads'
+ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
+
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+
+def allowed_file(filename):
+  return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 # Add custom jinja filter.
@@ -327,6 +338,27 @@ def search_handler():
       search_results=results, query=query, stats=stats_str,
       tree=make_tree(args.root_dir),
       note_extensions=args.note_extensions)
+
+
+@app.route('/upload', methods=['POST'])
+@auth.login_required
+def file_upload_handler():
+  print('File upload handler')
+# check if the post request has the file part
+  if 'file' not in request.files:
+    flash('No file part')
+    return jsonif({'result': 'fail no file part'})
+  file = request.files['file']
+  # if user does not select file, browser also
+  # submit an empty part without filename
+  if file.filename == '':
+    flash('No selected file')
+    return jsonif({'result': 'fail no selected file'})
+  if file and allowed_file(file.filename):
+    filename = secure_filename(file.filename)
+    file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+    logging.info('Upload is successful, refreshing the current page to show new file')
+    return jsonify({'result': 'success'})
 
 
 def cli_main():
