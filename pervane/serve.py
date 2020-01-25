@@ -170,13 +170,25 @@ def check_match(file_path):
       return True
 
 
+def _get_file_paths_flat(path):
+  if check_match(path):
+    return 
+  leaves = []
+  for name in os.listdir(path):
+    # list.js needs this type of dict.
+    leaves.append({'path': name.replace(args.root_dir, '')}) 
+  print('returning leaves: ', leaves)
+  return leaves
+
+
 @app.route('/')
 @auth.login_required
 def front_page_handler():
   return render_template(
       'index.html', tree=make_tree(args.root_dir),
       html_content=args.front_page_message,
-      note_extensions=args.note_extensions)
+      note_extensions=args.note_extensions,
+      file_paths_flat=json.dumps(_get_file_paths_flat(args.root_dir)))
 
 
 @app.route('/file')

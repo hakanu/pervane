@@ -68,38 +68,47 @@
         </span>
       </p>
 
-      <ul>
-      {%- for item in tree.children|sort(attribute='path') recursive %}
-        <li>
-        {% if item.kind == 'file'  %}
-          <a href="/file?f={{ item.path }}">
-            {% if item.ext in note_extensions %}
-              <i class="fa fa-file-text" aria-hidden="true"></i>
-            {% else %}
-              <i class="fa fa-file-code-o" aria-hidden="true"></i>
-            {% endif %}
-            {{ item.name }}
-          </a>
-        {% else %}
-          <a href="#" data-href="/dir?d={{ item.path }}" class="expand">
-            <i class="fa fa-folder" aria-hidden="true"></i>
-            {{ item.name }}/
-          </a>
+			<input class="search" id="search-field" placeholder="Quick search" />
+			<div id="list-sidebar">
+				<ul class="list">
+				</ul>
+			</div>
 
-          &nbsp;&nbsp;
-          <span>
-            <a href="#" onclick="addNode('{{ item.path }}')">
-              <i class="fa fa-plus-square" aria-hidden="true"></i>
-            </a>
-          </span>
-        {% endif %}
+			<hr>
 
-        {%- if item.children -%}
-          <ul id="{{item.path|replace('.', '_')|replace(' ', '_')|replace('/', '-'|replace('\\', '-'))}}">{{ loop(item.children|sort(attribute='path')) }}</ul>
-        {%- endif %}
-        </li>
-      {%- endfor %}
-      </ul>
+			<div>
+				{%- for item in tree.children|sort(attribute='path') recursive %}
+					<li>
+					{% if item.kind == 'file'  %}
+						<a href="/file?f={{ item.path }}" class="path">
+							{% if item.ext in note_extensions %}
+								<i class="fa fa-file-text" aria-hidden="true"></i>
+							{% else %}
+								<i class="fa fa-file-code-o" aria-hidden="true"></i>
+							{% endif %}
+							{{ item.name }}
+						</a>
+					{% else %}
+						<a href="#" data-href="/dir?d={{ item.path }}" class="expand path">
+							<i class="fa fa-folder" aria-hidden="true"></i>
+							{{ item.name }}/
+						</a>
+
+						&nbsp;&nbsp;
+						<span>
+							<a href="#" onclick="addNode('{{ item.path }}')">
+								<i class="fa fa-plus-square" aria-hidden="true"></i>
+							</a>
+						</span>
+					{% endif %}
+
+					{%- if item.children -%}
+						<ul id="{{item.path|replace('.', '_')|replace(' ', '_')|replace('/', '-'|replace('\\', '-'))}}">{{ loop(item.children|sort(attribute='path')) }}</ul>
+					{%- endif %}
+					</li>
+				{%- endfor %}
+				</ul>
+      </div>
     </div>
 
     <div class="col-md-10">
@@ -247,6 +256,7 @@
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
 <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.17.1/build/highlight.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.5.1/min/dropzone.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
 <script src="/static/js/editormd.min.js"></script>
 <script src="/static/js/en.js"></script>
 <script>
@@ -495,6 +505,28 @@ $(function() {
 		myDropzone.removeFile(file);
 		location.reload();
 	});
+});
+
+// Fuzzy search.
+options = {
+  valueNames: ['path'],
+  item: '<li><a class="path" href="/file?f="></a></li>',
+visibleItems: [],
+};
+
+var values = {{ file_paths_flat|safe }};
+var hackerList = new List('list-sidebar', options, values);
+
+$('#list-sidebar').hide();
+$('#search-field').on('keyup', function() {
+  var searchString = $(this).val();
+  console.log('Searching for ', searchString);
+  if (searchString == '') {
+		$('#list-sidebar').hide();
+  } else {
+		hackerList.search(searchString);
+		$('#list-sidebar').show();
+	}
 });
 
 </script>
