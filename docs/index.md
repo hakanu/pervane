@@ -84,6 +84,16 @@ Inspired from this one from notable author.
   * Well, you need a platform which supports that editor.
 * Cloud coding editors like [coder-server](https://github.com/cdr/code-server)
   * Too CPU intensive in the client side due to heavy js logic.
+* Standard notes: Checks most of my boxes. They exist in all platforms, awesome stuff.
+  * Not file based. Backup location txt files with their own format and name.
+  * No bulk import/export. So I could have never onboarded fully onto this.
+* Zim: Similar to pervane, file based.
+  * Desktop app only. 
+  * No web browser, platform dependent. Can not edit notes from ipad since
+  there is no client. Need to sync files and then use an editor.
+* dokuwiki: Personal wiki builder with tons of extensions. Solid option with files.
+  * Wiki syntax (not my favorite), but you can install markdown extension apparently.
+  * (Personal opinion) I have hard time to manage php servers. 
 
 Please shoot an email if I miss anything.
 
@@ -123,6 +133,32 @@ Please shoot an email if I miss anything.
 
 * Ctrl + s : Save the file.
 * Ctrl + p : Focus on quick search box on the left sidebar 
+
+### Sync - backup
+
+Since it's normal file system files, you can use any sync mechanism to sync your files with one of these
+- [Syncthing](https://syncthing.net/): my go-to self hosted syncing mechanism, too few impact on CPU
+- [Dropbox](https://www.dropbox.com/): Not my favorite since it's 3rd party, unpredictable load on host CPU and battery life of the mobile phone.
+  - You can go with headless dropbox, similar to syncthing, not so bad.
+- [Google Drive](https://drive.google.com): 3rd party. Their file stream is pretty cool, similar to headless dropbox. But no linux client yet :/
+  - https://support.google.com/a/answer/7491144?hl=en
+- [Microsoft OneDrive](): 3rd party. I was using for my onenote sync. They are pretty good actually.
+- [Nextcloud](): Similar to dropbox but self hosted. I'm currently using this. 
+- git: I use two way backup, regularly committing notes to a private git repo (bitbucket, gitlab etc) and also syncing with nextcloud.
+  - I can have revisions and note versions for free by using this.
+- insert_your_favorite_sync_tool
+
+### Mobile
+
+I'm working on a lightweight mobile app to list and modify the notes.
+For now you can use an mobile editor app with a syncing app as a workaround.
+I use syncthing for this. 
+
+### Testimonials
+
+I have moved all my keep notes, blog posts and project wiki notes from trello and notion.so to pervane.
+They total around 324 directories, 1579 files
+`tree -a .`
 
 ## But it's not
 
