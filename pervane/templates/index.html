@@ -502,7 +502,10 @@ $(function() {
 });
 
 // Fuzzy search.
-var values = {{ file_paths_flat|safe }};
+var values = [];
+{% if file_paths_flat %}
+  values = {{ file_paths_flat|safe }};
+{%endif %}
 
 $('#list-sidebar').hide();
 $('#search-field').on('keyup', function() {
