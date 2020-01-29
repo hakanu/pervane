@@ -101,6 +101,14 @@ ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 
+def program_installed(binary):
+  rc = subprocess.call(['which', binary])
+  if rc == 0:
+    return True 
+  else:
+    return False
+
+
 def allowed_file(filename):
   return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
@@ -343,12 +351,23 @@ def api_move_handler():
 def search_handler():
   query = request.args.get('query', '')
   if not query:
-      return 'You need to search for something'
-  # ackmate mode for easier parsing.
-  cmd = ['ag', query, args.root_dir, '--ackmate', '--stats', '-m', '2']
+    return 'You need to search for something'
+  # if not program_installed('ag') and not program_installed('ack'):
+  #   return 'You should install either silver searcher (ag) or ack for fast search'
+
+  # cmd = ''
+  if program_installed('ag'):
+    # ackmate mode for re-using same parsing logic.
+    cmd = ['ag', query, args.root_dir, '--ackmate', '--stats', '-m', '2']
+    logging.info('Using ag for search')
+  else:
+    cmd = ['ack', query, args.root_dir, '--column', '--heading'] 
+    logging.info('Using ack for search')
+  # TODO(hakanu): fallback to find.
   logging.info('Running cmd: %s', cmd)
   process = subprocess.Popen(cmd, stdout=subprocess.PIPE)
   output, error = process.communicate()
+
   # Convert output from binary to string.
   output = output.decode('utf-8')
   lines = output.split('\n')
@@ -358,16 +377,24 @@ def search_handler():
   file_finished = False
 
   # Extract stats tail first.
-  stats_str = ' '.join(lines[-6:])
+  # ack doesn't have stats, ag has stats in the last 6 lines.
+  tail = -6 if cmd[0] == 'ag' else -1
+  delim = ';' if cmd[0] == 'ag' else ':'
+  prefix = ':' if cmd[0] == 'ag' else ''
+
+  stats_str = ' '.join(lines[tail:])
   in_file_started = False
-  for line in lines[:-6]:
-    if line.startswith(':'):
+  for line in lines[:tail]:
+    print(line)
+    # Check if the line starts with a number or a letter.
+    # Number indicates that it's a file match starting.
+    if line.startswith(prefix + args.root_dir):
       fn = line
       in_file_results = []
       file_finished = False
       in_file_started = True
       continue
-    elif in_file_started and ';' in line:
+    elif in_file_started and delim in line:
       in_file_results.append({
           'snippet': line,
       })
@@ -382,7 +409,7 @@ def search_handler():
       'index.html',
       search_results=results, query=query, stats=stats_str,
       tree=make_tree(args.root_dir),
-      note_extensions=args.note_extensions)
+      note_extensions=args.note_extensions, mime_type='')
 
 
 @app.route('/upload', methods=['POST'])

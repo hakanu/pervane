@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="pervane", # Replace with your own username
-    version="0.0.34",
+    version="0.0.35",
     author="hakanu",
     author_email="hi@hakanu.net",
     description="Plain text backed web based note taking app",
