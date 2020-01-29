@@ -111,6 +111,7 @@
     </div>
 
     <div class="col-sm-10">
+      <p id="message"></p>
       {% if not search_results %}
         <h6>
           <a id="a-path" href="file://{{path}}" target="_blank">{{ path }} </a>&nbsp;&nbsp;
@@ -166,15 +167,15 @@
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
-      <form action="/api/add_node" method="POST">
+      <form id="form-add-node">
         <div class="modal-body">
           <p>Put / at the end if you want to create a directory. Otherwise we append a .md suffix for you.</p>
           <div class="input-group mb-3">
-              <input id="modal-input-parent-path" type="hidden" name="parent_path" class="form-control"> 
-              <div class="input-group-prepend">
-                  <span id="modal-input-prefix" class="input-group-text"></span>
-              </div>
-              <input type="text" name="new_node_name" class="form-control" placeholder="Type new node's name">
+            <input id="modal-input-parent-path" type="hidden" name="parent_path" class="form-control"> 
+            <div class="input-group-prepend">
+              <span id="modal-input-prefix" class="input-group-text"></span>
+            </div>
+            <input id="modal-input-new-node-name" type="text" name="new_node_name" class="form-control" placeholder="Type new node's name">
           </div>
         </div>
         <div class="modal-footer">
@@ -568,6 +569,31 @@ function drop(ev) {
       }
   });
 }
+
+// File/directory creation form handling.
+$('#form-add-node').submit(function(event) {
+  event.preventDefault();
+  console.log('adding node');
+  var  parentPath = $('#modal-input-parent-path').val();
+  var newNodeName = $('#modal-input-new-node-name').val();
+  $.post(
+    '/api/add_node', {
+        parent_path: parentPath,
+        new_node_name: newNodeName,
+    }, function(result){
+      if (result.result == 'success') {
+        console.log('Created file, refreshing');
+        var dest = '/';
+        if (!result.entity.endsWith('/')) {
+          dest = '/file?f=' + result.entity;
+        }
+        window.location.replace(dest);
+      } else {
+        console.log('Failed to create the file or dir');
+        $('#message').text(result.message);
+      }
+  });
+});
 
 </script>
 </body>

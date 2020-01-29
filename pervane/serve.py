@@ -298,11 +298,17 @@ def add_node_handler():
     parent_path = request.form.get('parent_path', '').strip()
     new_node_name = request.form.get('new_node_name', '').strip()
     if not parent_path or not new_node_name:
-      return redirect('/?message=path_can_not_be_empty', code=302)
+      return jsonify({
+          'result': 'fail',
+          'message': 'Path can not be empty',
+      })
     new_node_name = new_node_name.strip()
 
     if not parent_path.startswith(args.root_dir):
-      return jsonify({'result': 'Unauth file modification'})
+      return jsonify({
+          'result': 'fail',
+          'message': 'Unauth file modification',
+      })
 
     if new_node_name.endswith('/'):
       path = os.path.join(parent_path, new_node_name)
@@ -310,18 +316,37 @@ def add_node_handler():
       try:
         os.mkdir(path)
       except OSError:
-        return redirect('/?message=failed_to_creat_dir:' + path, code=302)
+        return jsonify({
+            'result': 'fail',
+            'message': 'Failed create this directory: ' +
+            path +
+            '. Make sure parent directory exists and  you have write '
+            'access to the parent directory.',
+            'entity': path,
+        })
       else:
-        return redirect('/?message=created_dir:' + path, code=302)
+        return jsonify({
+            'result':  'success', 
+            'message': 'created the directory',
+            'entity': path,
+        })
     else:
       suffix = '' if new_node_name.endswith('.md') else '.md'
       path = os.path.join(parent_path, new_node_name + suffix)
       try:
         f = open(path, 'x')
       except OSError:
-        return redirect('/?message=failed_to_creat_md:' + path, code=302)
+        return jsonify({
+            'result':  'fail',
+            'message': 'failed to create markdown file: ' + path,
+            'entity': path,
+        })
       else:
-        return redirect('/file?f=' + path, code=302)
+        return jsonify({
+            'result':  'success',
+            'message': 'created the directory: ' + path,
+            'entity': path,
+        })
 
 
 @app.route('/api/move_file')
