@@ -216,6 +216,15 @@ cd pervane/pervane
 python3 serve.py --username=foo --password=bar --dir=example/
 ```
 
+## Update
+
+The tool is still under heavy development, I update the package in pypi multiple
+times per week. Would be great if you keep updating with:
+
+```
+pip install --upgrade pervane
+```
+
 ## Options
 
 * `--dir`: Note root directory. File tree will be generated from this.
