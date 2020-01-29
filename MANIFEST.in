@@ -1,3 +1,4 @@
+include pervane/*
 include pervane/templates/*
 include pervane/static/img/*
 include pervane/static/img/**/*
@@ -6,6 +7,8 @@ include pervane/static/js/**/*
 include pervane/static/js/**/**/*
 include pervane/static/js/**/**/**/*
 include pervane/static/js/**/**/**/**/*
+include pervane/static/js/**/**/**/**/**/*
+include pervane/static/js/**/**/**/**/**/**/*
 include pervane/static/css/*
 include pervane/static/images/*
 include pervane/static/fonts/*

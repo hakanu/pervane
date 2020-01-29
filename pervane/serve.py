@@ -85,6 +85,9 @@ parser.add_argument(
 args = parser.parse_args()
 print('loaded args %s', args)
 
+# We should always work with absolute path in order not to cause security issues
+_ROOT_DIR = os.path.abspath(args.root_dir)
+
 logging.basicConfig(level=logging.DEBUG)
 cache = Cache(config={'CACHE_TYPE': 'simple'})
 app = Flask(__name__, template_folder='templates')
@@ -95,7 +98,7 @@ users = {
     args.username: generate_password_hash(args.password),
 }
 
-UPLOAD_FOLDER = args.root_dir  #'/path/to/the/uploads'
+UPLOAD_FOLDER = _ROOT_DIR  #'/path/to/the/uploads'
 ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -201,11 +204,11 @@ def _get_file_paths_flat(path):
 @auth.login_required
 def front_page_handler():
   return render_template(
-      'index.html', tree=make_tree(args.root_dir),
+      'index.html', tree=make_tree(_ROOT_DIR),
       html_content=args.front_page_message,
       note_extensions=args.note_extensions,
       mime_type='',
-      file_paths_flat=json.dumps(_get_file_paths_flat(args.root_dir)))
+      file_paths_flat=json.dumps(_get_file_paths_flat(_ROOT_DIR)))
 
 
 @app.route('/file')
@@ -215,11 +218,11 @@ def file_handler():
   if not path:
     return 'No path is given'
   path = path.strip()
-  if not path.startswith(args.root_dir):
+  if not path.startswith(_ROOT_DIR):
     logging.info('no auth')
     return (
         'Not authorized to see this dir, must be under: ' +
-        args.root_dir)
+        _ROOT_DIR)
   path = path.strip()
   html_content = ''
   content = ''
@@ -251,18 +254,18 @@ def file_handler():
   _, ext = os.path.splitext(path)
   return render_template('index.html',
       path=path, html_content=html_content, md_content=content, ext=ext,
-      tree=make_tree(args.root_dir), mime_type=mime_type,
+      tree=make_tree(_ROOT_DIR), mime_type=mime_type,
       note_extensions=args.note_extensions,
-      file_paths_flat=json.dumps(_get_file_paths_flat(args.root_dir)))
+      file_paths_flat=json.dumps(_get_file_paths_flat(_ROOT_DIR)))
 
 
 @app.route('/api/get_content')
 @auth.login_required
 def api_get_content_handler():
   path = request.args.get('f', '')
-  if not path.startswith(args.root_dir):
+  if not path.startswith(_ROOT_DIR):
     logging.info('no auth')
-    return 'Not authorized to see this dir, must be under: %s' % args.root_dir
+    return 'Not authorized to see this dir, must be under: %s' % _ROOT_DIR
   try:
     with open(path, 'r') as f:
       content = f.read()
@@ -279,7 +282,7 @@ def api_update_handler():
   if not file_path:
     return jsonify({'result': 'File path is empty'})
   
-  if not file_path.startswith(args.root_dir):
+  if not file_path.startswith(_ROOT_DIR):
     return jsonify({'result': 'Unauth file modification'})
 
   if not updated_content:
@@ -304,7 +307,7 @@ def add_node_handler():
       })
     new_node_name = new_node_name.strip()
 
-    if not parent_path.startswith(args.root_dir):
+    if not parent_path.startswith(_ROOT_DIR):
       return jsonify({
           'result': 'fail',
           'message': 'Unauth file modification',
@@ -354,9 +357,9 @@ def add_node_handler():
 def api_move_handler():
   source_path = request.args.get('source_path', '')
   dest_dir = request.args.get('dest_dir', '')
-  if not source_path.startswith(args.root_dir) or not dest_dir.startswith(args.root_dir):
+  if not source_path.startswith(_ROOT_DIR) or not dest_dir.startswith(_ROOT_DIR):
     logging.info('no auth')
-    return 'Not authorized to see this dir, must be under: %s' % args.root_dir
+    return 'Not authorized to see this dir, must be under: %s' % _ROOT_DIR
   try:
     base_name = os.path.basename(source_path)
     dest_path = os.path.join(dest_dir, base_name)
@@ -383,10 +386,10 @@ def search_handler():
   # cmd = ''
   if program_installed('ag'):
     # ackmate mode for re-using same parsing logic.
-    cmd = ['ag', query, args.root_dir, '--ackmate', '--stats', '-m', '2']
+    cmd = ['ag', query, _ROOT_DIR, '--ackmate', '--stats', '-m', '2']
     logging.info('Using ag for search')
   else:
-    cmd = ['ack', query, args.root_dir, '--column', '--heading'] 
+    cmd = ['ack', query, _ROOT_DIR, '--column', '--heading'] 
     logging.info('Using ack for search')
   # TODO(hakanu): fallback to find.
   logging.info('Running cmd: %s', cmd)
@@ -413,7 +416,7 @@ def search_handler():
     print(line)
     # Check if the line starts with a number or a letter.
     # Number indicates that it's a file match starting.
-    if line.startswith(prefix + args.root_dir):
+    if line.startswith(prefix + _ROOT_DIR):
       fn = line
       in_file_results = []
       file_finished = False
@@ -433,7 +436,7 @@ def search_handler():
   return render_template(
       'index.html',
       search_results=results, query=query, stats=stats_str,
-      tree=make_tree(args.root_dir),
+      tree=make_tree(_ROOT_DIR),
       note_extensions=args.note_extensions, mime_type='')
 
 
@@ -457,7 +460,7 @@ def file_upload_handler():
         app.config['UPLOAD_FOLDER'], base_name + '_' + 
         datetime.datetime.now().strftime('%Y%m%d_%H%M') + extension))
     logging.info('Upload is successful, refreshing the current page '
-	         'to show new file')
+           'to show new file')
     return jsonify({'result': 'success'})
 
 
