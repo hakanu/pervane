@@ -496,10 +496,14 @@ $(function() {
 		console.log('File added');
   });
 
-	myDropzone.on('complete', function(file) {
-		myDropzone.removeFile(file);
-		location.reload();
-	});
+  myDropzone.on('success', function(file, response) {
+    if (response.result == 'success') {
+      window.location.replace('/file?f=' + response.entity);
+    } else {
+      $('#message').text('Fail:/ ' + response.message);
+      myDropzone.removeFile(file);
+    }
+  });
 });
 
 // Fuzzy search.
@@ -598,4 +602,3 @@ $('#form-add-node').submit(function(event) {
 </script>
 </body>
 </html>
-

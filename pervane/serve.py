@@ -456,12 +456,23 @@ def file_upload_handler():
   if file and allowed_file(file.filename):
     filename = secure_filename(file.filename)
     base_name, extension = os.path.splitext(filename)
-    file.save(os.path.join(
+    dest_path = os.path.join(
         app.config['UPLOAD_FOLDER'], base_name + '_' + 
-        datetime.datetime.now().strftime('%Y%m%d_%H%M') + extension))
+        datetime.datetime.now().strftime('%Y%m%d_%H%M') + extension)
+    file.save(dest_path)
     logging.info('Upload is successful, refreshing the current page '
            'to show new file')
-    return jsonify({'result': 'success'})
+    return jsonify({
+        'result': 'success',
+        'message': 'File is successfully uploaded.',
+        'entity': dest_path,
+    })
+  else:
+    return jsonify({
+        'result': 'fail',
+        'message': 'probably the extension is not one of the allowed ones: '
+        'gif, pdf, png, jpg',  
+    })
 
 
 def cli_main():
