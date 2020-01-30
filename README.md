@@ -1,6 +1,6 @@
 ![](https://github.com/hakanu/pervane/raw/master/docs/pervane_logo_small.png)
 
-# Pervane
+# Pervane | [Demo](https://www.youtube.com/watch?v=sUr_qzeBxHI)
 
 Pervane is a bare minimum plain text file based note taking and knowledge base building tool.
 It doubles as simple file server to render given directories files in web browser.
@@ -167,7 +167,13 @@ They total around 324 directories, 1579 files
 * FTP server
 * Cloud code editor
 
-### Screenshots
+### Demo 
+
+#### Video
+
+[![Pervane note taking app demo](http://img.youtube.com/vi/sUr_qzeBxHI/0.jpg)](https://www.youtube.com/watch?v=sUr_qzeBxHI)
+
+#### Screenshots
 
 ![Generel view of the app](https://github.com/hakanu/pervane/raw/master/docs/screenshots/1.jpg)
 
