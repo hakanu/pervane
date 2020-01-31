@@ -1,8 +1,10 @@
-![](https://img.shields.io/badge/dynamic/json?color=green&label=download&query=data%5B0%5D.downloads&url=https%3A%2F%2Fpypistats.org%2Fapi%2Fpackages%2Fpervane%2Foverall)
-
 ![](https://github.com/hakanu/pervane/raw/master/docs/pervane_logo_small.png)
 
 # Pervane | [Demo](https://www.youtube.com/watch?v=sUr_qzeBxHI)
+
+![](https://img.shields.io/badge/dynamic/json?color=green&label=downloads&query=data%5B0%5D.downloads&url=https%3A%2F%2Fpypistats.org%2Fapi%2Fpackages%2Fpervane%2Foverall)
+[![](https://img.shields.io/badge/dynamic/json?color=green&label=downloads&query=data%5B0%5D.downloads&url=https%3A%2F%2Fpypistats.org%2Fapi%2Fpackages%2Fpervane%2Foverall)](https://pypi.org/pypi/pervane/)
+
 
 Pervane is a bare minimum plain text file based note taking and knowledge base building tool.
 It doubles as simple file server to render given directories files in web browser.
