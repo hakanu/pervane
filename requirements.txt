@@ -1,3 +1,8 @@
 flask
 Flask-Caching
 Flask-HTTPAuth
+Flask-User
+Flask-BabelEx
+Flask-Login
+jinja2
+

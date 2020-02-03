@@ -14,3 +14,7 @@ bin/*
 # Test content.
 Screenshot_*
 
+# Login db.
+*.sqlite
+*.db
+

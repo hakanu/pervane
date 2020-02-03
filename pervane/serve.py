@@ -48,7 +48,9 @@ import sys
 from jinja2 import Environment, BaseLoader
 from flask import Flask, render_template, request, jsonify, redirect, url_for
 from flask_caching import Cache
-from flask_httpauth import HTTPBasicAuth
+from flask_sqlalchemy import SQLAlchemy
+from flask_user import login_required, UserManager, UserMixin
+
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 
@@ -88,20 +90,60 @@ print('loaded args %s', args)
 # We should always work with absolute path in order not to cause security issues
 _ROOT_DIR = os.path.abspath(args.root_dir)
 
+# Class-based application configuration
+class ConfigClass(object):
+  """ Flask application config """
+  # Flask settings
+  SECRET_KEY = 'This is an INSECURE secret!! DO NOT use this in production!!'
+  # Flask-SQLAlchemy settings
+  SQLALCHEMY_DATABASE_URI = 'sqlite:///pervane.sqlite'    # File-based SQL database
+  SQLALCHEMY_TRACK_MODIFICATIONS = False    # Avoids SQLAlchemy warning
+  # Flask-User settings
+  USER_APP_NAME = "Pervane"      # Shown in and email templates and page footers
+  USER_ENABLE_EMAIL = False      # Disable email authentication
+  USER_ENABLE_USERNAME = True    # Enable username authentication
+  USER_REQUIRE_RETYPE_PASSWORD = False    # Simplify register form
+  USER_CORPORATION_NAME = 'Pervane'
+  USER_COPYRIGHT_YEAR = '2020'
+  USER_APP_VERSION = 'alpha'
+  UPLOAD_FOLDER = _ROOT_DIR  
+
 logging.basicConfig(level=logging.DEBUG)
 cache = Cache(config={'CACHE_TYPE': 'simple'})
 app = Flask(__name__, template_folder='templates')
 cache.init_app(app)
-auth = HTTPBasicAuth()
-
-users = {
-    args.username: generate_password_hash(args.password),
-}
 
 UPLOAD_FOLDER = _ROOT_DIR  #'/path/to/the/uploads'
 ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
 
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config.from_object(__name__+'.ConfigClass')
+
+# Initialize Flask-SQLAlchemy
+db = SQLAlchemy(app)
+
+
+
+# Define the User data-model.
+# NB: Make sure to add flask_user UserMixin !!!
+class User(db.Model, UserMixin):
+  __tablename__ = 'users'
+  id = db.Column(db.Integer, primary_key=True)
+  active = db.Column('is_active', db.Boolean(), nullable=False, server_default='1')
+
+  # User authentication information. The collation='NOCASE' is required
+  # to search case insensitively when USER_IFIND_MODE is 'nocase_collation'.
+  username = db.Column(db.String(100, collation='NOCASE'), nullable=False, unique=True)
+  password = db.Column(db.String(255), nullable=False, server_default='')
+  email_confirmed_at = db.Column(db.DateTime())
+
+  # User information
+  first_name = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+  last_name = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+# Create all database tables
+db.create_all()
+
+# Setup Flask-User and specify the User data-model
+user_manager = UserManager(app, db, User)
 
 
 def program_installed(binary):
@@ -118,15 +160,15 @@ def allowed_file(filename):
 
 # Add custom jinja filter.
 def escapejs(val):
-    # TODO(hakanu): Need to figure out \u escaping in the notes.
-    # This sub modifies the original content. 
-    return re.sub(r'`', '\`', re.sub(r'\\u', '\\a', val))
+  # TODO(hakanu): Need to figure out \u escaping in the notes.
+  # This sub modifies the original content. 
+  return re.sub(r'`', '\`', re.sub(r'\\u', '\\a', val))
 
 
 def _get_template(html):
-    env = Environment(loader=BaseLoader, autoescape=True)
-    env.filters['escapejs'] = escapejs
-    return env.from_string(html)
+  env = Environment(loader=BaseLoader, autoescape=True)
+  env.filters['escapejs'] = escapejs
+  return env.from_string(html)
 
 
 def get_mime_type(path):
@@ -136,13 +178,6 @@ def get_mime_type(path):
   logging.error('Can not extact the mime type, probably OS related problem. %s',
                 guessed_type)
   return 'text/unknown'
-      
-
-@auth.verify_password
-def verify_password(username, password):
-  if username in users:
-    return check_password_hash(users.get(username), password)
-  return False
 
 
 @cache.cached(timeout=args.cache_seconds, key_prefix='_make_tree')
@@ -201,18 +236,19 @@ def _get_file_paths_flat(path):
 
 
 @app.route('/')
-@auth.login_required
+@login_required
 def front_page_handler():
   return render_template(
       'index.html', tree=make_tree(_ROOT_DIR),
       html_content=args.front_page_message,
       note_extensions=args.note_extensions,
       mime_type='',
-      file_paths_flat=json.dumps(_get_file_paths_flat(_ROOT_DIR)))
+      file_paths_flat=json.dumps(_get_file_paths_flat(_ROOT_DIR)),
+      root_dir=_ROOT_DIR)
 
 
 @app.route('/file')
-@auth.login_required
+@login_required
 def file_handler():
   path = request.args.get('f', '')
   if not path:
@@ -256,11 +292,11 @@ def file_handler():
       path=path, html_content=html_content, md_content=content, ext=ext,
       tree=make_tree(_ROOT_DIR), mime_type=mime_type,
       note_extensions=args.note_extensions,
-      file_paths_flat=json.dumps(_get_file_paths_flat(_ROOT_DIR)))
-
+      file_paths_flat=json.dumps(_get_file_paths_flat(_ROOT_DIR)),
+      root_dir=_ROOT_DIR)
 
 @app.route('/api/get_content')
-@auth.login_required
+@login_required
 def api_get_content_handler():
   path = request.args.get('f', '')
   if not path.startswith(_ROOT_DIR):
@@ -275,7 +311,7 @@ def api_get_content_handler():
 
 
 @app.route('/api/update', methods=['POST'])
-@auth.login_required
+@login_required
 def api_update_handler():
   updated_content = request.form.get('updated_content', '').strip()
   file_path = request.form.get('file_path', '').strip()
@@ -296,7 +332,7 @@ def api_update_handler():
 
 
 @app.route('/api/add_node', methods=['POST'])
-@auth.login_required
+@login_required
 def add_node_handler():
     parent_path = request.form.get('parent_path', '').strip()
     new_node_name = request.form.get('new_node_name', '').strip()
@@ -353,7 +389,7 @@ def add_node_handler():
 
 
 @app.route('/api/move_file')
-@auth.login_required
+@login_required
 def api_move_handler():
   source_path = request.args.get('source_path', '')
   dest_dir = request.args.get('dest_dir', '')
@@ -375,7 +411,7 @@ def api_move_handler():
 
 
 @app.route('/search')
-@auth.login_required
+@login_required
 def search_handler():
   query = request.args.get('query', '')
   if not query:
@@ -437,11 +473,12 @@ def search_handler():
       'index.html',
       search_results=results, query=query, stats=stats_str,
       tree=make_tree(_ROOT_DIR),
-      note_extensions=args.note_extensions, mime_type='')
+      note_extensions=args.note_extensions, mime_type='',
+      root_dir=_ROOT_DIR)
 
 
 @app.route('/upload', methods=['POST'])
-@auth.login_required
+@login_required
 def file_upload_handler():
   # check if the post request has the file part
   if 'file' not in request.files:
