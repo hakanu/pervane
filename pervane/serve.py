@@ -40,6 +40,7 @@ import json
 import logging
 import mimetypes
 import os
+import pathlib
 import re
 import shutil
 import subprocess
@@ -63,10 +64,10 @@ parser.add_argument('--port', dest='port', default='5000',
                     help='port to be binded')
 parser.add_argument('--dir', dest='root_dir', default='./',
                     help='Working folder to show the tree.')
-parser.add_argument('--username', dest='username', default='hakuna',
-                    help='Authentication username')
-parser.add_argument('--password', dest='password', default='matata',
-                    help='Authentication password')
+parser.add_argument('--username', dest='username', default=None,
+                    help='This is deprecated, please use cookie based login.')
+parser.add_argument('--password', dest='password', default=None,
+                    help='This is deprecated, please use cookie based login.')
 parser.add_argument('--cache_seconds', dest='cache_seconds', default=2,
                     help='Cache the sidebar file tree creation.')
 parser.add_argument(
@@ -84,11 +85,26 @@ parser.add_argument(
     dest='front_page_message',
     default='Welcome to Pervane! This is default welcome message.',
     help='Cache the sidebar file tree creation.')
+parser.add_argument('--allow_multi_user', dest='allow_multi_user', default=False,
+                    help='Should pervane allow multiple users to see the same notes? '
+                         'Be careful.')
 args = parser.parse_args()
+# Log may not show up in non-debug mode.
 print('loaded args %s', args)
+if args.username or args.password:
+  logging.error('WARNING: HTTP Basic Auth is deprecated, now Pervane has more '
+		'cookie based login, please use that method.')
 
 # We should always work with absolute path in order not to cause security issues
 _ROOT_DIR = os.path.abspath(args.root_dir)
+# Platform independent way of obtaining home folder.
+_PERVANE_CONFIG_DIR = os.path.join(str(pathlib.Path.home()), '.pervane')
+logging.info('config dir: ', _PERVANE_CONFIG_DIR)
+if not os.path.exists(_PERVANE_CONFIG_DIR):
+  logging.info('Pervane config dir does not exist, creating at %s', _PERVANE_CONFIG_DIR)
+  os.mkdir(_PERVANE_CONFIG_DIR)
+_SQLITE_PATH = 'sqlite:///' + os.path.join(_PERVANE_CONFIG_DIR, 'pervane.sqlite')
+logging.info('db path: ', _SQLITE_PATH)
 
 # Class-based application configuration
 class ConfigClass(object):
@@ -96,7 +112,7 @@ class ConfigClass(object):
   # Flask settings
   SECRET_KEY = 'This is an INSECURE secret!! DO NOT use this in production!!'
   # Flask-SQLAlchemy settings
-  SQLALCHEMY_DATABASE_URI = 'sqlite:///pervane.sqlite'    # File-based SQL database
+  SQLALCHEMY_DATABASE_URI = _SQLITE_PATH 
   SQLALCHEMY_TRACK_MODIFICATIONS = False    # Avoids SQLAlchemy warning
   # Flask-User settings
   USER_APP_NAME = "Pervane"      # Shown in and email templates and page footers
@@ -121,8 +137,6 @@ app.config.from_object(__name__+'.ConfigClass')
 # Initialize Flask-SQLAlchemy
 db = SQLAlchemy(app)
 
-
-
 # Define the User data-model.
 # NB: Make sure to add flask_user UserMixin !!!
 class User(db.Model, UserMixin):
@@ -142,8 +156,19 @@ class User(db.Model, UserMixin):
 # Create all database tables
 db.create_all()
 
+class CustomUserManager(UserManager):
+  # Override or extend the default register view method.
+  def register_view(self):
+    # If multi user signup is not allowed and there is a user.
+    if not args.allow_multi_user and User.query.all():
+      logging.info('A user already exists! Disabling registers')
+      return ('There is already a user signed up, Pervane does not allow more users to sign up. '
+              'Login here: <a href="/user/sign-in">Sign in</a>')
+    return super().register_view()
+
+
 # Setup Flask-User and specify the User data-model
-user_manager = UserManager(app, db, User)
+user_manager = CustomUserManager(app, db, User)
 
 
 def program_installed(binary):
@@ -294,6 +319,7 @@ def file_handler():
       note_extensions=args.note_extensions,
       file_paths_flat=json.dumps(_get_file_paths_flat(_ROOT_DIR)),
       root_dir=_ROOT_DIR)
+
 
 @app.route('/api/get_content')
 @login_required
@@ -449,7 +475,6 @@ def search_handler():
   stats_str = ' '.join(lines[tail:])
   in_file_started = False
   for line in lines[:tail]:
-    print(line)
     # Check if the line starts with a number or a letter.
     # Number indicates that it's a file match starting.
     if line.startswith(prefix + _ROOT_DIR):
