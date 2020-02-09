@@ -54,11 +54,11 @@
       <p>
         <a href="/">
           <i class="fa fa-folder" aria-hidden="true"></i>
-          {{ tree.path|replace(root_dir, '/')}}
+          {{ tree.path|replace(working_dir, '')}}
         </a>
 
         <span>
-          <a href="#" onclick="addNode('{{ tree.path }}')">
+          <a href="#" onclick="addNode('{{ tree.path.replace(working_dir, '') }}')">
             <i class="fa fa-plus-square" aria-hidden="true"></i>
           </a>
         </span>
@@ -77,9 +77,10 @@
 			<div>
         <ul>
 				{%- for item in tree.children|sort(attribute='path') recursive %}
+          {% set item_path = item.path.replace(working_dir, '') %}
 					<li>
 					{% if item.kind == 'file'  %}
-						<a href="/file?f={{ item.path }}" id="{{item.path}}" data-path="{{item.path}}" class="path" draggable="true" ondragstart="drag(event)">
+						<a href="/file?f={{ item_path }}" id="{{item_path}}" data-path="{{item_path}}" class="path" draggable="true" ondragstart="drag(event)">
 							{% if item.ext in note_extensions %}
 								<i class="fa fa-file-text" aria-hidden="true"></i>
 							{% else %}
@@ -88,33 +89,35 @@
 							{{ item.name }}
 						</a>
 					{% else %}
-						<a href="#" data-href="/dir?d={{ item.path }}" id="{{item.path}}" data-path="{{item.path}}" class="expand path" draggable="false" ondrop="drop(event)" ondragover="allowDrop(event)">
+						<a href="#" data-href="/dir?d={{ item_path }}" id="{{item_path}}" data-path="{{item_path}}" class="expand path" draggable="false" ondrop="drop(event)" ondragover="allowDrop(event)">
 							<i class="fa fa-folder" aria-hidden="true"></i>
 							{{ item.name }}/
 						</a>
 
 						&nbsp;&nbsp;
 						<span>
-							<a href="#" onclick="addNode('{{ item.path }}')">
+							<a href="#" onclick="addNode('{{ item_path }}')">
 								<i class="fa fa-plus-square" aria-hidden="true"></i>
 							</a>
 						</span>
 					{% endif %}
 
 					{%- if item.children -%}
-						<ul id="{{item.path|replace('.', '_')|replace(' ', '_')|replace('/', '-'|replace('\\', '-'))}}">{{ loop(item.children|sort(attribute='path')) }}</ul>
+						<ul id="{{item_path|replace('.', '_')|replace(' ', '_')|replace('/', '-'|replace('\\', '-'))}}">{{ loop(item.children|sort(attribute='path')) }}</ul>
 					{%- endif %}
 					</li>
 				{%- endfor %}
 				</ul>
       </div>
-    </div>
+      <p>Logged in as {{ current_user.username }}</p>
+      <p><a href="/user/sign-out">Sign out</a></p>
+    </div> <!-- /col-sm-2 -->
 
     <div class="col-sm-10">
       <p id="message"></p>
       {% if not search_results %}
         <h6>
-          <a id="a-path" href="file://{{path}}" target="_blank">{{ path|replace(root_dir, '') }} </a>&nbsp;&nbsp;
+          <a id="a-path" href="file://{{path}}" target="_blank">{{ path|replace(working_dir, '') }} </a>&nbsp;&nbsp;
           <span><a href="#" onclick="update()"><i class="fa fa-floppy-o" aria-hidden="true"></i>&nbsp;&nbsp;Save</a></span>
           <sub id="status"></sub>
         </h6>
@@ -148,8 +151,6 @@
           </ul>
         {% endfor %}
       {% endif %}
-
-      
     </div>
   </div>
 </div>

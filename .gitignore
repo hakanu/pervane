@@ -17,4 +17,6 @@ Screenshot_*
 # Login db.
 *.sqlite
 *.db
+.fuse_*
+pervane/haku*
 
