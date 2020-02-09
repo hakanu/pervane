@@ -2,6 +2,13 @@
 
 # Pervane | [Demo](https://www.youtube.com/watch?v=sUr_qzeBxHI)
 
+[![](https://img.shields.io/badge/status-stable-green.svg)](https://pypi.org/pypi/pervane/)
+![](https://img.shields.io/badge/dynamic/json?color=green&label=downloads&query=data%5B0%5D.downloads&url=https%3A%2F%2Fpypistats.org%2Fapi%2Fpackages%2Fpervane%2Foverall)
+[![](https://img.shields.io/pypi/v/pervane.svg)](https://pypi.org/pypi/pervane/)
+[![](https://img.shields.io/pypi/pyversions/pervane.svg)](https://pypi.org/pypi/pervane/)
+[![](https://img.shields.io/pypi/l/pervane.svg)](https://pypi.org/pypi/pervane/)
+
+
 Pervane is a bare minimum plain text file based note taking and knowledge base building tool.
 It doubles as simple file server to render given directories files in web browser.
 It's like python's built-in SimpleHTTPServer but a little bit feature richer like WYSIWYG note taking experience, sidebar with infinite number of nesting, blazing fast text search, file moving, creating from the browser etc.
@@ -202,8 +209,10 @@ They total around 324 directories, 1579 files
 ```shell
 screen
 pip install pervane
-pervane --username=foo --password=bar --dir=example/
+pervane --dir=example/
 ```
+When you go to localhost:5000, you need to register.
+Pervane only accepts 1 user. So your notes will only be visible by this single user.
 
 Package details here: https://pypi.org/project/pervane/
 
@@ -219,7 +228,7 @@ screen
 # Download the latest version.
 git clone https://github.com/hakanu/pervane.git
 cd pervane/pervane
-python3 serve.py --username=foo --password=bar --dir=example/
+python3 serve.py --dir=example/
 ```
 
 ## Update
@@ -236,10 +245,11 @@ pip install --upgrade pervane
 * `--dir`: Note root directory. File tree will be generated from this.
 * `--host`: defaults to 0.0.0.0. Hostname to be binded.
 * `--port`: defaults to 5000. Port number to be binded.
-* `--username`: defaults to 'hakuna'. Username for basic http auth.
-* `--password`: defaults to 'matata'. Username for basic http auth.
+* `--username`: DEPRECATED. Authentication is now based on cookie based login. defaults to 'hakuna'. Username for basic http auth.
+* `--password`: DEPRECATED. Authentication is now based on cookie based login. defaults to 'matata'. Username for basic http auth.
 * `--front_page_message`: / message.
 * `--cache_seconds`: Seconds to bust the cache. Mainly used for file tree re-reading.
+*  --debug: Enable more verbose logging.
 
 ## Contribute
 
@@ -253,7 +263,7 @@ source env/bin/activate
 pip install flask markdown2 Flask-Caching Flask-HTTPAuth
 
 # Run
-python3 serve.py
+python3 serve.py --debug=true
 ```
 
 ## Stack
@@ -280,9 +290,5 @@ Tried to keep the code as simple as possible since I need to take notes today.
 
 ## Keep the engine running
 
-This html doesn't render for some reason although there is no
-prohibited html tags inside.
-
-<style>.bmc-button img{width: 35px !important;margin-bottom: 1px !important;box-shadow: none !important;border: none !important;vertical-align: middle !important;}.bmc-button{padding: 7px 10px 7px 10px !important;line-height: 35px !important;height:51px !important;min-width:217px !important;text-decoration: none !important;display:inline-flex !important;color:#FFFFFF !important;background-color:#FF813F !important;border-radius: 5px !important;border: 1px solid transparent !important;padding: 7px 10px 7px 10px !important;font-size: 22px !important;letter-spacing: 0.6px !important;box-shadow: 0px 1px 2px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;margin: 0 auto !important;font-family:'Cookie', cursive !important;-webkit-box-sizing: border-box !important;box-sizing: border-box !important;-o-transition: 0.3s all linear !important;-webkit-transition: 0.3s all linear !important;-moz-transition: 0.3s all linear !important;-ms-transition: 0.3s all linear !important;transition: 0.3s all linear !important;}.bmc-button:hover, .bmc-button:active, .bmc-button:focus {-webkit-box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;text-decoration: none !important;box-shadow: 0px 1px 2px 2px rgba(190, 190, 190, 0.5) !important;opacity: 0.85 !important;color:#FFFFFF !important;}</style><link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet"><a class="bmc-button" target="_blank" href="https://www.buymeacoffee.com/haku"><img src="https://cdn.buymeacoffee.com/buttons/bmc-new-btn-logo.svg" alt="Buy me a coffee"><span style="margin-left:15px;font-size:28px !important;">Buy me a coffee</span></a>
-
+https://www.buymeacoffee.com/haku
 

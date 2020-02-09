@@ -209,8 +209,10 @@ They total around 324 directories, 1579 files
 ```shell
 screen
 pip install pervane
-pervane --username=foo --password=bar --dir=example/
+pervane --dir=example/
 ```
+When you go to localhost:5000, you need to register.
+Pervane only accepts 1 user. So your notes will only be visible by this single user.
 
 Package details here: https://pypi.org/project/pervane/
 
@@ -226,7 +228,7 @@ screen
 # Download the latest version.
 git clone https://github.com/hakanu/pervane.git
 cd pervane/pervane
-python3 serve.py --username=foo --password=bar --dir=example/
+python3 serve.py --dir=example/
 ```
 
 ## Update
@@ -243,10 +245,11 @@ pip install --upgrade pervane
 * `--dir`: Note root directory. File tree will be generated from this.
 * `--host`: defaults to 0.0.0.0. Hostname to be binded.
 * `--port`: defaults to 5000. Port number to be binded.
-* `--username`: defaults to 'hakuna'. Username for basic http auth.
-* `--password`: defaults to 'matata'. Username for basic http auth.
+* `--username`: DEPRECATED. Authentication is now based on cookie based login. defaults to 'hakuna'. Username for basic http auth.
+* `--password`: DEPRECATED. Authentication is now based on cookie based login. defaults to 'matata'. Username for basic http auth.
 * `--front_page_message`: / message.
 * `--cache_seconds`: Seconds to bust the cache. Mainly used for file tree re-reading.
+*  --debug: Enable more verbose logging.
 
 ## Contribute
 
@@ -260,7 +263,7 @@ source env/bin/activate
 pip install flask markdown2 Flask-Caching Flask-HTTPAuth
 
 # Run
-python3 serve.py
+python3 serve.py --debug=true
 ```
 
 ## Stack
