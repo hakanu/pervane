@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="pervane",
-    version="0.0.37",
+    version="0.0.39",
     author="hakanu",
     author_email="hi@hakanu.net",
     description="Plain text backed web based note taking and knowledge base building app",
@@ -19,6 +19,8 @@ setuptools.setup(
         "Flask-HTTPAuth>=3.3.0",
         "Flask-Login>=0.4.1",
         "mistune>=0.8.4",
+        "Flask-SQLAlchemy>=2.4.1",
+        "Flask-User>=1.0.2.2",
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
