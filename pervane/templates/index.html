@@ -539,11 +539,21 @@ $(document).keydown(function(event) {
     return false;
 });
 
+// Ctrl + p focus on quick search, sublime text style.
 $(document).keydown(function(event) {
     // 19 for Mac Command+S
     if (!( String.fromCharCode(event.which).toLowerCase() == 'p' && event.ctrlKey) && !(event.which == 19)) return true;
     event.preventDefault();
     $('#search-field').focus();
+    return false;
+});
+
+// Ctrl + i create new note in the first level directory.
+$(document).keydown(function(event) {
+    // 19 for Mac Command+S
+    if (!( String.fromCharCode(event.which).toLowerCase() == 'i' && event.ctrlKey) && !(event.which == 19)) return true;
+    event.preventDefault();
+    addNode('/');
     return false;
 });
 
