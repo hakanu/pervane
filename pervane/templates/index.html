@@ -122,7 +122,8 @@
           <sub id="status"></sub>
         </h6>
 
-        {% if mime_type.startswith('text/') %}
+        <!-- js is treated as non-text, need to create exception here than the other source code files. -->
+        {% if mime_type.startswith('text/') or mime_type == 'application/javascript' %}
           {% if not md_content and html_content %}
             <div>{{ html_content|safe }}</div>
           {% else %}
@@ -610,6 +611,17 @@ $('#form-add-node').submit(function(event) {
   });
 });
 
+// Autosave timeout, 2 seconds.
+var timeoutId;
+$('#editor').on('input propertychange', function() {
+    console.log('Autosaving');
+    
+    // Runs 2s after the last change    
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(function() {
+			update();
+    }, 2000);
+});
 </script>
 </body>
 </html>

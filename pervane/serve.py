@@ -184,7 +184,9 @@ user_manager = CustomUserManager(app, db, User)
 
 
 def _get_root_dir():
-  return (_WORKING_DIR if not args.allow_multi_user else os.path.join(_WORKING_DIR, current_user.username)) + os.path.sep
+  return (
+      _WORKING_DIR if not args.allow_multi_user else os.path.join(_WORKING_DIR, current_user.username)
+  ) + os.path.sep
 
 
 def program_installed(binary):
@@ -269,9 +271,10 @@ def _get_file_paths_flat(path):
   leaves = []
   for root, dirs, files in os.walk(path, topdown=False):
     for name in files:
+#      print('root', root, 'name', name, 'root: ', _get_root_dir())
       leaves.append({
         'name': name,
-        'path': os.path.join(root, name),
+        'path': os.path.join(root, name).replace(_get_root_dir(), os.path.sep),
       }) 
   return leaves
 
@@ -315,9 +318,12 @@ def file_handler():
   content = ''
   mime_type = get_mime_type(path)
   logging.info('mime_type: %s', mime_type)
+  print('mime_type: ', mime_type)
   if (not mime_type.startswith('image/') and 
       not mime_type.startswith('video/') and
-      not mime_type.startswith('text/')):
+      not mime_type.startswith('text/') and
+      # js source is not text for some reason. Need to be excepted.
+      not mime_type == 'application/javascript'):
     return ('No idea how to show this file %s' % path)
 
   # Text is our main interest.
