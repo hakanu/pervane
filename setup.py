@@ -5,10 +5,10 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="pervane",
-    version="0.0.40",
+    version="0.0.41",
     author="hakanu",
     author_email="hi@hakanu.net",
-    description="Plain text backed web based note taking and knowledge base building app",
+    description="Plain text backed web based markdown note taking and knowledge base building app",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/hakanu/pervane",

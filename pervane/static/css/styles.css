@@ -10,15 +10,11 @@ body {
 
 ul {
   padding-left: 12px;
-  list-style: none;
-  list-style-type: none;
 }
 
 ul li ul {
   display: none;
   padding-left: 12px;
-  list-style: none;
-  list-style-type: none;
 }
 
 .sidebar ul {

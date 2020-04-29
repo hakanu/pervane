@@ -392,8 +392,15 @@ function update() {
 
 function addNode(parent) {
   $('#modal-input-parent-path').attr('value', parent);
-  $('#modal-input-prefix').text(parent + '/');
+  // Prevent root to be like //.
+  if (parent != '/') {
+    $('#modal-input-prefix').text(parent + '/');
+  }
   $('#nodeModal').modal();
+  // $('#nodeModal').modal(function () {
+      // setTimeout(function(){ $('#modal-input-new-node-name').focus(); }, 300);
+  // });
+  setTimeout(function(){ $('#modal-input-new-node-name').focus(); }, 500);
 }
 
 function themeSelect(id, themes, lsKey, callback) {
