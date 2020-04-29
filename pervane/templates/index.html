@@ -28,12 +28,19 @@
         <li class="nav-item active">
           <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
         </li>
+
         <li class="nav-item">
           <a class="nav-link" href="#" data-toggle="modal" onclick="showSettingsModal()">Settings</a>
         </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="#" data-toggle="modal" onclick="showShortcutsModal()">Shortcuts</a>
+        </li>
+
         <li class="nav-item">
           <a class="nav-link" href="https://reddit.com/r/pervane">Discuss/Feedback</a>
         </li>
+
         <li class="nav-item">
           <a class="nav-link" href="https://github.com/hakanu/pervane">Contribute</a>
         </li>
@@ -189,6 +196,28 @@
   </div>
 </div>
 
+<!-- Shortcuts Modal -->
+<div class="modal fade" id="shortcuts-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel2">Keyboard Shortcuts</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>New note: <span><b>Ctrl + n</b></span></p>
+        <p>Save: <span><b>Ctrl + s</b></span></p>
+        <p>Quick search: <span><b>Ctrl + p</b></span></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Settings Modal -->
 <div class="modal fade" id="settings-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
   <div class="modal-dialog" role="document">
@@ -276,6 +305,11 @@ for (var i = 0; i < localStorage.length; i++) {
   if (value != 'false') {
     $('#' + key).eq(0).css("display", "block");
   }
+}
+
+function showShortcutsModal() {
+  // Show the modal upon click.
+  $('#shortcuts-modal').modal();
 }
 
 function showSettingsModal() {
