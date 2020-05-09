@@ -8,7 +8,6 @@
 [![](https://img.shields.io/pypi/pyversions/pervane.svg)](https://pypi.org/pypi/pervane/)
 [![](https://img.shields.io/pypi/l/pervane.svg)](https://pypi.org/pypi/pervane/)
 
-
 Pervane is a bare minimum plain text file based note taking and knowledge base building tool.
 It doubles as simple file server to render given directories files in web browser.
 It's like python's built-in SimpleHTTPServer but a little bit feature richer like WYSIWYG note taking experience, sidebar with infinite number of nesting, blazing fast text search, file moving, creating from the browser etc.
@@ -291,4 +290,3 @@ Tried to keep the code as simple as possible since I need to take notes today.
 ## Keep the engine running
 
 https://www.buymeacoffee.com/haku
-

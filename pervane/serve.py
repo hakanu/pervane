@@ -115,9 +115,11 @@ _WORKING_DIR = os.path.abspath(args.root_dir)
 _PERVANE_CONFIG_DIR = os.path.join(str(pathlib.Path.home()), '.pervane')
 logging.info('config dir: ', _PERVANE_CONFIG_DIR)
 if not os.path.exists(_PERVANE_CONFIG_DIR):
-  logging.info('Pervane config dir does not exist, creating at %s', _PERVANE_CONFIG_DIR)
+  logging.info('Pervane config dir does not exist, creating at %s',
+               _PERVANE_CONFIG_DIR)
   os.mkdir(_PERVANE_CONFIG_DIR)
-_SQLITE_PATH = 'sqlite:///' + os.path.join(_PERVANE_CONFIG_DIR, 'pervane.sqlite')
+_SQLITE_PATH = 'sqlite:///' + os.path.join(
+    _PERVANE_CONFIG_DIR, 'pervane.sqlite')
 logging.info('db path: ', _SQLITE_PATH)
 
 # Class-based application configuration
@@ -154,17 +156,21 @@ db = SQLAlchemy(app)
 class User(db.Model, UserMixin):
   __tablename__ = 'users'
   id = db.Column(db.Integer, primary_key=True)
-  active = db.Column('is_active', db.Boolean(), nullable=False, server_default='1')
+  active = db.Column('is_active', db.Boolean(), nullable=False,
+                     server_default='1')
 
   # User authentication information. The collation='NOCASE' is required
   # to search case insensitively when USER_IFIND_MODE is 'nocase_collation'.
-  username = db.Column(db.String(100, collation='NOCASE'), nullable=False, unique=True)
+  username = db.Column(db.String(100, collation='NOCASE'), nullable=False,
+                       unique=True)
   password = db.Column(db.String(255), nullable=False, server_default='')
   email_confirmed_at = db.Column(db.DateTime())
 
   # User information
-  first_name = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
-  last_name = db.Column(db.String(100, collation='NOCASE'), nullable=False, server_default='')
+  first_name = db.Column(db.String(100, collation='NOCASE'), nullable=False,
+                         server_default='')
+  last_name = db.Column(db.String(100, collation='NOCASE'), nullable=False,
+                         server_default='')
 # Create all database tables
 db.create_all()
 
@@ -304,7 +310,8 @@ def file_handler():
   path = request.args.get('f', '')
   if not path:
     return 'No path is given'
-  # Even though passed path has separators, we get the last piece /hakuna/matata/yo => yo.
+  # Even though passed path has separators, we get the last piece
+  #  /hakuna/matata/yo => yo.
   # Trying to be defensive here against custom requests.
 
   # Get rid of that separator as first char and join with working dir.
@@ -378,7 +385,8 @@ def api_get_content_handler():
 def api_update_handler():
   updated_content = request.form.get('updated_content', '').strip()
   root_dir = _get_root_dir()
-  file_path = os.path.join(_WORKING_DIR, request.form.get('file_path', '').strip()[1:])
+  file_path = os.path.join(
+      _WORKING_DIR, request.form.get('file_path', '').strip()[1:])
   if not file_path:
     return jsonify({'result': 'File path is empty'})
   
