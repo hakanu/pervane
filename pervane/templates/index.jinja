@@ -87,7 +87,7 @@
           {% set item_path = item.path.replace(working_dir, '') %}
 					<li>
 					{% if item.kind == 'file'  %}
-						<a href="/file?f={{ item_path }}" id="{{item_path}}" data-path="{{item_path}}" class="path" draggable="true" ondragstart="drag(event)">
+						<a href="/file?f={{ item_path }}" id="{{item_path}}" data-path="{{item_path}}" class="path file-path" draggable="true" ondragstart="drag(event)">
 							{% if item.ext in note_extensions %}
 								<i class="fa fa-file-text" aria-hidden="true"></i>
 							{% else %}
@@ -120,7 +120,7 @@
       <p><a href="/user/sign-out">Sign out</a></p>
     </div> <!-- /col-sm-2 -->
 
-    <div class="col-sm-10">
+    <div class="col-sm-10" id="div-editor">
       <p id="message"></p>
       {% if not search_results %}
         <h6>
@@ -132,7 +132,7 @@
         <!-- js is treated as non-text, need to create exception here than the other source code files. -->
         {% if mime_type.startswith('text/') or mime_type == 'application/javascript' %}
           {% if not md_content and html_content %}
-            <div>{{ html_content|safe }}</div>
+            <div id="div-html-content">{{ html_content|safe }}</div>
           {% else %}
             <div id="editor">
               <!-- Tips: Editor.md can auto append a `<textarea>` tag -->
@@ -364,12 +364,18 @@ $('.expand').click(function() {
 var editor = null;
 
 function initEditor(path) {
+  console.log('Initing the editor for path: ',  path);
+  // Add a div for editor to be created into.
+  if (!$('#editor')[0]) {
+    $('#div-editor').eq(0).append('<div id="editor"><textarea></textarea></div>');
+  }
   if (path) {
     $.get( 
       "/api/get_content", { 
         f: path 
       }, 
-      function(data) { 
+      function(data) {
+        console.log('Got result', data.result);
         if (data.result == 'success') {
           // TODO(hakanu): No idea why this is not working.
           // editor.setValue(data.content);
@@ -396,7 +402,7 @@ function initEditor(path) {
               onload : function() {
                   console.log('onload', this);
                   // Make the preview pane non-default.
-                  this.unwatch();
+                  // this.unwatch();
               }
           });
         } else {
@@ -657,13 +663,22 @@ var timeoutId;
 $('#editor').on('input propertychange', function() {
     console.log('Autosaving');
     
-    // Runs 2s after the last change    
+    // Runs 2s after the las/t change    
     clearTimeout(timeoutId);
     timeoutId = setTimeout(function() {
 			update();
     }, 2000);
 });
+
+// Load the file upon file click without refreshing the page.
+$('.file-path').click(function(e) {
+  e.preventDefault();
+  if ($('#editor')) {
+    $('#editor').remove();
+  }
+  $('#a-path').text(e.target.id);
+  initEditor(e.target.id);
+});
 </script>
 </body>
 </html>
-

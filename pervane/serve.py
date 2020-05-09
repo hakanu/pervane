@@ -288,7 +288,7 @@ def front_page_handler():
     os.mkdir(root_dir)
     
   return render_template(
-      'index.html', tree=make_tree(root_dir),
+      'index.jinja', tree=make_tree(root_dir),
       html_content=args.front_page_message,
       note_extensions=args.note_extensions,
       mime_type='',
@@ -345,7 +345,7 @@ def file_handler():
       return 'File reading failed with ' + str(e)
 
   _, ext = os.path.splitext(path)
-  return render_template('index.html',
+  return render_template('index.jinja',
       path=path.replace(_WORKING_DIR, ''),
       html_content=html_content, md_content=content, ext=ext,
       tree=make_tree(root_dir), mime_type=mime_type,
@@ -391,7 +391,7 @@ def api_update_handler():
     with open(file_path, 'w') as f:
       f.write(updated_content)
   except Exception as e:
-    return jsonify({'result': 'update failed'})
+    return jsonify({'result': 'update failed', 'error': str(e)})
   return jsonify({'result': 'success'}) 
 
 
@@ -544,7 +544,7 @@ def search_handler():
 
   html_body = ''
   return render_template(
-      'index.html',
+      'index.jinja',
       search_results=results, query=query, stats=stats_str,
       tree=make_tree(root_dir),
       note_extensions=args.note_extensions, mime_type='',
@@ -596,4 +596,3 @@ def cli_main():
 
 if __name__ == '__main__':
   app.run(host=args.host, port=args.port, debug=args.debug)
-
