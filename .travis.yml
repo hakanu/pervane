@@ -1,4 +1,6 @@
 language: python
+python: 3.5
+script: true
 deploy:
   provider: pypi
   user: __token__
@@ -6,6 +8,7 @@ deploy:
     secure: 1sulNLykQDtL6IR+BtLUkSfZhiF/gYK+PakzhEkyxPAit3fGfyZ6ZdjVP0rp9/FdwIkMb8DF3c8K/UxG6L7y7KdZH4wW6qMx4runTMzisFAVKAhzwxq0FTKRhA4RZXDeNLDSdSwfi7T3zGKeGzd88gsa+yf2n4i2KiDgHxIL0Vv7QZ5z0cYnK1MK39bnPudTV/8fSj+wv7cd00JlNH7PAmY930VLXtfsKHUXdjwvVzWpnM6dJ+ldBLCtrz22GA3dLo93C4Z9PgrTXPBQ+ZpEVJEOwC14u2fFQ5KopESUyVAuiOIxGatIQHsAu8tAHw44m4JEnoi0K4O0U5vXidfrkXlTbji3p0wWEYbqKVIYhgwHlX7KH1sOsuCJj+CXEPHerwYhVep3b6FR7fgf7gZjy2bBf7qo1TSgNyE06p7XtEWxZ8uw4KHbcW7jxRW7rzBvpmX5TOt49daoRSQlZNLtnwePV6MlttBBHdStk9ygHZ+doVXxUcqKDUhyA0VmQgd0sNHnQVfyVtFpyeBEZDZ4WKdVHa7xyankmTfoqqfrjOlRL2FSHeCSHBCC+ZHYcyP4nEDH5Dn/7o9kp1bLSNf54Ox/UsM9VJGRh1H91MqKy5PvxEAzzEYzY700PRlMk5j5c3fnXYiFqLaZRqwVqspXiNTg2kbVGAj7M8gALMLHMQ4=
   on:
     tags: true
+  distributions: sdist bdist_wheel
   skip_existing: true
   before_deploy: "echo 'ready?'"
   deploy: "echo 'during deploy'"
