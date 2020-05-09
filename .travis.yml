@@ -1,15 +1,12 @@
 language: python
 script: true
-
 deploy:
   provider: pypi
   user: __token__
   password:
-    secure: 1sulNLykQDtL6IR+BtLUkSfZhiF/gYK+PakzhEkyxPAit3fGfyZ6ZdjVP0rp9/FdwIkMb8DF3c8K/UxG6L7y7KdZH4wW6qMx4runTMzisFAVKAhzwxq0FTKRhA4RZXDeNLDSdSwfi7T3zGKeGzd88gsa+yf2n4i2KiDgHxIL0Vv7QZ5z0cYnK1MK39bnPudTV/8fSj+wv7cd00JlNH7PAmY930VLXtfsKHUXdjwvVzWpnM6dJ+ldBLCtrz22GA3dLo93C4Z9PgrTXPBQ+ZpEVJEOwC14u2fFQ5KopESUyVAuiOIxGatIQHsAu8tAHw44m4JEnoi0K4O0U5vXidfrkXlTbji3p0wWEYbqKVIYhgwHlX7KH1sOsuCJj+CXEPHerwYhVep3b6FR7fgf7gZjy2bBf7qo1TSgNyE06p7XtEWxZ8uw4KHbcW7jxRW7rzBvpmX5TOt49daoRSQlZNLtnwePV6MlttBBHdStk9ygHZ+doVXxUcqKDUhyA0VmQgd0sNHnQVfyVtFpyeBEZDZ4WKdVHa7xyankmTfoqqfrjOlRL2FSHeCSHBCC+ZHYcyP4nEDH5Dn/7o9kp1bLSNf54Ox/UsM9VJGRh1H91MqKy5PvxEAzzEYzY700PRlMk5j5c3fnXYiFqLaZRqwVqspXiNTg2kbVGAj7M8gALMLHMQ4=
-  #on:
-  #  tags: true
+    secure: tUByiJKJv7Eh23U5X/Gh+5V0+zJ5blonft2N2ccldVJYIdf/cAsoY1a/agJsiIeO8Qoqik9XdrwoZUQqV+F4/SHFGJLVC9fXRriLSE2m78jIu+Qxxn9KSnJPXr5JOsBFyAmZ71Sma5yuL8D6VQpPEwucgs1HhqyrL2PUNnW/OHOHBH6FXMK/uGKdQj+6lniJANJxY/LbwhgifqOnuB/EZl3zF0dkBH/APsH+spPEC1G66bxkTjEqp0nX4DuaSdjs9y972ndrlPJ6HUxQCeX5KX2+PbZNZgkhUhlTwFJ+/j1ky38oE1V4GjloPnRZBmg9IkzPsjiQqL/P7mqCc10ZJxm6kmPuK04SEMK6iB0m45pxZX2PkfbOhI/E9rbqC6QXS00rdSLlUVFJHPcf55HXHXGNnOwmYENIfmKtfkvAmGeTCTh+71rute84UwrkmfYQZln7Ak3+cav1XgawkZme0itjIu5BqnE7Ypnu56hfzJ/eRMTpKyIJiKcBs8EkO7ft/E5LwQC54akN874hyy8odeWv7El/j7RVL1/7JcQrSlgVrb7xQgBIVH09FhDwIluQv6iHWKq5Gz5X0O+BFDDmxrQisyn60mDNGc8fziiezFMrijT3htE8SveVryCRCYY8IOhuL1nfy/2Fqu1Iheb3nHdmSPdDrQ6mBGDfXgYt8r0=
   distributions: sdist bdist_wheel
   skip_existing: true
-  before_deploy: "echo 'ready?'"
-  deploy: "echo 'during deploy'"
-  after_deploy: "echo 'post deploy'"
+  before_deploy: echo 'ready?'
+  deploy: echo 'during deploy'
+  after_deploy: echo 'post deploy'
