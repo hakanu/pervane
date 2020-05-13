@@ -254,15 +254,15 @@ pip install --upgrade pervane
 
 ```shell
 # Init:
-git clone https://github.com/hakanu/pervane.git
+git clone https://github.com/hakanu/pervane.git && cd pervane
 
 # Set up local env.
 virtualenv -p python3 env
 source env/bin/activate
-pip install flask markdown2 Flask-Caching Flask-HTTPAuth
+pip install -r requirements.txt
 
 # Run
-python3 serve.py --debug=true
+python3 pervane/serve.py --debug=true
 ```
 
 ## Stack

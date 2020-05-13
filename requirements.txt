@@ -5,4 +5,4 @@ Flask-User
 Flask-BabelEx
 Flask-Login
 jinja2
-
+email_validator
