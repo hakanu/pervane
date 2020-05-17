@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+
+<html>
+<!-- Pass variables from jinja to js to be rendered further. -->
+<script>
+  var values = [];
+  var pathToInitEditor = '';
+  {% if file_paths_flat %}
+  values = {{ file_paths_flat | safe }};
+  {% endif %}
+
+  {% if (md_content or md != '') and path and not mime_type.startswith('image/') %}
+    pathToInitEditor = '{{path}}';
+  {% else %}
+    console.log('no need to init the editor');
+  {% endif %}
+
+  var rootDirPath = "{{ tree.path|replace(working_dir, '')}}";
+
+  // Search page related vars to be passed down to vue.js
+  var searchResults = {{ search_results|safe if search_results else [] }};
+  var searchQuery = '{{ query if query else '' }}';
+  var searchStats = '{{ stats if stats else ''}}';
+
+  var tree = {{tree|safe}};
+
+</script>
+
+{% raw %}
+<head>
+  <title>Pervane - Plain text based note taking app</title> 
+
+  <link rel="apple-touch-icon" sizes="180x180" href="static/img/favicon/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="static/img/favicon/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="static/img/favicon/favicon-16x16.png">
+
+  <link href="/static/css/bootstrap.min.css" rel="stylesheet" >
+  <link href="/static/css/dropzone.min.css" rel="stylesheet" >
+  <link href="https://fonts.googleapis.com/css?family=PT+Sans&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/editormd.min.css" />
+  <link rel="stylesheet" href="/static/css/styles.css" />
+  <style>
+    body {
+      font-family: Menlo, Consolas, monospace;
+      color: #444;
+      color: white;
+    }
+    .item {
+      cursor: pointer;
+    }
+    .bold {
+      font-weight: bold;
+    }
+    ul {
+      padding-left: 1em;
+      line-height: 1.5em;
+      list-style-type: dot;
+    }
+    </style>
+  <script src="/static/js/vue.js"></script>
+  <script src="/static/js/vue-router.js"></script>
+
+  <!-- item template -->
+  <script type="text/x-template" id="item-template">
+    <li>
+      <span
+        :class="{bold: isFolder}"
+        @click="toggle"
+        >
+        <span v-if="item.name">
+          <span v-if="item.kind == 'file'" draggable
+                v-on:dragstart="drag($event, item)">
+            <router-link v-if="item.path.endsWith('.jpg')" 
+                         :to="'/f/' + encodeURIComponent(item.path)"
+                         >
+            {{ item.name }}
+            </router-link>
+
+            <router-link v-else :to="'/n/' + encodeURIComponent(item.path)"
+                         >
+            {{ item.name }}
+            </router-link>
+          </span>
+          <span v-else draggable="false" v-on:drop="drop($event, item)">
+            {{ item.name }}/
+          </span>
+        </span>
+        <span v-else>/</span>
+      </span>
+      <span v-if="item.kind == 'dir'" @click="$emit('add-item', item)">
+        [{{ isOpen ? '+' : '+' }}]
+      </span>
+
+      <ul v-show="expanded()" v-if="item.kind == 'dir'">
+        <tree-item
+          class="item"
+          v-for="(child, index) in item.children"
+          :key="index"
+          :item="child"
+          @add-item="$emit('add-item', $event)"
+        ></tree-item>
+      </ul>
+    </li>
+  </script>
+</head>
+<body>
+
+<!-- the demo root element -->
+<div id="demo" v-bind:style="rootStyle" v-cloak>
+<header>
+  <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark nav-narrow">
+    <a class="navbar-brand" href="#">Pervane</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarCollapse">
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item active">
+          <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="#" data-toggle="modal" @click="showSettingsModal()">Settings</a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="#" data-toggle="modal" @click="showShortcutsModal()">Shortcuts</a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://reddit.com/r/pervane">Discuss/Feedback</a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://github.com/hakanu/pervane">Contribute</a>
+        </li>
+      </ul>
+
+      <button class="btn btn-large fileinput-button">Upload file</button>
+
+      <form class="form-inline mt-2 mt-md-0" @submit.prevent="initSearch">
+        <input class="form-control mr-sm-2" type="text" name="query"
+               v-model="query"
+               placeholder="Search everything with ag or ack"
+               aria-label="Search">
+      </form>
+    </div>
+  </nav>
+</header>
+
+<a href="#" alt="Toggle sidebar" @click="showSidebar = !showSidebar"
+   style="font-size: 20px; font-style: bold;">
+  <span v-if="showSidebar">«</span>
+  <span v-else>»</span>
+</a>
+
+<div class="row">
+  <div class="col-sm-2 sidebar" v-if="showSidebar" 
+       v-bind:style="sidebarStyle">
+
+    <div class="input-group">
+      <span>
+        <input class="search form-control" id="search-field" 
+              placeholder="Quick search" @input="doQuickSearch"
+              v-model="quickSearchQuery" />
+      </span>
+      <ul>
+        <li v-for="quickResult in quickResults">
+          <router-link :to="'/n/' + encodeURIComponent(quickResult.target)">
+            [{{quickResult.score}}]: {{ quickResult.target }}
+          </router-link>
+        </li>
+      </ul>
+    </div>
+
+    <ul id="">
+      <tree-item
+        class="item"
+        :item="treeData"
+        @add-item="addItem"
+      ></tree-item>
+    </ul>
+  </div> <!-- / end of sidebar -->
+
+  <div class="col-sm-10"> <!-- tabs -->
+    <!-- tab headers -->
+    <div id="tab-headers">
+      <ul class="nav nav-tabs" id="myTab" role="tablist">
+        <li class="nav-item" v-for="openTabHeader in openTabHeaders">
+          <span>
+            <a class="nav-link active" id="home-tab" data-toggle="tab" 
+                href="#home" role="tab" aria-controls="home"
+                aria-selected="true">
+              {{ openTabHeader.name }}
+            </a>
+          </span>
+
+          <span>
+            <a id="home-tab-close" href="#" 
+                @click="closeTab(openTabHeader.path)">X</a>
+          </span>
+        </li>
+      </ul> <!-- /tab headers -->
+    </div>
+
+    <div class="tab-content" id="myTabContent">
+      <div class="tab-pane fade" id="profile" role="tabpanel" 
+            aria-labelledby="profile-tab">...</div>
+      <div class="tab-pane fade show active" id="home" role="tabpanel" 
+            aria-labelledby="home-tab">
+        <div id="div-editor">
+          <p id="message"></p>
+          <router-view></router-view>
+        </div>
+      </div>
+    </div>
+  </div> <!-- / end of editor --> 
+
+  <!-- Define modals -->
+  <!-- New folder/file Modal -->
+  <div class="modal fade" id="nodeModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLongTitle">Create new node</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p>Put / at the end if you want to create a directory. Otherwise we append a .md suffix for you.</p>
+          <div class="input-group mb-3">
+            <div class="input-group-prepend">
+              <span id="modal-input-prefix" class="input-group-text">
+                {{ newNodeParentPath }}
+              </span>
+            </div>
+            <input id="modal-input-new-node-name" type="text" 
+                   name="new_node_name" v-model="newNodeName" 
+                   class="form-control" placeholder="Type new node's name">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">
+            Close
+          </button>
+          <button type="button" class="btn btn-primary" 
+                  @click="addNode(newNodeName, newNodeParentPath)">
+            Add node
+          </button>
+        </div>
+      </div>
+    </div>
+  </div> <!-- / new node modal -->
+
+  <!-- Shortcuts Modal -->
+  <div class="modal fade" id="shortcuts-modal" tabindex="-1" role="dialog" 
+       aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel2">
+            Keyboard Shortcuts
+          </h5>
+          <button type="button" class="close" data-dismiss="modal"
+                  aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p>New note: <span><b>alt + n</b></span></p>
+          <p>Save: <span><b>alt + s</b></span></p>
+          <p>Quick search: <span><b>alt + g</b></span></p>
+          <p>Hide/Show sidebar: <span><b>alt + h</b></span></p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  </div> <!--  /shortcuts modal -->
+
+  <!-- Settings Modal -->
+  <div class="modal fade" id="settings-modal" tabindex="-1" role="dialog" 
+       aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Settings</h5>
+          <button type="button" class="close" data-dismiss="modal" 
+                  aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <header>
+            <h6>Enabled Features</h6>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" value="" 
+                     id="settings-katex" 
+                     v-model="settingsKatexChecked"
+                     @change="saveSettings($event, 'settingsKatex')">
+              <label class="form-check-label" for="settings-katex">TEX / KaTEX</label>
+              <br>
+
+              <input class="form-check-input" type="checkbox" value="" 
+                     id="settings-charts"
+                     v-model="settingsChartsChecked"
+                     @change="saveSettings($event, 'settingsCharts')">
+              <label class="form-check-label" for="settings-charts">Charts</label>
+              <br>
+
+              <input class="form-check-input" type="checkbox" value="" 
+                     id="settings-task-lists"
+                     v-model="settingsTaskListsChecked"
+                     @change="saveSettings($event, 'settingsTaskLists')">
+
+              <label class="form-check-label" for="settings-task-lists">Task Lists</label>
+              <br>
+
+              <input class="form-check-input" type="checkbox" value="" 
+                     id="settings-sequences"
+                     v-model="settingsSequencesChecked"
+                     @change="saveSettings($event, 'settingsSequences')">
+
+              <label class="form-check-label" for="settings-sequences">Sequence diagrams</label>
+              <br>
+
+              <input class="form-check-input" type="checkbox" value="" 
+                     id="settings-code-folding"
+                     v-model="settingsCodeFoldingChecked"
+                     @change="saveSettings($event, 'settingsCodeFolding')">
+              <label class="form-check-label" for="settings-code-folding">Code folding</label>
+              <br>
+
+              <input class="form-check-input" type="checkbox" value="" 
+                     id="settings-emoji"
+                     v-model="settingsEmojiChecked"
+                     @change="saveSettings($event, 'settingsEmoji')">
+              <label class="form-check-label" for="settings-emoji">Emoji rendering</label>
+              <br>
+
+              <input class="form-check-input" type="checkbox" value="" 
+                     id="settings-toolbar"
+                     v-model="settingsToolbarChecked"
+                     @change="saveSettings($event, 'settingsToolbar')">
+              <label class="form-check-label" for="settings-toolbar">Show WYSIWYG toolbar?</label>
+              <br>
+              <br>
+            </div>
+
+            <h6>Themes</h6>
+            <div class="form-group">
+              <label for="editormd-theme-select">General Theme</label>
+              <select class="form-control" id="editormd-theme-select" 
+                      @change="themeSelected('theme', selectedGeneralTheme)"
+                      v-model="selectedGeneralTheme"
+                      >
+                <option v-for="theme in generalThemes" 
+                        :value="theme">{{ theme }}</option>
+              </select><br>
+              <label for="editor-area-theme-select">Editor Theme</label>
+              <select class="form-control" id="editor-area-theme-select"
+                      @change="themeSelected('editorTheme', selectedEditorTheme)"
+                      v-model="selectedEditorTheme"
+                      >
+                <option v-for="theme in editorThemes" 
+                        :value="theme">{{ theme }}</option>
+              </select><br>
+              <label for="preview-area-theme-select">Preview Theme</label>
+              <select class="form-control" id="preview-area-theme-select"
+                      @change="themeSelected('previewTheme', selectedPreviewTheme)"
+                      v-model="selectedPreviewTheme"
+                      >
+                <option v-for="theme in previewThemes" 
+                        :value="theme">{{ theme }}</option>
+              </select><br>
+            </div>
+
+            <div class="form-group">
+              <label for="settings-sidebar-background-color">
+                Sidebar background color (either hex with # or human readable CSS color)
+              </label>
+              <input type="text" class="form-control" 
+                     id="settings-sidebar-background-color"
+                     v-model="settingsSidebarBackgroundColor"
+                     v-on:change="saveColor('settingsSidebarBackgroundColor', settingsSidebarBackgroundColor)"
+                     >
+            </div>
+
+            <div class="form-group">
+              <label for="settings-body-background-color">
+                Body background color (either hex with # or human readable CSS color)
+              </label>
+              <input type="text" class="form-control" 
+                     id="settings-body-background-color"
+                     v-model="settingsBodyBackgroundColor"
+                     v-on:change="saveColor('settingsBodyBackgroundColor', settingsBodyBackgroundColor)"
+                     >
+            </div>
+
+          </header>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  </div> <!-- /settings modal -->
+</div> <!-- /end of main row holding 2+10 cols-->
+</div> <!-- /end of #demo -->
+</body>
+<script src="/static/js/jquery-3.4.1.min.js"></script>
+<script src="/static/js/bootstrap.bundle.min.js"></script>
+<script src="/static/js/dropzone.min.js"></script>
+<script src="/static/js/editormd.min.js"></script>
+<script src="/static/js/en.js"></script>
+<script src="/static/js/fuzzysort.js"></script>
+
+<script>
+  Dropzone.autoDiscover = false;
+
+  $(function () {
+    var myDropzone = new Dropzone(document.body, {
+      clickable: '.fileinput-button',
+      url: '/upload',
+      acceptedFiles: 'image/*,application/pdf',
+      maxFilesize: 2,  // MB
+    });
+
+    myDropzone.on('addedfile', function (file) {
+      console.log('File added');
+    });
+
+    myDropzone.on('success', function (file, response) {
+      if (response.result == 'success') {
+        window.location.replace('#/f/' + encodeURIComponent(response.entity));
+      } else {
+        $('#message').text('Fail:/ ' + response.message);
+        myDropzone.removeFile(file);
+      }
+    });
+
+    
+  });
+</script>
+
+<!-- Vue app main -->
+<script>
+  // Define routes. 
+  const SearchView = {
+    props: ['query'],
+    data: function () {
+      return {
+        searchResults: '',
+        searchStats: '',
+        searchLoading: true,
+      };
+    },
+    template: `
+      <div>
+        <h6>Results for <b>{{ $route.params.query }}</b></h6>
+        <p v-if="searchLoading">Searching (search performance is highly dependent on the # of notes you have)...</p>
+        <div v-else>
+          <p><sub>{{ searchStats }}</sub></p>
+          <div v-for="result in searchResults" >
+            <router-link :to="'/n/' + encodeURIComponent(result.file)">
+              {{result.file}} 
+            </router-link>
+            <ul>
+              <li v-for="match in result.matches" v-bind:key="match.snippet">
+                <pre>{{match.snippet}}</pre>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    `,
+    created: function() {
+      console.log('search component is mounted', this.query)
+      this.search(this.query)
+    },
+    methods: {
+      search: function() {
+        let self = this
+        console.log('api searching for ', self.query)
+        fetch('/api/search?query=' + self.query)
+          .then(
+            function(response) {
+              if (response.status !== 200) {
+                console.log('Looks like there was a problem. Status Code: ',
+                            response.status);
+                return;
+              }
+
+              // Examine the text in the response
+              response.json().then(function(data) {
+                self.searchResults = data.content.results
+                self.searchStats = data.content.stats
+                self.searchLoading = false
+              });
+            }
+          )
+          .catch(function(err) {
+            console.log('Fetch Error :-S', err);
+          });
+      },
+    },
+  }
+
+  const FileView = {
+    props: ['path'],
+    data: function () {
+      return {
+        b64Src: '',
+      };
+    },
+    template: `
+      <div>
+        <img :src="b64Src">
+      </div>
+    `,
+    created: function() {
+      console.log('file component is mounted', this.path)
+      this.getFileB64()
+    },
+    methods: {
+      getFileB64: function() {
+        let self = this
+        fetch('/api/get_file?f=' + self.path)
+          .then(
+            function(response) {
+              if (response.status !== 200) {
+                console.log('Looks like there was a problem. Status Code: ',
+                            response.status);
+                return;
+              }
+
+              // Examine the text in the response
+              response.json().then(function(data) {
+                // TODO(hakanu):  Should I assume jpeg?
+                self.b64Src = 'data:image/jpeg;base64,' + data.content
+              });
+            }
+          )
+          .catch(function(err) {
+            console.log('Fetch Error :-S', err);
+          });
+      },
+    },
+  }
+
+  const NoteView = {
+    props: ['path'],
+    data: function () {
+      return {
+        message: '',
+        status: '',
+        editor: {},
+        cursorPosition: {},
+      };
+    },
+    template: `
+      <div>
+        <div>
+          <span>{{ $route.params.path }}</span>:<span>{{cursorPosition.line}}:{{cursorPosition.ch}} </span>
+          <button class="btn btn-secondary" @click="saveContent()">Save</button>
+          <br>
+        </div>
+        <span><sub>{{ status }}</sub></span>
+        <div id="editor"><textarea></textarea></div>
+      </div>
+    `,
+    created: function() {
+      console.log('note component is mounted', this.path)
+      // Comes from prop through $route.
+      this.loadPathInEditor(this.path)
+      let self = this
+      // Keyboard shortcuts.
+      // alt + s saving.
+      $(document).keydown(function (event) {
+        // 19 for Mac Command+S
+        if (!(String.fromCharCode(event.which).toLowerCase() == 's' && 
+            event.altKey) && !(event.which == 19)) return true
+        event.preventDefault()
+        console.log('keyboard shortcut for save')
+        self.saveContent()
+        return false
+      })
+    },
+    methods: {
+      saveContent: function() {
+        let self = this 
+        console.log('save content', this.path)
+
+        fetch('/api/update', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            file_path: self.path,
+            updated_content: self.editor.getMarkdown(),
+          }),
+        })
+        .then(response => response.json())
+        .then(result => {
+          console.log('Success:', result)
+          self.status = 'Updated @ ' + (new Date())
+          })
+        .catch(error => {
+          console.error('Error:', error)
+          self.status = 'Error saving @ ' + error 
+        })
+      },
+      initEditor: function (data) {
+        console.log('Got result', data.result)
+        let self = this
+        if (data.result == 'success') {
+          // TODO(hakanu): No idea why this is not working.
+          // editor.setValue(data.content);
+          // editor.setMarkdown(data.content);
+          this.editor = editormd('editor', {
+            width: '100%',
+            height: '150%',
+            taskList: (localStorage.settingsTaskLists) ? (localStorage.settingsTaskLists == '1') : false,
+            // autoHeight: true,
+            codeFold: (localStorage.settingsCodeFolding) ? (localStorage.settingsCodeFolding == '1') : false,
+            searchReplace: true,
+            flowChart: (localStorage.settingsCharts) ? (localStorage.settingsCharts == '1') : false,
+            sequenceDiagram: (localStorage.settingsSequences) ? (localStorage.settingsSequences == '1') : false,
+            tex: (localStorage.settingsKatex) ? (localStorage.settingsKatex == '1') : false,
+            emoji: (localStorage.settingsEmoji) ? (localStorage.settingsEmoji == '1') : false,
+            toolbar: (localStorage.settingsToolbar) ? (localStorage.settingsToolbar == '1') : true,
+            theme: (localStorage.theme) ? localStorage.theme : 'dark',
+            previewTheme: (localStorage.previewTheme) ? localStorage.previewTheme : 'dark',
+            editorTheme: (localStorage.editorTheme) ? localStorage.editorTheme : "pastel-on-dark",
+            // TODO(hakanu): Needed to load like this. Otherwise editor
+            // puts its own placeholder to the textarea instead of empty.
+            markdown: data.content + '\n',
+            path: '/static/js/lib/',  // Autoload modules mode.
+            onload: function () {
+              console.log('onload', this)
+              // Make the preview pane non-default.
+              // this.unwatch();
+            },
+            onchange : function() {
+              console.log('onchange')
+              self.getCursorPosition()
+
+              // Runs 2s after the las/t change    
+              var timeoutId;
+              clearTimeout(timeoutId)
+              timeoutId = setTimeout(function () {
+                self.saveContent()
+              }, 2000)
+            },
+            onwatch : function() {
+              console.log("onwatch =>", this, this.id, this.settings);
+            },
+          });
+        } else {
+          console.log('something went wrong while fetching the file content', data.result)
+          this.status = 'something went wrong while fetching the file content', data.result
+        }
+      },  // end of initEditor.
+      loadPathInEditor: function(path) {
+        console.log('Loading path: ', path)
+        self = this
+        fetch('/api/get_content?f=' + path)
+          .then(
+            function(response) {
+              if (response.status !== 200) {
+                console.log('Looks like there was a problem. Status Code: ',
+                            response.status);
+                return;
+              }
+
+              // Examine the text in the response
+              response.json().then(function(data) {
+                self.initEditor(data)
+              });
+            }
+          )
+          .catch(function(err) {
+            console.log('Fetch Error :-S', err);
+          });
+      },  // end of loadPathInEditor
+      getCursorPosition: function() {
+        if (this.editor) {
+          console.log("getCursor =>", this.editor)
+          this.cursorPosition = this.editor.getCursor()
+        }
+      },
+    }, // end of methods. 
+    computed: {
+    },
+    watch: {
+      $route(to, from) {
+        // react to route changes...
+        const newPath = this.path
+        console.log('watching route change', newPath)
+        this.loadPathInEditor(newPath)
+      } // End of $route.
+    },
+  }
+
+  // Define VueRouter instance.
+  const router = new VueRouter({
+    routes:  [
+      { path: '/n/:path', component: NoteView, props: true },
+      { path: '/f/:path', component: FileView, props: true },
+      { path: '/s/:query', component: SearchView, props: true },
+    ]
+  })
+
+  // Define the tree-item component.
+  Vue.component("tree-item", {
+    template: "#item-template",
+    props: {
+      item: Object
+    },
+    data: function() {
+      return {
+        isOpen: false,
+        rootDirPath: rootDirPath,
+      };
+    },
+    computed: {
+      isFolder: function() {
+        return this.item.children && this.item.children.length;
+      },
+    }, 
+    mounted: function () {
+      this.$nextTick(function () {
+        // Code that will run only after the
+        // entire view has been rendered
+        console.log('im ready');
+      }) // End of next tick.
+    },
+    methods: {
+      toggle: function() {
+        if (this.isFolder) {
+          // console.log('expanding: ', this)
+          this.isOpen = !this.isOpen
+          localStorage.setItem(this.item.path, this.isOpen)
+        } else {
+          console.log('initing the editor for path', this.item.path)
+        }
+      },
+      expanded: function() {
+        // Restore expand/collapse memory from localstorage.
+        // var key = localStorage.key(this.path)
+        var value = localStorage.getItem(this.item.path)
+        // console.log('key', this.item.path, value)
+        // Hacky but useful way to generate ids from folder paths.
+        // needed to use false as a str because is(visible) is serialized :/
+        if (value != null && value != 'false') {
+          this.isOpen = true
+          return true
+        }
+        return false
+      },
+      // Drag drop file move
+      drag: function(ev, draggedItem) {
+        ev.dataTransfer.setData('sourcePath', draggedItem.path)
+        console.log('Dragging', ev, draggedItem)
+      }, // end of drag.
+      drop: function(ev, droppedItem) {
+        ev.preventDefault();
+        self = this
+        console.log('dropped', droppedItem)
+        var sourcePath = ev.dataTransfer.getData('sourcePath')
+        var destDir = droppedItem.path
+        console.log('Moving ', sourcePath, ' to dest ', destDir)
+      //  return
+
+        fetch(
+          '/api/move_file?source_path=' + sourcePath + '&dest_dir=' + destDir, {
+          method: 'GET',
+        })
+          .then(response => response.json())
+          .then(result => {
+            console.log('Success:', result)
+            self.$emit('refreshTree')
+            location.reload()
+            })
+          .catch(error => {
+            console.error('Error:', error)
+          }) // End of fetch.
+
+      }, // end of drop
+    },
+  });
+
+  // boot up the demo
+  var demo = new Vue({
+    router,
+    el: "#demo",
+    data: {
+      treeData: tree,//treeData
+      showSidebar: true,
+      rootDirPath: rootDirPath,
+      openTabHeaders: [
+        // TODO(hakanu): Start adding tabs.
+        // {
+        //   name: 'yo',
+        //   path: '/yo/lo',
+        // },
+      ],
+      newNodeName: '',
+      newNodeParentPath: '',
+      query: '',
+      quickSearchQuery: '',
+      quickResults: [],
+      
+      // Settings related data.
+      settingsKatexChecked: localStorage.settingsKatex == '1',
+      settingsTaskListsChecked: localStorage.settingsTaskLists == '1',
+      settingsChartsChecked: localStorage.settingsCharts == '1',
+      settingsSequencesChecked: localStorage.settingsSequences == '1',
+      settingsCodeFoldingChecked: localStorage.settingsCodeFolding == '1',
+      settingsEmojiChecked: localStorage.settingsEmoji == '1',
+      settingsToolbarChecked: localStorage.settingsToolbar == '1',
+      
+      // Theme settings.
+      selectedGeneralTheme: (
+        (localStorage.theme) ? localStorage.theme : 'dark'),
+      selectedEditorTheme: (
+        (localStorage.editorTheme) ? localStorage.editorTheme : 'dark'),
+      selectedPreviewTheme: (
+        (localStorage.previewTheme) ? localStorage.previewTheme : 
+        'pastel-on-dark'),
+      generalThemes: editormd.themes, 
+      editorThemes: editormd.editorThemes,
+      previewThemes: editormd.previewThemes,
+      settingsBodyBackgroundColor: (
+        (localStorage.settingsBodyBackgroundColor) ? 
+        localStorage.settingsBodyBackgroundColor :
+         '#272822'),
+      settingsSidebarBackgroundColor: (
+        (localStorage.settingsSidebarBackgroundColor) ? 
+        localStorage.settingsSidebarBackgroundColor:
+         '#272822'),
+    },
+    created: function() {
+      let self = this
+      // alt + g focus on quick search, sublime text style.
+      $(document).keydown(function (event) {
+        // 19 for Mac Command+S
+        if (!(String.fromCharCode(event.which).toLowerCase() == 'g' && 
+            event.altKey) && !(event.which == 19)) return true
+        event.preventDefault()
+        $('#search-field').focus()
+        return false
+      })
+
+      // alt + n create new note in the first level directory.
+      $(document).keydown(function (event) {
+        // 19 for Mac Command+S
+        if (!(String.fromCharCode(event.which).toLowerCase() == 'n' && 
+            event.altKey) && !(event.which == 19)) return true
+        event.preventDefault()
+        self.addItem('/')
+        return false
+      })
+
+      // alt + h hide the sidebar.
+      $(document).keydown(function (event) {
+        // 19 for Mac Command+S
+        if (!(String.fromCharCode(event.which).toLowerCase() == 'h' && 
+            event.altKey) && !(event.which == 19)) return true
+        event.preventDefault()
+        self.showSidebar = !self.showSidebar
+        return false
+      })
+    },
+    computed: {
+      rootStyle: function() {
+        return {
+          backgroundColor: this.settingsBodyBackgroundColor,
+        }
+      },
+      sidebarStyle: function() {
+        return {
+          backgroundColor: this.settingsSidebarBackgroundColor,
+        }
+      },
+    },
+    methods: {
+      addItem: function(item) {
+        // item.children.push({
+        //   name: "new stuff"
+        // });
+        console.log('showing modal', item, item.path)
+        this.newNodeParentPath = item.path
+        $('#nodeModal').modal();
+        // Hack to focus on input box upon creation.
+        // Without timeout, item is not ready.
+        setTimeout(function () {
+          $('#modal-input-new-node-name').focus();
+        }, 500)
+      },
+      closeTab: function(path) {
+        console.log('closing the tab', path)
+      },
+      showSettingsModal: function() {
+        console.log('show settings modal')
+        $('#settings-modal').modal();
+
+        // Init settings.
+        // Modal should be initialized for these.
+        if (localStorage.settingsKatex) {
+          $('#settings-katex')[0].checked = localStorage.settingsKatex == '1';
+        }
+        if (localStorage.settingsTaskLists) {
+          $('#settings-task-lists')[0].checked = localStorage.settingsTaskLists == '1';
+        }
+
+        if (localStorage.settingsCharts) {
+          $('#settings-charts')[0].checked = localStorage.settingsCharts == '1';
+        }
+
+        if (localStorage.settingsSequences) {
+          $('#settings-sequences')[0].checked = localStorage.settingsSequences == '1';
+        }
+
+        if (localStorage.settingsCodeFolding) {
+          $('#settings-code-folding')[0].checked = localStorage.settingsCodeFolding == '1';
+        }
+
+        if (localStorage.settingsEmoji) {
+          $('#settings-emoji')[0].checked = localStorage.settingsEmoji == '1';
+        }
+
+        if (localStorage.settingsToolbar) {
+          $('#settings-toolbar')[0].checked = localStorage.settingsToolbar == '1';
+        }
+      },
+      showShortcutsModal: function() {
+        console.log('show shortcuts modal')
+        $('#shortcuts-modal').modal();
+      },
+      addNode: function(newNodeName, newNodeParentPath) {
+        console.log('adding node', newNodeName, newNodeParentPath)
+        $('#nodeModal').modal('hide')
+
+        self = this
+
+        // Call the API to create the new node.
+        fetch('/api/add_node', {
+          method: 'POST',
+          headers: {
+            // 'Content-Type': 'application/x-www-form-urlencoded',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            parent_path: newNodeParentPath,
+            new_node_name: newNodeName,
+          }),
+        })
+        .then(response => response.json())
+        .then(result => {
+          console.log('Success:', result)
+          router.push({ path: '/n/' + encodeURIComponent(result.entity) })
+          self.refreshTree()
+          })
+        .catch(error => {
+          console.error('Error:', error)
+        })
+      },
+      refreshTree: function() {
+        let self = this
+        fetch('/api/get_tree')
+          .then(
+            function(response) {
+              if (response.status !== 200) {
+                console.log('Looks like there was a problem. Status Code: ',
+                            response.status)
+                return;
+              }
+
+              // Examine the text in the response
+              response.json().then(function(data) {
+                console.log(self)
+                console.log('updating the tree', data)
+                self.treeData = data.content
+              })
+            }
+          )
+          .catch(function(err) {
+            console.log('Fetch Error :-S', err);
+          })
+      },  // end of refreshTree.
+      initSearch: function() {
+        let self = this
+        console.log('init searching for ', self.query)
+        router.push({ path: '/s/' + encodeURIComponent(self.query) })
+      },
+      saveSettings: function(event, localStorageKey) {
+        console.log('Saving settings for key: ', event.target.checked, 
+                    localStorageKey)
+        if (event.target.checked) {
+          localStorage.setItem(localStorageKey, 1);
+        } else {
+          localStorage.setItem(localStorageKey, 0);
+        }
+      },
+      themeSelected: function(themeKey, themeName) {
+        console.log('theme selected', themeKey, themeName)
+        localStorage.setItem(themeKey, themeName)
+      },
+      selectedTheme: function(themeKey) {
+        console.log('selected theme for ', themeKey)
+        return localStorage.getItem(themeKey)
+      },
+      saveColor: function(colorKey, colorValue) {
+        localStorage.setItem(colorKey, colorValue)
+      },
+      doQuickSearch: function() {
+        let self = this
+        self.quickResults =  []
+
+        if (!self.quickSearchQuery || self.quickSearchQuery == '') {
+          self.quickResults = []
+          return
+        }
+
+        // Runs 2s after the last change.
+        var timeoutId;
+        clearTimeout(timeoutId)
+        timeoutId = setTimeout(function () {
+          // https://github.com/farzher/fuzzysort.
+          // TODO(hakanu): Make the threshold configurable.
+          self.quickResults = fuzzysort.go(self.quickSearchQuery, values, {
+            threshold: -100000})
+        }, 1000)
+      },
+      receiveNotifyToRefreshTree: function(ev) {
+        console.log('received', ev, this)
+      },
+    },
+  });
+</script>
+
+{% endraw %}
+</html>

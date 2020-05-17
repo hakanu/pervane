@@ -22,3 +22,7 @@ pervane/haku*
 
 # Intellij.
 .idea
+
+# Old jinja templates.
+index_vue.jinja
+index.jinja

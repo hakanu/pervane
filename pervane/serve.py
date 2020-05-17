@@ -148,7 +148,7 @@ ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
 
 app.config.from_object(__name__+'.ConfigClass')
 
-# Initialize Flask-SQLAlchemy
+# Initialize Flask-SQLAlchemy.
 db = SQLAlchemy(app)
 
 # Define the User data-model.
@@ -235,12 +235,23 @@ def make_tree(path):
   return _make_tree(path)
 
 
+def _get_workspace_path(fn):
+  workspace_path = fn.replace(args.root_dir, '')
+  # Prepend separator in case user enter root dir with / at the
+  # end.
+  if (not workspace_path.startswith(os.sep)):
+    workspace_path = os.sep + workspace_path
+  return workspace_path
+
+
 def _make_tree(path):
   """Recursive function to get the file/dir tree.
 
   Can not be cached due to recursion.
   """
-  tree = dict(name=os.path.basename(path), path=path, children=[], kind='dir')
+  tree = dict(name=os.path.basename(path),
+              path=_get_workspace_path(path),
+              children=[], kind='dir')
 
   if check_match(path):
    return 
@@ -258,8 +269,9 @@ def _make_tree(path):
       if os.path.isdir(fn):
         tree['children'].append(_make_tree(fn))
       else:
+        workspace_path = _get_workspace_path(fn) 
         tree['children'].append(dict(
-            name=name, path=fn, kind='file',
+            name=name, path=workspace_path, kind='file', 
             ext=os.path.splitext(fn)[1]))
   return tree
 
@@ -277,11 +289,9 @@ def _get_file_paths_flat(path):
   leaves = []
   for root, dirs, files in os.walk(path, topdown=False):
     for name in files:
-#      print('root', root, 'name', name, 'root: ', _get_root_dir())
-      leaves.append({
-        'name': name,
-        'path': os.path.join(root, name).replace(_get_root_dir(), os.path.sep),
-      }) 
+      leaves.append(
+        os.path.join(root, name).replace(_get_root_dir(), os.path.sep)
+      )
   return leaves
 
 
@@ -294,7 +304,7 @@ def front_page_handler():
     os.mkdir(root_dir)
     
   return render_template(
-      'index.jinja', tree=make_tree(root_dir),
+      'index_vue.html', tree=make_tree(root_dir),
       html_content=args.front_page_message,
       note_extensions=args.note_extensions,
       mime_type='',
@@ -304,9 +314,9 @@ def front_page_handler():
       working_dir=_WORKING_DIR)
 
 
-@app.route('/file')
+@app.route('/api/get_file')
 @login_required
-def file_handler():
+def api_get_file_handler():
   path = request.args.get('f', '')
   if not path:
     return 'No path is given'
@@ -350,23 +360,28 @@ def file_handler():
     except Exception as e:
       logging.error('There is an error while reading: %s', str(e))
       return 'File reading failed with ' + str(e)
+  return jsonify({
+      'result': 'success',
+      'content': html_content,
+  })
 
-  _, ext = os.path.splitext(path)
-  return render_template('index.jinja',
-      path=path.replace(_WORKING_DIR, ''),
-      html_content=html_content, md_content=content, ext=ext,
-      tree=make_tree(root_dir), mime_type=mime_type,
-      note_extensions=args.note_extensions,
-      file_paths_flat=json.dumps(_get_file_paths_flat(root_dir)),
-      root_dir=root_dir,
-      current_user=current_user,
-      working_dir=_WORKING_DIR)
+
+@app.route('/api/get_tree')
+@login_required
+def api_get_treee_handler():
+  root_dir = _get_root_dir()
+  if not os.path.exists(root_dir):
+    logging.info('Initializing the root dir')
+  return jsonify({'result': 'success', 'content': make_tree(root_dir)})
 
 
 @app.route('/api/get_content')
 @login_required
 def api_get_content_handler():
   path = request.args.get('f', '').strip()
+  if '..' in path:
+    return 'You can not use relative paths'
+
   path = os.path.join(_WORKING_DIR, path[1:])
   root_dir = _get_root_dir()
   if not path.startswith(root_dir):
@@ -383,10 +398,10 @@ def api_get_content_handler():
 @app.route('/api/update', methods=['POST'])
 @login_required
 def api_update_handler():
-  updated_content = request.form.get('updated_content', '').strip()
+  updated_content = request.json.get('updated_content', '').strip()
   root_dir = _get_root_dir()
   file_path = os.path.join(
-      _WORKING_DIR, request.form.get('file_path', '').strip()[1:])
+      _WORKING_DIR, request.json.get('file_path', '').strip()[1:])
   if not file_path:
     return jsonify({'result': 'File path is empty'})
   
@@ -410,10 +425,10 @@ def add_node_handler():
 
   # Parent path comes like /username or / so the real parent path needs to be built.
   # Remove / from the GET param.
-  parent_path = os.path.join(_WORKING_DIR, request.form.get('parent_path', '').strip()[1:])
+  parent_path = os.path.join(_WORKING_DIR, request.json.get('parent_path', '').strip()[1:])
 
   # Eliminate file separator.
-  new_node_name = request.form.get('new_node_name', '').strip()
+  new_node_name = request.json.get('new_node_name', '').strip()
   is_dir = False
   if new_node_name.endswith(os.path.sep):
     is_dir = True
@@ -466,7 +481,8 @@ def add_node_handler():
     else:
       return jsonify({
           'result':  'success',
-          'message': 'created the directory: ' + path.replace(_WORKING_DIR, ''),
+          'message': 'created the directory: ' + path.replace(
+              _WORKING_DIR, ''),
           'entity': path.replace(_WORKING_DIR, ''),
       })
 
@@ -474,29 +490,36 @@ def add_node_handler():
 @app.route('/api/move_file')
 @login_required
 def api_move_handler():
-  source_path = os.path.join(_WORKING_DIR, request.args.get('source_path', '').strip()[1:])
+  source_path = os.path.join(
+      _WORKING_DIR, request.args.get('source_path', '').strip()[1:])
   root_dir = _get_root_dir()
-  dest_dir = os.path.join(_WORKING_DIR, request.args.get('dest_dir', '').strip()[1:])
-  if not source_path.startswith(root_dir) or not dest_dir.startswith(root_dir):
+  dest_dir = os.path.join(
+      _WORKING_DIR, request.args.get('dest_dir', '').strip()[1:])
+  if (not source_path.startswith(root_dir) or
+      not dest_dir.startswith(root_dir)):
     logging.info('no auth')
     return 'Not authorized to see this dir, must be under: %s' % root_dir
   try:
     base_name = os.path.basename(source_path)
     dest_path = os.path.join(dest_dir, base_name)
-    logging.info('Moving: %s %s %s %s', source_path, dest_path, base_name, dest_dir)
+    logging.info('Moving: %s %s %s %s', source_path, dest_path, 
+                 base_name, dest_dir)
     if os.path.exists(dest_path):
-      logging.error('Destination path, exists, renaming the moved file', dest_path)
+      logging.error('Destination path, exists, renaming the moved file', 
+                    dest_path)
       base_name, extension = os.path.splitext(dest_path)
-      dest_path = base_name + '_' + datetime.datetime.now().strftime('%Y%m%d_%H%M') + extension
+      dest_path = base_name + '_' + datetime.datetime.now().strftime(
+          '%Y%m%d_%H%M') + extension
     shutil.move(source_path, dest_path)
-    return jsonify({'result': 'success', 'source_path': source_path, 'dest_path': dest_path})
+    return jsonify({'result': 'success', 'source_path': source_path, 
+                   'dest_path': dest_path})
   except Exception as e:
     return jsonify({'result': 'smt went wrong ' + str(e)})
 
 
-@app.route('/search')
+@app.route('/api/search')
 @login_required
-def search_handler():
+def api_search_handler():
   root_dir = _get_root_dir()
   query = request.args.get('query', '')
   if not query:
@@ -550,15 +573,13 @@ def search_handler():
         'matches': in_file_results,
       }) 
 
-  html_body = ''
-  return render_template(
-      'index.jinja',
-      search_results=results, query=query, stats=stats_str,
-      tree=make_tree(root_dir),
-      note_extensions=args.note_extensions, mime_type='',
-      root_dir=root_dir,
-      current_user=current_user,
-      working_dir=_WORKING_DIR)
+  return jsonify({
+      'result': 'success',
+      'content': {
+        'results': results,
+        'stats': stats_str,
+      }
+  })
 
 
 @app.route('/upload', methods=['POST'])
