@@ -3,6 +3,12 @@
 <html>
 <!-- Pass variables from jinja to js to be rendered further. -->
 <script>
+  console.log('Starting with debug mode: {{debug}}')
+  {% if not debug %}
+    var console = {};
+    console.log = function(){};
+  {% endif %}
+
   var values = [];
   var pathToInitEditor = '';
   {% if file_paths_flat %}
@@ -76,7 +82,7 @@
             <router-link v-else :to="'/n/' + encodeURIComponent(item.path)"
                          >
             <i class="fa fa-file-text" aria-hidden="true"
-               v-if="!item.path.endsWith('.md')"></i>
+               v-if="item.path.endsWith('.md')"></i>
             <i class="fa fa-file-code-o" aria-hidden="true" v-else></i> {{ item.name }}
             </router-link>
           </span>
@@ -449,7 +455,7 @@
 <script src="/static/js/jquery-3.4.1.min.js"></script>
 <script src="/static/js/bootstrap.bundle.min.js"></script>
 <script src="/static/js/dropzone.min.js"></script>
-<script src="/static/js/editormd.min.js"></script>
+<script src="/static/js/editormd.js"></script>
 <script src="/static/js/en.js"></script>
 <script src="/static/js/fuzzysort.js"></script>
 
@@ -594,161 +600,310 @@
       return {
         message: '',
         status: '',
-        editor: {},
+        editor: null,
+        codeEditor: null,
         mdMode: true,
         cursorPosition: {},
+        contentChanged: false,
       };
     },
     template: `
       <div>
         <div>
           <span>{{ $route.params.path }}</span>:<span>{{cursorPosition.line}}:{{cursorPosition.ch}} </span>
-          <button class="btn btn-secondary" @click="saveContent()">Save</button>
+          <button
+              class="btn btn-secondary" 
+              v-if="$route.params.path.endsWith('.md')"
+              @click="saveContent($route.params.path, editor.getMarkdown())">
+            Save
+          </button>
+
+          <button
+              class="btn btn-secondary" 
+              v-else
+              @click="saveContent($route.params.path, codeEditor.getValue())">
+            Save
+          </button>
           <br>
         </div>
         <span><sub>{{ status }}</sub></span>
-        <div id="editor"><textarea></textarea></div>
+        <div id="editor"></div>
+        <div id="code-editor"></div>
       </div>
     `,
+    beforeRouteUpdate (to, from, next) {
+      // Guard the route switch in case the content is still being saved.
+      if (this.contentChanged) {
+        this.status = 'Content has been changed but has not been saved yet.'
+      } else {
+        console.log(
+          'content didnt change, navigate normal by removing change listeners.')
+        $('#editor').off('input propertychange', '.*');
+        $('#code-editor').off('input propertychange', '.*');
+        this.status = ''
+        next()
+      }
+    },
     created: function() {
+      let self = this
       // Comes from prop through $route.
       this.loadPathInEditor(this.path)
-      let self = this
+
       // Keyboard shortcuts.
       // alt + s saving.
+      // TODO(hakanu): Bring this shortcut back.
       $(document).keydown(function (event) {
         // 19 for Mac Command+S
         if (!(String.fromCharCode(event.which).toLowerCase() == 's' && 
             event.altKey) && !(event.which == 19)) return true
         event.preventDefault()
-        self.saveContent(self.mdMode)
+        if (self.path.endsWith('.md')) {
+          self.saveContent(self.path, self.editor.getMarkdown())
+        } else {
+          self.saveContent(self.path, self.editor.getValue())
+        }
         return false
       })
+
     },
     methods: {
-      saveContent: function(mdMode) {
+      saveContent: function(path, updatedContent) {
         let self = this 
-        console.log('save content', this.path)
-        // Code editor is different from md editor.
-        let content = mdMode ? self.editor.getMarkdown() : self.editor.getValue()
+        console.log('save content', path, this.$route.params.path)
+        if (path != this.$route.params.path) {
+          console.log('not saving because the page is different from save path')
+          return
+        }
 
-        fetch('/api/update', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            file_path: self.path,
-            updated_content: content,
-          }),
-        })
-        .then(response => response.json())
-        .then(result => {
-          self.status = 'Updated @ ' + (new Date())
-        })
-        .catch(error => {
-          console.error('Error:', error)
-          self.status = 'Error saving @ ' + error 
-        })
+        fetch('/api/get_content?f=' + path)
+          .then(
+            function(response) {
+              if (response.status !== 200) {
+                console.log('Looks like there was a problem. Status Code: ',
+                            response.status)
+                self.status = (
+                  'Can not find such a file to update ' + response.status)
+                return
+              }
+
+              response.json().then(function(data) {
+                if  (data.content != updatedContent) {
+                  console.log('saving since content has changed')
+                  fetch('/api/update', {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                      file_path: path,
+                      updated_content: updatedContent,
+                    }),
+                  })
+                  .then(response => response.json())
+                  .then(result => {
+                    self.status = 'Updated ' + path + ' @ ' + (new Date())
+                    console.log('saved so releasing the route lock')
+                    self.contentChanged = false
+                  })
+                  .catch(error => {
+                    console.error('Error:', error)
+                    self.status = 'Error saving ' + path + ' @ ' + error 
+                  })
+                } else {
+                  console.log('not saving since content is already same')
+                  self.status = 'Content has not changed.'
+                  return
+                }
+              })  // End of successful response.
+            }
+          )
+          .catch(function(err) {
+            console.log('Fetch Error :-S', err);
+          })  // end of fetch.
       },
       initEditor: function (data, path) {
+        // There are 2 editors living all the time except initial load.
+        // editor => General markdown editor
+        // codeEditor => Code editor.
         let self = this
-        self.mdMode = true
         if (data.result == 'success') {
-          // TODO(hakanu): No idea why this is not working.
-          // editor.setValue(data.content);
-          // editor.setMarkdown(data.content);
 
-          if (this.editor && this.editor.editor) {
-            this.editor.editor.remove()
+          if(path.endsWith('.md')) {
+            if (self.codeEditor) {
+              self.codeEditor.hide()
+            }
+
+            if (this.editor) {
+              // this.editor.editor.remove()
+              self.editor.setMarkdown(data.content + '\n')
+              self.editor.show()
+
+              // Add listener for modification.
+              $('#editor').on('input propertychange', function () {
+                self.contentChanged = true
+                self.getCursorPosition()
+                console.log('Autosaving editor')
+
+                // Runs 2s after the las/t change    
+                var timeoutId
+                clearTimeout(timeoutId)
+                timeoutId = setTimeout(function () {
+                  self.saveContent(path, self.editor.getMarkdown());
+                }, 2000)
+              })
+
+              return
+            }
           } 
-          
+
+          if (!path.endsWith('.md')) {
+            if (self.editor) {
+              self.editor.hide()
+            }
+            if (this.codeEditor) {
+              // this.editor.editor.remove()
+              self.codeEditor.setValue(data.content)
+              self.codeEditor.show()
+
+              // Add listener for modification.
+              $('#code-editor').on('input propertychange', function () {
+                self.contentChanged = true
+                self.getCursorPosition()
+                console.log('Autosaving code editor');
+
+                // Runs 2s after the las/t change    
+                var timeoutId
+                clearTimeout(timeoutId)
+                timeoutId = setTimeout(function () {
+                  self.saveContent(path, self.editor.getValue());
+                }, 2000)
+              })
+
+              return
+            } 
+          }
+
+          // Create elements for fresh editor creation.
           if (!$('#editor')[0]) {
             $('#div-editor').eq(0).append('<div id="editor"></div>');
           }
 
+          if (!$('#code-editor')[0]) {
+            $('#div-editor').eq(0).append('<div id="code-editor"></div>');
+          }
+
+
+
+
           if (path.endsWith('.md')) {
-            mdMode = true
-            self.editor = editormd('editor', {
-              width: '100%',
-              height: 720,
-              taskList: (localStorage.settingsTaskLists) ? (localStorage.settingsTaskLists == '1') : false,
-              // autoHeight: true,
-              codeFold: (localStorage.settingsCodeFolding) ? (localStorage.settingsCodeFolding == '1') : false,
-              searchReplace: true,
-              flowChart: (localStorage.settingsCharts) ? (localStorage.settingsCharts == '1') : false,
-              sequenceDiagram: (localStorage.settingsSequences) ? (localStorage.settingsSequences == '1') : false,
-              tex: (localStorage.settingsKatex) ? (localStorage.settingsKatex == '1') : false,
-              emoji: (localStorage.settingsEmoji) ? (localStorage.settingsEmoji == '1') : false,
-              toolbar: (localStorage.settingsToolbar) ? (localStorage.settingsToolbar == '1') : true,
-              theme: (localStorage.theme) ? localStorage.theme : 'dark',
-              previewTheme: (localStorage.previewTheme) ? localStorage.previewTheme : 'dark',
-              editorTheme: (localStorage.editorTheme) ? localStorage.editorTheme : "pastel-on-dark",
-              // TODO(hakanu): Needed to load like this. Otherwise editor
-              // puts its own placeholder to the textarea instead of empty.
-              markdown: data.content + '\n',
-              value: '',
-              path: '/static/js/lib/',  // Autoload modules mode.
-              syncScrolling : true,
-              onload: function () {
-                // Make the preview pane non-default.
-                // this.unwatch();
-              },
-              onchange : function() {
-                self.getCursorPosition()
+            if (!self.editor) {
+              self.editor = editormd('editor', {
+                width: '100%',
+                height: 1080,
+                taskList: (localStorage.settingsTaskLists) ? (localStorage.settingsTaskLists == '1') : false,
+                // autoHeight: true,
+                codeFold: (localStorage.settingsCodeFolding) ? (localStorage.settingsCodeFolding == '1') : false,
+                searchReplace: true,
+                flowChart: (localStorage.settingsCharts) ? (localStorage.settingsCharts == '1') : false,
+                sequenceDiagram: (localStorage.settingsSequences) ? (localStorage.settingsSequences == '1') : false,
+                tex: (localStorage.settingsKatex) ? (localStorage.settingsKatex == '1') : false,
+                emoji: (localStorage.settingsEmoji) ? (localStorage.settingsEmoji == '1') : false,
+                toolbar: (localStorage.settingsToolbar) ? (localStorage.settingsToolbar == '1') : true,
+                theme: (localStorage.theme) ? localStorage.theme : 'dark',
+                previewTheme: (localStorage.previewTheme) ? localStorage.previewTheme : 'dark',
+                editorTheme: (localStorage.editorTheme) ? localStorage.editorTheme : "pastel-on-dark",
+                markdown: data.content,
+                value: '',
+                path: '/static/js/lib/',  // Autoload modules mode.
+                syncScrolling : true,
+                onload: function () {
+                  // Make the preview pane non-default.
+                  // this.unwatch();
 
-                // Runs 2s after the las/t change    
-                var timeoutId;
-                clearTimeout(timeoutId)
-                timeoutId = setTimeout(function () {
-                  self.saveContent()
-                }, 2000)
-              },
-              onwatch : function() {
-              },
-            })
+                  // Event needs to be added specifically in order to be
+                  // removed easily.
+                  $('#editor').on('input propertychange', function () {
+                    self.contentChanged = true
+                    self.getCursorPosition()
+                    console.log('Autosaving editor')
+
+                    // Runs 2s after the las/t change    
+                    var timeoutId
+                    clearTimeout(timeoutId)
+                    timeoutId = setTimeout(function () {
+                      self.saveContent(path, self.editor.getMarkdown());
+                    }, 2000)
+                  })
+
+                },
+                // onchange : function() {
+                //   self.contentChanged = true
+                //   self.getCursorPosition()
+
+                //   // Runs 2s after the last change.
+                //   var timeoutId;
+                //   clearTimeout(timeoutId)
+                //   timeoutId = setTimeout(function () {
+                //     var content = self.editor.getMarkdown()
+                //     self.saveContent(path, content)
+                //   }, 2000)
+                // },
+                onwatch : function() {
+                },
+              })
+            }
           } else {
-            mdMode = false 
             // Mode is not working here :/
-            self.editor = editormd('editor', {
-              width: '100%',
-              height: 720,
-              // taskList: (localStorage.settingsTaskLists) ? (localStorage.settingsTaskLists == '1') : false,
-              // autoHeight: true,
-              codeFold: (localStorage.settingsCodeFolding) ? (localStorage.settingsCodeFolding == '1') : false,
-              searchReplace: true,
-              // flowChart: (localStorage.settingsCharts) ? (localStorage.settingsCharts == '1') : false,
-              // sequenceDiagram: (localStorage.settingsSequences) ? (localStorage.settingsSequences == '1') : false,
-              // tex: (localStorage.settingsKatex) ? (localStorage.settingsKatex == '1') : false,
-              // emoji: (localStorage.settingsEmoji) ? (localStorage.settingsEmoji == '1') : false,
-              toolbar: false,
-              theme: (localStorage.theme) ? localStorage.theme : 'dark',
-              previewTheme: (localStorage.previewTheme) ? localStorage.previewTheme : 'dark',
-              editorTheme: (localStorage.editorTheme) ? localStorage.editorTheme : "pastel-on-dark",
-              watch: false,
-              // TODO(hakanu): Needed to load like this. Otherwise editor
-              // puts its own placeholder to the textarea instead of empty.
-              // markdown: data.content + '\n',
-              value: data.content,
-              path: '/static/js/lib/',  // Autoload modules mode.
-              syncScrolling : true,
-              onload: function () {
-                // Make the preview pane non-default.
-                // this.unwatch();
-              },
-              onchange : function() {
-                self.getCursorPosition()
+            if (!self.codeEditor) {
+              self.codeEditor = editormd('code-editor', {
+                width            : "100%",
+                height           : 1080,
+                watch            : false,
+                toolbar          : false,
+                codeFold         : true,
+                searchReplace    : true,
+                placeholder      : "Welcome to pervane",
+                value: data.content,
+                theme: localStorage.theme ? localStorage.theme : 'dark',
+                editorTheme: localStorage.editorTheme ? localStorage.editorTheme : 'monokai',
+                mode: data.file_mode ? data.file_mode : 'text/html',
+                path: '/static/js/lib/',  // Autoload modules mode.
+                onload: function () {
+                  // Make the preview pane non-default.
+                  // this.unwatch();
 
-                // Runs 2s after the las/t change    
-                var timeoutId;
-                clearTimeout(timeoutId)
-                timeoutId = setTimeout(function () {
-                  self.saveContent()
-                }, 2000)
-              },
-              onwatch : function() {
-              },
-            })
+                  // Event needs to be added specifically in order to be
+                  // removed easily.
+                  $('#code-editor').on('input propertychange', function () {
+                    self.contentChanged = true
+                    self.getCursorPosition()
+                    console.log('Autosaving code editor');
+
+                    // Runs 2s after the las/t change    
+                    var timeoutId
+                    clearTimeout(timeoutId)
+                    timeoutId = setTimeout(function () {
+                      self.saveContent(path, self.editor.getValue());
+                    }, 2000)
+                  })
+
+                },
+                // onchange : function() {
+                //   self.contentChanged = true
+                //   self.getCursorPosition()
+
+                //   // Runs 2s after the last change    
+                //   var timeoutId;
+                //   clearTimeout(timeoutId)
+                //   timeoutId = setTimeout(function () {
+                //     var content = self.codeEditor.getValue()
+                //     self.saveContent(path, content)
+                //   }, 2000)
+                // },
+                onwatch : function() {
+                },
+              })
+            }
 
           }
           
@@ -767,23 +922,24 @@
             function(response) {
               if (response.status !== 200) {
                 console.log('Looks like there was a problem. Status Code: ',
-                            response.status);
-                return;
+                            response.status)
+                return
               }
 
-              // Examine the text in the response
               response.json().then(function(data) {
                 self.initEditor(data, path)
-              });
+              })
             }
           )
           .catch(function(err) {
             console.log('Fetch Error :-S', err);
-          });
+          })
       },  // end of loadPathInEditor
       getCursorPosition: function() {
-        if (this.editor) {
+        if (this.path.endsWith('.md')) {
           this.cursorPosition = this.editor.getCursor()
+        } else {
+          this.cursorPosition = this.codeEditor.getCursor()
         }
       },
     }, // end of methods. 
@@ -854,12 +1010,10 @@
       // Drag drop file move
       drag: function(ev, draggedItem) {
         ev.dataTransfer.setData('sourcePath', draggedItem.path)
-        console.log('Dragging', ev, draggedItem)
       }, // end of drag.
       drop: function(ev, droppedItem) {
         ev.preventDefault();
         self = this
-        console.log('dropped', droppedItem)
         var sourcePath = ev.dataTransfer.getData('sourcePath')
         var destDir = droppedItem.path
         console.log('Moving ', sourcePath, ' to dest ', destDir)

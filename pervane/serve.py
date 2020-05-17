@@ -369,6 +369,7 @@ def front_page_handler():
       file_paths_flat=json.dumps(_get_file_paths_flat(root_dir)),
       root_dir=root_dir,
       current_user=current_user,
+      debug=args.debug,
       working_dir=_WORKING_DIR)
 
 
@@ -441,6 +442,7 @@ def api_get_tree_handler():
 
 
 @app.route('/api/get_content')
+
 @login_required
 def api_get_content_handler():
   path = request.args.get('f', '').strip()
