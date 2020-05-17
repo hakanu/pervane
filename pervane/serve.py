@@ -236,7 +236,7 @@ def make_tree(path):
 
 
 def _get_workspace_path(fn):
-  workspace_path = fn.replace(args.root_dir, '')
+  workspace_path = fn.replace(_get_root_dir(), '')
   # Prepend separator in case user enter root dir with / at the
   # end.
   if (not workspace_path.startswith(os.sep)):
@@ -371,7 +371,7 @@ def api_get_file_handler():
 
 @app.route('/api/get_tree')
 @login_required
-def api_get_treee_handler():
+def api_get_tree_handler():
   root_dir = _get_root_dir()
   if not os.path.exists(root_dir):
     logging.info('Initializing the root dir')
@@ -394,6 +394,7 @@ def api_get_content_handler():
   if not path.startswith(root_dir):
     logging.info('no auth')
     return 'Not authorized to see this dir' 
+  print('reading path: ', path)
   try:
     with open(path, 'r') as f:
       content = f.read()
