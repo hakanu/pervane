@@ -320,6 +320,8 @@ def api_get_file_handler():
   path = request.args.get('f', '')
   if not path:
     return 'No path is given'
+  original_path = path
+
   # Even though passed path has separators, we get the last piece
   #  /hakuna/matata/yo => yo.
   # Trying to be defensive here against custom requests.
@@ -341,7 +343,8 @@ def api_get_file_handler():
       not mime_type.startswith('text/') and
       # js source is not text for some reason. Need to be excepted.
       not mime_type == 'application/javascript'):
-    return ('No idea how to show this file %s' % path)
+    return ('No idea how to show this file %s' %
+            original_path)
 
   # Text is our main interest.
   if mime_type.startswith('text/'):
@@ -351,7 +354,7 @@ def api_get_file_handler():
       html_content = content
     except Exception as e:
       logging.error('There is an error while reading: %s', str(e))
-      return 'File reading failed with ' + str(e)
+      return 'File reading failed.'
   elif mime_type.startswith('image/'):
     try:
       with open(path, 'rb') as f:
@@ -359,7 +362,7 @@ def api_get_file_handler():
       html_content = content
     except Exception as e:
       logging.error('There is an error while reading: %s', str(e))
-      return 'File reading failed with ' + str(e)
+      return 'File reading failed.'
   return jsonify({
       'result': 'success',
       'content': html_content,
@@ -372,7 +375,11 @@ def api_get_treee_handler():
   root_dir = _get_root_dir()
   if not os.path.exists(root_dir):
     logging.info('Initializing the root dir')
-  return jsonify({'result': 'success', 'content': make_tree(root_dir)})
+
+  return jsonify({
+      'result': 'success',
+      'content': make_tree(root_dir)
+  })
 
 
 @app.route('/api/get_content')
@@ -392,7 +399,8 @@ def api_get_content_handler():
       content = f.read()
     return jsonify({'result': 'success', 'content': content})
   except Exception as e:
-    return jsonify({'result': 'smt went wrong ' + str(e)})
+    return jsonify(
+      {'result': 'smt went wrong ' + str(e)})
 
 
 @app.route('/api/update', methods=['POST'])
@@ -425,7 +433,8 @@ def add_node_handler():
 
   # Parent path comes like /username or / so the real parent path needs to be built.
   # Remove / from the GET param.
-  parent_path = os.path.join(_WORKING_DIR, request.json.get('parent_path', '').strip()[1:])
+  parent_path = os.path.join(
+      _WORKING_DIR, request.json.get('parent_path', '').strip()[1:])
 
   # Eliminate file separator.
   new_node_name = request.json.get('new_node_name', '').strip()
@@ -455,17 +464,19 @@ def add_node_handler():
     except OSError:
       return jsonify({
           'result': 'fail',
-          'message': 'Failed create this directory: ' +
-          path +
-          '. Make sure parent directory exists and  you have write '
-          'access to the parent directory.',
-          'entity': path,
+          'message': (
+              'Failed create this directory.' 
+              'Make sure parent directory exists and you have write '
+              'access to the parent directory.'),
+          'entity': '',  # Don't reveal failed path for security.
       })
     else:
       return jsonify({
           'result':  'success', 
           'message': 'created the directory',
-          'entity': os.path.join(path, os.path.sep),
+          'type': 'dir',
+          'entity': os.path.join(
+            path, os.path.sep).replace(_WORKING_DIR, ''),
       })
   else:
     suffix = '' if new_node_name.endswith('.md') else '.md'
@@ -475,14 +486,15 @@ def add_node_handler():
     except OSError:
       return jsonify({
           'result':  'fail',
-          'message': 'failed to create markdown file: ' + path,
-          'entity': path,
+          'message': 'failed to create markdown file.',
+          'entity': '',  # Don't reveal path.
       })
     else:
       return jsonify({
           'result':  'success',
           'message': 'created the directory: ' + path.replace(
               _WORKING_DIR, ''),
+          'type': 'file',
           'entity': path.replace(_WORKING_DIR, ''),
       })
 
@@ -498,7 +510,7 @@ def api_move_handler():
   if (not source_path.startswith(root_dir) or
       not dest_dir.startswith(root_dir)):
     logging.info('no auth')
-    return 'Not authorized to see this dir, must be under: %s' % root_dir
+    return 'Not authorized to see this dir.'
   try:
     base_name = os.path.basename(source_path)
     dest_path = os.path.join(dest_dir, base_name)
@@ -511,10 +523,13 @@ def api_move_handler():
       dest_path = base_name + '_' + datetime.datetime.now().strftime(
           '%Y%m%d_%H%M') + extension
     shutil.move(source_path, dest_path)
-    return jsonify({'result': 'success', 'source_path': source_path, 
-                   'dest_path': dest_path})
+    return jsonify({
+        'result': 'success', 
+        'source_path': source_path, 
+        'dest_path': dest_path
+    })
   except Exception as e:
-    return jsonify({'result': 'smt went wrong ' + str(e)})
+    return jsonify({'result': 'smt went wrong '})
 
 
 @app.route('/api/search')

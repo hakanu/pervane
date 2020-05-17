@@ -11,8 +11,6 @@
 
   {% if (md_content or md != '') and path and not mime_type.startswith('image/') %}
     pathToInitEditor = '{{path}}';
-  {% else %}
-    console.log('no need to init the editor');
   {% endif %}
 
   var rootDirPath = "{{ tree.path|replace(working_dir, '')}}";
@@ -576,7 +574,6 @@
       </div>
     `,
     created: function() {
-      console.log('note component is mounted', this.path)
       // Comes from prop through $route.
       this.loadPathInEditor(this.path)
       let self = this
@@ -587,7 +584,6 @@
         if (!(String.fromCharCode(event.which).toLowerCase() == 's' && 
             event.altKey) && !(event.which == 19)) return true
         event.preventDefault()
-        console.log('keyboard shortcut for save')
         self.saveContent()
         return false
       })
@@ -609,16 +605,14 @@
         })
         .then(response => response.json())
         .then(result => {
-          console.log('Success:', result)
           self.status = 'Updated @ ' + (new Date())
-          })
+        })
         .catch(error => {
           console.error('Error:', error)
           self.status = 'Error saving @ ' + error 
         })
       },
       initEditor: function (data) {
-        console.log('Got result', data.result)
         let self = this
         if (data.result == 'success') {
           // TODO(hakanu): No idea why this is not working.
@@ -644,12 +638,10 @@
             markdown: data.content + '\n',
             path: '/static/js/lib/',  // Autoload modules mode.
             onload: function () {
-              console.log('onload', this)
               // Make the preview pane non-default.
               // this.unwatch();
             },
             onchange : function() {
-              console.log('onchange')
               self.getCursorPosition()
 
               // Runs 2s after the las/t change    
@@ -660,7 +652,6 @@
               }, 2000)
             },
             onwatch : function() {
-              console.log("onwatch =>", this, this.id, this.settings);
             },
           });
         } else {
@@ -669,7 +660,6 @@
         }
       },  // end of initEditor.
       loadPathInEditor: function(path) {
-        console.log('Loading path: ', path)
         self = this
         fetch('/api/get_content?f=' + path)
           .then(
@@ -692,7 +682,6 @@
       },  // end of loadPathInEditor
       getCursorPosition: function() {
         if (this.editor) {
-          console.log("getCursor =>", this.editor)
           this.cursorPosition = this.editor.getCursor()
         }
       },
@@ -739,17 +728,13 @@
       this.$nextTick(function () {
         // Code that will run only after the
         // entire view has been rendered
-        console.log('im ready');
       }) // End of next tick.
     },
     methods: {
       toggle: function() {
         if (this.isFolder) {
-          // console.log('expanding: ', this)
           this.isOpen = !this.isOpen
           localStorage.setItem(this.item.path, this.isOpen)
-        } else {
-          console.log('initing the editor for path', this.item.path)
         }
       },
       expanded: function() {
@@ -942,11 +927,9 @@
         }
       },
       showShortcutsModal: function() {
-        console.log('show shortcuts modal')
         $('#shortcuts-modal').modal();
       },
       addNode: function(newNodeName, newNodeParentPath) {
-        console.log('adding node', newNodeName, newNodeParentPath)
         $('#nodeModal').modal('hide')
 
         self = this
@@ -966,9 +949,13 @@
         .then(response => response.json())
         .then(result => {
           console.log('Success:', result)
-          router.push({ path: '/n/' + encodeURIComponent(result.entity) })
+          if (result.result == 'success' && result.type == 'file') {
+            router.push({ 
+              path: '/n/' + encodeURIComponent(result.entity) 
+            })
+          }
           self.refreshTree()
-          })
+        })
         .catch(error => {
           console.error('Error:', error)
         })
@@ -979,15 +966,14 @@
           .then(
             function(response) {
               if (response.status !== 200) {
-                console.log('Looks like there was a problem. Status Code: ',
-                            response.status)
+                console.log(
+                  'Looks like there was a problem. Status Code: ',
+                  response.status)
                 return;
               }
 
               // Examine the text in the response
               response.json().then(function(data) {
-                console.log(self)
-                console.log('updating the tree', data)
                 self.treeData = data.content
               })
             }

@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="pervane",
-    version="0.0.45",
+    version="0.0.46",
     author="hakanu",
     author_email="hi@hakanu.net",
     description="Plain text backed web based markdown note taking and knowledge base building app",
