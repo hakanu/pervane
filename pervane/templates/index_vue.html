@@ -16,12 +16,11 @@
   var rootDirPath = "{{ tree.path|replace(working_dir, '')}}";
 
   // Search page related vars to be passed down to vue.js
+  // TODO(hakanu): These are dynamically fetched, not needed any more.
   var searchResults = {{ search_results|safe if search_results else [] }};
   var searchQuery = '{{ query if query else '' }}';
   var searchStats = '{{ stats if stats else ''}}';
-
   var tree = {{tree|safe}};
-
 </script>
 
 {% raw %}
@@ -76,7 +75,9 @@
 
             <router-link v-else :to="'/n/' + encodeURIComponent(item.path)"
                          >
-            <i class="fa fa-file-text" aria-hidden="true"></i> {{ item.name }}
+            <i class="fa fa-file-text" aria-hidden="true"
+               v-if="!item.path.endsWith('.md')"></i>
+            <i class="fa fa-file-code-o" aria-hidden="true" v-else></i> {{ item.name }}
             </router-link>
           </span>
           <span v-else draggable="false" v-on:drop="drop($event, item)">
@@ -495,7 +496,9 @@
     template: `
       <div>
         <h6>Results for <b>{{ $route.params.query }}</b></h6>
-        <p v-if="searchLoading">Searching (search performance is highly dependent on the # of notes you have)...</p>
+        <p v-if="searchLoading">
+          Searching (search performance is highly dependent on the # of notes you have)...
+        </p>
         <div v-else>
           <p><sub>{{ searchStats }}</sub></p>
           <div v-for="result in searchResults" >
@@ -567,20 +570,20 @@
             function(response) {
               if (response.status !== 200) {
                 console.log('Looks like there was a problem. Status Code: ',
-                            response.status);
-                return;
+                            response.status)
+                return
               }
 
               // Examine the text in the response
               response.json().then(function(data) {
                 // TODO(hakanu):  Should I assume jpeg?
                 self.b64Src = 'data:image/jpeg;base64,' + data.content
-              });
+              })
             }
           )
           .catch(function(err) {
-            console.log('Fetch Error :-S', err);
-          });
+            console.log('Fetch Error :-S', err)
+          })
       },
     },
   }
@@ -592,6 +595,7 @@
         message: '',
         status: '',
         editor: {},
+        mdMode: true,
         cursorPosition: {},
       };
     },
@@ -617,14 +621,16 @@
         if (!(String.fromCharCode(event.which).toLowerCase() == 's' && 
             event.altKey) && !(event.which == 19)) return true
         event.preventDefault()
-        self.saveContent()
+        self.saveContent(self.mdMode)
         return false
       })
     },
     methods: {
-      saveContent: function() {
+      saveContent: function(mdMode) {
         let self = this 
         console.log('save content', this.path)
+        // Code editor is different from md editor.
+        let content = mdMode ? self.editor.getMarkdown() : self.editor.getValue()
 
         fetch('/api/update', {
           method: 'POST',
@@ -633,7 +639,7 @@
           },
           body: JSON.stringify({
             file_path: self.path,
-            updated_content: self.editor.getMarkdown(),
+            updated_content: content,
           }),
         })
         .then(response => response.json())
@@ -645,51 +651,113 @@
           self.status = 'Error saving @ ' + error 
         })
       },
-      initEditor: function (data) {
+      initEditor: function (data, path) {
         let self = this
+        self.mdMode = true
         if (data.result == 'success') {
           // TODO(hakanu): No idea why this is not working.
           // editor.setValue(data.content);
           // editor.setMarkdown(data.content);
-          this.editor = editormd('editor', {
-            width: '100%',
-            height: '150%',
-            taskList: (localStorage.settingsTaskLists) ? (localStorage.settingsTaskLists == '1') : false,
-            // autoHeight: true,
-            codeFold: (localStorage.settingsCodeFolding) ? (localStorage.settingsCodeFolding == '1') : false,
-            searchReplace: true,
-            flowChart: (localStorage.settingsCharts) ? (localStorage.settingsCharts == '1') : false,
-            sequenceDiagram: (localStorage.settingsSequences) ? (localStorage.settingsSequences == '1') : false,
-            tex: (localStorage.settingsKatex) ? (localStorage.settingsKatex == '1') : false,
-            emoji: (localStorage.settingsEmoji) ? (localStorage.settingsEmoji == '1') : false,
-            toolbar: (localStorage.settingsToolbar) ? (localStorage.settingsToolbar == '1') : true,
-            theme: (localStorage.theme) ? localStorage.theme : 'dark',
-            previewTheme: (localStorage.previewTheme) ? localStorage.previewTheme : 'dark',
-            editorTheme: (localStorage.editorTheme) ? localStorage.editorTheme : "pastel-on-dark",
-            // TODO(hakanu): Needed to load like this. Otherwise editor
-            // puts its own placeholder to the textarea instead of empty.
-            markdown: data.content + '\n',
-            path: '/static/js/lib/',  // Autoload modules mode.
-            onload: function () {
-              // Make the preview pane non-default.
-              // this.unwatch();
-            },
-            onchange : function() {
-              self.getCursorPosition()
 
-              // Runs 2s after the las/t change    
-              var timeoutId;
-              clearTimeout(timeoutId)
-              timeoutId = setTimeout(function () {
-                self.saveContent()
-              }, 2000)
-            },
-            onwatch : function() {
-            },
-          });
+          if (this.editor && this.editor.editor) {
+            this.editor.editor.remove()
+          } 
+          
+          if (!$('#editor')[0]) {
+            $('#div-editor').eq(0).append('<div id="editor"></div>');
+          }
+
+          if (path.endsWith('.md')) {
+            mdMode = true
+            self.editor = editormd('editor', {
+              width: '100%',
+              height: 720,
+              taskList: (localStorage.settingsTaskLists) ? (localStorage.settingsTaskLists == '1') : false,
+              // autoHeight: true,
+              codeFold: (localStorage.settingsCodeFolding) ? (localStorage.settingsCodeFolding == '1') : false,
+              searchReplace: true,
+              flowChart: (localStorage.settingsCharts) ? (localStorage.settingsCharts == '1') : false,
+              sequenceDiagram: (localStorage.settingsSequences) ? (localStorage.settingsSequences == '1') : false,
+              tex: (localStorage.settingsKatex) ? (localStorage.settingsKatex == '1') : false,
+              emoji: (localStorage.settingsEmoji) ? (localStorage.settingsEmoji == '1') : false,
+              toolbar: (localStorage.settingsToolbar) ? (localStorage.settingsToolbar == '1') : true,
+              theme: (localStorage.theme) ? localStorage.theme : 'dark',
+              previewTheme: (localStorage.previewTheme) ? localStorage.previewTheme : 'dark',
+              editorTheme: (localStorage.editorTheme) ? localStorage.editorTheme : "pastel-on-dark",
+              // TODO(hakanu): Needed to load like this. Otherwise editor
+              // puts its own placeholder to the textarea instead of empty.
+              markdown: data.content + '\n',
+              value: '',
+              path: '/static/js/lib/',  // Autoload modules mode.
+              syncScrolling : true,
+              onload: function () {
+                // Make the preview pane non-default.
+                // this.unwatch();
+              },
+              onchange : function() {
+                self.getCursorPosition()
+
+                // Runs 2s after the las/t change    
+                var timeoutId;
+                clearTimeout(timeoutId)
+                timeoutId = setTimeout(function () {
+                  self.saveContent()
+                }, 2000)
+              },
+              onwatch : function() {
+              },
+            })
+          } else {
+            mdMode = false 
+            // Mode is not working here :/
+            self.editor = editormd('editor', {
+              width: '100%',
+              height: 720,
+              // taskList: (localStorage.settingsTaskLists) ? (localStorage.settingsTaskLists == '1') : false,
+              // autoHeight: true,
+              codeFold: (localStorage.settingsCodeFolding) ? (localStorage.settingsCodeFolding == '1') : false,
+              searchReplace: true,
+              // flowChart: (localStorage.settingsCharts) ? (localStorage.settingsCharts == '1') : false,
+              // sequenceDiagram: (localStorage.settingsSequences) ? (localStorage.settingsSequences == '1') : false,
+              // tex: (localStorage.settingsKatex) ? (localStorage.settingsKatex == '1') : false,
+              // emoji: (localStorage.settingsEmoji) ? (localStorage.settingsEmoji == '1') : false,
+              toolbar: false,
+              theme: (localStorage.theme) ? localStorage.theme : 'dark',
+              previewTheme: (localStorage.previewTheme) ? localStorage.previewTheme : 'dark',
+              editorTheme: (localStorage.editorTheme) ? localStorage.editorTheme : "pastel-on-dark",
+              watch: false,
+              // TODO(hakanu): Needed to load like this. Otherwise editor
+              // puts its own placeholder to the textarea instead of empty.
+              // markdown: data.content + '\n',
+              value: data.content,
+              path: '/static/js/lib/',  // Autoload modules mode.
+              syncScrolling : true,
+              onload: function () {
+                // Make the preview pane non-default.
+                // this.unwatch();
+              },
+              onchange : function() {
+                self.getCursorPosition()
+
+                // Runs 2s after the las/t change    
+                var timeoutId;
+                clearTimeout(timeoutId)
+                timeoutId = setTimeout(function () {
+                  self.saveContent()
+                }, 2000)
+              },
+              onwatch : function() {
+              },
+            })
+
+          }
+          
         } else {
-          console.log('something went wrong while fetching the file content', data.result)
-          this.status = 'something went wrong while fetching the file content', data.result
+          console.log('something went wrong while fetching the file content',
+                      data.result)
+          this.status = (
+            'something went wrong while fetching the file content',
+            data.result)
         }
       },  // end of initEditor.
       loadPathInEditor: function(path) {
@@ -705,7 +773,7 @@
 
               // Examine the text in the response
               response.json().then(function(data) {
-                self.initEditor(data)
+                self.initEditor(data, path)
               });
             }
           )

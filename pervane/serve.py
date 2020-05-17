@@ -123,6 +123,33 @@ _SQLITE_PATH = 'sqlite:///' + os.path.join(
     _PERVANE_CONFIG_DIR, 'pervane.sqlite')
 logging.info('db path: ', _SQLITE_PATH)
 
+# This is for editor to render with higher fidelity with per
+# language colors.
+_FILE_MODE_DICT = {
+    'md': 'text/html', 
+    'txt': 'text/html', 
+    'html': 'text/html', 
+    'xhtml': 'text/html', 
+    'js': 'javascript',
+    'vue': 'javascript',
+    'javascript': 'javascript',
+    'jinja': 'javascript',
+    'php': 'php',
+    'xml': 'text/xml',
+    'json': 'text/json',
+    'java': 'java',
+    'as': 'actionscript',
+    'perl': 'perl',
+    'go': 'go',
+    'py': 'python',
+    'c': 'c/c++',
+    'cc': 'c/c++',
+    'cpp': 'c/c++',
+    'css': 'css',
+    'rb': 'ruby',
+ }
+
+
 # Class-based application configuration
 class ConfigClass(object):
   """ Flask application config """
@@ -312,6 +339,14 @@ def _get_file_paths_flat(path):
   return leaves
 
 
+def _get_file_mode(path):
+  print('getting file mode for ', path)
+  if '.' in path:
+    return _FILE_MODE_DICT.get(
+        os.path.splitext(path)[1].replace('.', ''), 'text/html')
+  return 'text/html'
+
+
 @app.route('/api/check_updates')
 @login_required
 def api_check_updates():
@@ -417,11 +452,18 @@ def api_get_content_handler():
   if not path.startswith(root_dir):
     logging.info('no auth')
     return 'Not authorized to see this dir' 
-  print('reading path: ', path)
+
+  # Obtain the file type to be rendered in editor from path.
+  file_mode = _get_file_mode(path)
+
   try:
     with open(path, 'r') as f:
       content = f.read()
-    return jsonify({'result': 'success', 'content': content})
+    return jsonify({
+        'result': 'success',
+        'content': content,
+        'file_mode': file_mode,
+    })
   except Exception as e:
     return jsonify(
       {'result': 'smt went wrong ' + str(e)})
