@@ -190,6 +190,22 @@ class CustomUserManager(UserManager):
 user_manager = CustomUserManager(app, db, User)
 
 
+def _check_pervane_needs_update():
+  try:
+    out = subprocess.Popen(
+        'pip list --outdated'.split(' '), 
+        stdout=subprocess.PIPE, 
+        stderr=subprocess.STDOUT)
+    stdout,stderr = out.communicate()
+    needs_update = True if 'pervane' in str(stdout) else False
+    return {'needs_update': needs_update}
+  except Exception as e:
+    logging.error('Failed to check newest versions: ', str(e))
+    # If for some reason, user is not using pip, don't crush on
+    # this.
+    return {'needs_update': True}
+
+
 def _get_root_dir():
   return (
       _WORKING_DIR if not args.allow_multi_user else os.path.join(_WORKING_DIR, current_user.username)
@@ -294,6 +310,12 @@ def _get_file_paths_flat(path):
         os.path.join(root, name).replace(_get_root_dir(), os.path.sep)
       )
   return leaves
+
+
+@app.route('/api/check_updates')
+@login_required
+def api_check_updates():
+  return jsonify(_check_pervane_needs_update())
 
 
 @app.route('/')

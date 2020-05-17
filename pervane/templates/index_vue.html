@@ -280,6 +280,39 @@
     </div>
   </div> <!--  /shortcuts modal -->
 
+  <!-- Update Modal -->
+  <div class="modal fade" id="update-modal" tabindex="-1" role="dialog" 
+       aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel2">
+            Pervane needs to be updated 
+          </h5>
+          <button type="button" class="close" data-dismiss="modal"
+                  aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p>This version of Pervane installed in your PC is outdated.</p>
+          <p>In order to use the most secure version, you should install the latest version with this command easily</p>
+          <pre>pip install --upgrade pervane</pre>
+          <p>
+            <a href="https://pypi.org/project/pervane" target="_blank">
+              Pervane @ Pypi
+            </a>
+          </p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  </div> <!--  /update modal -->
+
   <!-- Settings Modal -->
   <div class="modal fade" id="settings-modal" tabindex="-1" role="dialog" 
        aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -834,6 +867,29 @@
     },
     created: function() {
       let self = this
+
+      // Check for updates.
+      fetch('/api/check_updates')
+        .then(
+          function(response) {
+            if (response.status !== 200) {
+              console.log(
+                'Looks like there was a problem. Status Code: ',
+                response.status)
+              return
+            }
+
+            response.json().then(function(data) {
+              if (data.needs_update) {
+                self.showUpdateModal()
+              }
+            })
+          }
+        )
+        .catch(function(err) {
+          console.log('Fetch Error :-S', err);
+        })
+
       // alt + g focus on quick search, sublime text style.
       $(document).keydown(function (event) {
         // 19 for Mac Command+S
@@ -928,6 +984,9 @@
       },
       showShortcutsModal: function() {
         $('#shortcuts-modal').modal();
+      },
+      showUpdateModal: function() {
+        $('#update-modal').modal();
       },
       addNode: function(newNodeName, newNodeParentPath) {
         $('#nodeModal').modal('hide')
