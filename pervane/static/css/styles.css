@@ -18,11 +18,13 @@ ul li ul {
   display: none;
   padding-left: 12px;
 }
+*/
 
 .sidebar ul {
   list-style: none;
   list-style-type: none;
-} */
+  padding-left: 0.4em;
+} 
 
 header input {
   max-height: 30px;
@@ -69,7 +71,22 @@ body {
   font-weight: bold;
 }
 ul {
-  padding-left: 1em;
+  padding-left: 0.5em;
   line-height: 1.5em;
   list-style-type: dot;
+}
+
+/* Main Level */
+ul{
+  margin-left:1px;
+}
+
+/* Second Level */
+ul ul{
+  margin-left:1px;
+}
+
+/* Third Level */
+ul ul ul{
+  margin-left:1px;
 }

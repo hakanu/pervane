@@ -73,16 +73,16 @@
             <router-link v-if="item.path.endsWith('.jpg')" 
                          :to="'/f/' + encodeURIComponent(item.path)"
                          >
-            {{ item.name }}
+            <i class="fa fa-image" aria-hidden="true"></i> {{ item.name }}
             </router-link>
 
             <router-link v-else :to="'/n/' + encodeURIComponent(item.path)"
                          >
-            {{ item.name }}
+            <i class="fa fa-file-text" aria-hidden="true"></i> {{ item.name }}
             </router-link>
           </span>
           <span v-else draggable="false" v-on:drop="drop($event, item)">
-            {{ item.name }}/
+            <i class="fa fa-folder" aria-hidden="true"></i> {{ item.name }}/
           </span>
         </span>
         <span v-else>/</span>
@@ -161,7 +161,7 @@
     <div class="input-group">
       <span>
         <input class="search form-control" id="search-field" 
-              placeholder="Quick search" @input="doQuickSearch"
+              placeholder="Quick search (alt + g)" @input="doQuickSearch"
               v-model="quickSearchQuery" />
       </span>
       <ul>
