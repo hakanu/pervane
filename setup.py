@@ -1,11 +1,14 @@
 import setuptools
 
-with open("README.md", "r") as fh:
-    long_description = fh.read()
+with open("README.md", "r") as readme_fh:
+    long_description = readme_fh.read()
+
+with open("pervane/version.txt", "r") as version_fh:
+    version = version_fh.read()
 
 setuptools.setup(
     name="pervane",
-    version="0.0.51",
+    version=version,
     author="hakanu",
     author_email="hi@hakanu.net",
     description="Plain text backed web based markdown note taking and knowledge base building app",

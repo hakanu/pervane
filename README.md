@@ -241,14 +241,15 @@ pip install --upgrade pervane
 
 ## Options
 
-* `--dir`: Note root directory. File tree will be generated from this. If PERVANE_HOME environment variable is set and --dir is not provided, PERVANE_HOME is used.
+* `--dir`: Note root directory. File tree will be generated from this. If `PERVANE_HOME` environment variable is set and --dir is not provided, `PERVANE_HOME` is used.
 * `--host`: defaults to 0.0.0.0. Hostname to be binded.
 * `--port`: defaults to 5000. Port number to be binded.
 * `--username`: DEPRECATED. Authentication is now based on cookie based login. defaults to 'hakuna'. Username for basic http auth.
 * `--password`: DEPRECATED. Authentication is now based on cookie based login. defaults to 'matata'. Username for basic http auth.
 * `--front_page_message`: / message.
 * `--cache_seconds`: Seconds to bust the cache. Mainly used for file tree re-reading.
-*  --debug: Enable more verbose logging.
+* `--debug`: Enable more verbose logging.
+* `--version`: Show version.
 
 ## Contribute
 

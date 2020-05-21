@@ -102,10 +102,23 @@ parser.add_argument(
 parser.add_argument(
     '--debug', type=str2bool, dest='debug', default=False,
     help='Show debug logs')
+parser.add_argument(
+    '--version', action='store_true', dest='version', default=False,
+    help='Show version and exit')
 
 args = parser.parse_args()
+
+if args.version:
+  # early return if only the version is asked.
+  version_file =  os.path.join(os.path.dirname(os.path.realpath(__file__)), "version.txt")
+  with open(version_file, "r") as version_fh:
+    version = version_fh.readline()
+    print('Pervane ', version)
+    sys.exit()
+
 # Log may not show up in non-debug mode.
 print('loaded args %s', args)
+
 if args.username or args.password:
   logging.error('WARNING: HTTP Basic Auth is deprecated, now Pervane has more '
 		'cookie based login, please use that method.')
