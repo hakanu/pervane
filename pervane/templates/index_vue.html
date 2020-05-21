@@ -125,19 +125,23 @@
         </li>
 
         <li class="nav-item">
-          <a class="nav-link" href="#" data-toggle="modal" @click="showSettingsModal()">Settings</a>
+          <a class="nav-link" target="_blank" 
+             href="#" data-toggle="modal" @click="showSettingsModal()">Settings</a>
         </li>
 
         <li class="nav-item">
-          <a class="nav-link" href="#" data-toggle="modal" @click="showShortcutsModal()">Shortcuts</a>
+          <a class="nav-link" target="_blank" 
+             href="#" data-toggle="modal" @click="showShortcutsModal()">Shortcuts</a>
         </li>
 
         <li class="nav-item">
-          <a class="nav-link" href="https://reddit.com/r/pervane">Discuss/Feedback</a>
+          <a class="nav-link" target="_blank" 
+             href="https://reddit.com/r/pervane">Discuss/Feedback</a>
         </li>
 
         <li class="nav-item">
-          <a class="nav-link" href="https://github.com/hakanu/pervane">Contribute</a>
+          <a class="nav-link" target="_blank" 
+             href="https://github.com/hakanu/pervane">Contribute</a>
         </li>
       </ul>
 
@@ -645,7 +649,7 @@
       }
     },
     created: function() {
-      let self = this
+      let self = thi
       // Comes from prop through $route.
       this.loadPathInEditor(this.path)
 

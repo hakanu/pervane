@@ -702,8 +702,8 @@ def file_upload_handler():
 
 
 def cli_main():
-    """Used within the python package cli."""
-    app.run(host=args.host, port=args.port, debug=args.debug)
+  """Used within the python package cli."""
+  app.run(host=args.host, port=args.port, debug=args.debug)
 
 
 if __name__ == '__main__':
