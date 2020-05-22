@@ -337,6 +337,7 @@
         <div class="modal-body">
           <header>
             <h5>Enabled Features</h5>
+            <sub>You need to refresh the page for settings to be effective</sub>
             <div class="form-check">
               <input class="form-check-input" type="checkbox" value="" 
                      id="settings-katex" 
@@ -664,6 +665,8 @@
       let self = this
       // Comes from prop through $route.
       this.loadPathInEditor(this.path)
+      this.addNewTabToLS('', this.path)
+      this.updateOpenTabPathInLS(this.path)
 
       // Keyboard shortcuts.
       // alt + s saving.
@@ -703,6 +706,7 @@
         
         openTabPaths.push(toPath)
         localStorage.setItem('openTabPaths', openTabPaths.join(','))
+        this.$forceUpdate()
       },
       saveContent: function(path, updatedContent) {
         let self = this 
@@ -834,16 +838,16 @@
               self.editor = editormd('editor', {
                 width: '100%',
                 height: 1280,
-                taskList: (localStorage.settingsTaskLists) ? (localStorage.settingsTaskLists == '1') : false,
+                taskList: (localStorage.settingsTaskLists) ? (localStorage.settingsTaskLists == '1') : true,
                 // autoHeight: true,
-                codeFold: (localStorage.settingsCodeFolding) ? (localStorage.settingsCodeFolding == '1') : false,
+                codeFold: (localStorage.settingsCodeFolding) ? (localStorage.settingsCodeFolding == '1') : true,
                 searchReplace: true,
-                flowChart: (localStorage.settingsCharts) ? (localStorage.settingsCharts == '1') : false,
-                sequenceDiagram: (localStorage.settingsSequences) ? (localStorage.settingsSequences == '1') : false,
-                tex: (localStorage.settingsKatex) ? (localStorage.settingsKatex == '1') : false,
-                emoji: (localStorage.settingsEmoji) ? (localStorage.settingsEmoji == '1') : false,
-                toolbar: (localStorage.settingsToolbar) ? (localStorage.settingsToolbar == '1') : false,
-                watch: (localStorage.settingsWatch) ? (localStorage.settingsWatch == '1'): false,
+                flowChart: (localStorage.settingsCharts) ? (localStorage.settingsCharts == '1') : true,
+                sequenceDiagram: (localStorage.settingsSequences) ? (localStorage.settingsSequences == '1') : true,
+                tex: (localStorage.settingsKatex) ? (localStorage.settingsKatex == '1') : true,
+                emoji: (localStorage.settingsEmoji) ? (localStorage.settingsEmoji == '1') : true,
+                toolbar: (localStorage.settingsToolbar) ? (localStorage.settingsToolbar == '1') : true,
+                watch: (localStorage.settingsWatch) ? (localStorage.settingsWatch == '1'): true,
                 theme: (localStorage.theme) ? localStorage.theme : 'dark',
                 previewTheme: (localStorage.previewTheme) ? localStorage.previewTheme : 'dark',
                 editorTheme: (localStorage.editorTheme) ? localStorage.editorTheme : "pastel-on-dark",
@@ -1062,15 +1066,15 @@
       quickSearchQuery: '',
       quickResults: [],
       
-      // Settings related data.
-      settingsKatexChecked: localStorage.settingsKatex == '1',
-      settingsTaskListsChecked: localStorage.settingsTaskLists == '1',
-      settingsChartsChecked: localStorage.settingsCharts == '1',
-      settingsSequencesChecked: localStorage.settingsSequences == '1',
-      settingsCodeFoldingChecked: localStorage.settingsCodeFolding == '1',
-      settingsEmojiChecked: localStorage.settingsEmoji == '1',
-      settingsToolbarChecked: localStorage.settingsToolbar == '1',
-      settingsWatchChecked: localStorage.settingsWatch == '1',
+      // Settings related data. All of them enabled by default.
+      settingsKatexChecked: localStorage.settingsKatex ? localStorage.settingsKatex == '1' : '1',
+      settingsTaskListsChecked: localStorage.settingsTaskLists ? localStorage.settingsTaskLists == '1' : '1',
+      settingsChartsChecked: localStorage.settingsCharts ? localStorage.settingsCharts == '1' : '1',
+      settingsSequencesChecked: localStorage.settingsSequences ? localStorage.settingsSequences == '1' : '1',
+      settingsCodeFoldingChecked: localStorage.settingsCodeFolding ? localStorage.settingsCodeFolding == '1' : '1',
+      settingsEmojiChecked: localStorage.settingsEmoji ? localStorage.settingsEmoji == '1' : '1',
+      settingsToolbarChecked: localStorage.settingsToolbar ? localStorage.settingsToolbar == '1' : '1',
+      settingsWatchChecked: localStorage.settingsWatch ? localStorage.settingsWatch == '1' : '1',
       
       // Theme settings.
       selectedGeneralTheme: (
