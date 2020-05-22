@@ -145,18 +145,17 @@
         </li>
       </ul>
 
-      <button class="btn btn-large fileinput-button">Upload file</button>
+      <button class="btn btn-large fileinput-button" alt="Upload file"><i class="fa fa-upload" aria-hidden="true"></i></button>
 
       <form class="form-inline mt-2 mt-md-0" @submit.prevent="initSearch">
         <input class="form-control mr-sm-2" type="text" name="query"
                v-model="query"
-               placeholder="Search everything with ag or ack"
+               placeholder="Search all notes with ag or ack"
                aria-label="Search">
       </form>
     </div>
   </nav>
 </header>
-
 
 <div class="row">
   <div class="col-sm-2 sidebar" v-if="showSidebar" 
@@ -337,7 +336,7 @@
         </div>
         <div class="modal-body">
           <header>
-            <h6>Enabled Features</h6>
+            <h5>Enabled Features</h5>
             <div class="form-check">
               <input class="form-check-input" type="checkbox" value="" 
                      id="settings-katex" 
@@ -389,10 +388,16 @@
                      @change="saveSettings($event, 'settingsToolbar')">
               <label class="form-check-label" for="settings-toolbar">Show WYSIWYG toolbar?</label>
               <br>
+
+              <input class="form-check-input" type="checkbox" value="" 
+                     id="settings-watch"
+                     v-model="settingsWatchChecked"
+                     @change="saveSettings($event, 'settingsWatch')">
+              <label class="form-check-label" for="settings-watch">Show Markdown Preview?</label>
               <br>
             </div>
 
-            <h6>Themes</h6>
+            <h5>Themes</h5>
             <div class="form-group">
               <label for="editormd-theme-select">General Theme</label>
               <select class="form-control" id="editormd-theme-select" 
@@ -612,22 +617,27 @@
     },
     template: `
       <div>
-        <div>
-          <span>{{ $route.params.path }}</span>:<span>{{cursorPosition.line}}:{{cursorPosition.ch}} </span>
-          <button
-              class="btn btn-secondary" 
-              v-if="$route.params.path.endsWith('.md')"
-              @click="saveContent($route.params.path, editor.getMarkdown())">
-            Save
-          </button>
+        <div class="row">
+          <div class="col-sm-10">
+            <span>{{ $route.params.path }}</span>:<span>{{cursorPosition.line}}:{{cursorPosition.ch}} </span>
+          </div>
 
-          <button
-              class="btn btn-secondary" 
-              v-else
-              @click="saveContent($route.params.path, codeEditor.getValue())">
-            Save
-          </button>
-          <br>
+          <div class="col-sm-2">
+            <button
+                class="btn btn-secondary" 
+                v-if="$route.params.path.endsWith('.md')"
+                @click="saveContent($route.params.path, editor.getMarkdown())">
+              <i class="fa fa-floppy-o" aria-hidden="true"></i>
+            </button>
+
+            <button
+                class="btn btn-secondary" 
+                v-else
+                @click="saveContent($route.params.path, codeEditor.getValue())">
+              <i class="fa fa-floppy-o" aria-hidden="true"></i>
+            </button>
+            <br>
+          </div>
         </div>
         <span><sub>{{ status }}</sub></span>
         <div id="editor"></div>
@@ -666,7 +676,7 @@
         if (self.path.endsWith('.md')) {
           self.saveContent(self.path, self.editor.getMarkdown())
         } else {
-          self.saveContent(self.path, self.editor.getValue())
+          self.saveContent(self.path, self.codeEditor.getValue())
         }
         return false
       })
@@ -819,9 +829,6 @@
             $('#div-editor').eq(0).append('<div id="code-editor"></div>');
           }
 
-
-
-
           if (path.endsWith('.md')) {
             if (!self.editor) {
               self.editor = editormd('editor', {
@@ -835,7 +842,8 @@
                 sequenceDiagram: (localStorage.settingsSequences) ? (localStorage.settingsSequences == '1') : false,
                 tex: (localStorage.settingsKatex) ? (localStorage.settingsKatex == '1') : false,
                 emoji: (localStorage.settingsEmoji) ? (localStorage.settingsEmoji == '1') : false,
-                toolbar: (localStorage.settingsToolbar) ? (localStorage.settingsToolbar == '1') : true,
+                toolbar: (localStorage.settingsToolbar) ? (localStorage.settingsToolbar == '1') : false,
+                watch: (localStorage.settingsWatch) ? (localStorage.settingsWatch == '1'): false,
                 theme: (localStorage.theme) ? localStorage.theme : 'dark',
                 previewTheme: (localStorage.previewTheme) ? localStorage.previewTheme : 'dark',
                 editorTheme: (localStorage.editorTheme) ? localStorage.editorTheme : "pastel-on-dark",
@@ -844,9 +852,6 @@
                 path: '/static/js/lib/',  // Autoload modules mode.
                 syncScrolling : true,
                 onload: function () {
-                  // Make the preview pane non-default.
-                  // this.unwatch();
-
                   // Event needs to be added specifically in order to be
                   // removed easily.
                   $('#editor').on('input propertychange', function () {
@@ -863,18 +868,6 @@
                   })
 
                 },
-                // onchange : function() {
-                //   self.contentChanged = true
-                //   self.getCursorPosition()
-
-                //   // Runs 2s after the last change.
-                //   var timeoutId;
-                //   clearTimeout(timeoutId)
-                //   timeoutId = setTimeout(function () {
-                //     var content = self.editor.getMarkdown()
-                //     self.saveContent(path, content)
-                //   }, 2000)
-                // },
                 onwatch : function() {
                 },
               })
@@ -897,9 +890,6 @@
                 mode: data.file_mode ? data.file_mode : 'text/html',
                 path: '/static/js/lib/',  // Autoload modules mode.
                 onload: function () {
-                  // Make the preview pane non-default.
-                  // this.unwatch();
-
                   // Event needs to be added specifically in order to be
                   // removed easily.
                   $('#code-editor').on('input propertychange', function () {
@@ -907,27 +897,15 @@
                     self.getCursorPosition()
                     console.log('Autosaving code editor');
 
-                    // Runs 2s after the las/t change    
+                    // Runs 2s after the last change of code editor.
                     var timeoutId
                     clearTimeout(timeoutId)
                     timeoutId = setTimeout(function () {
-                      self.saveContent(path, self.editor.getValue());
+                      self.saveContent(path, self.codeEditor.getValue());
                     }, 2000)
                   })
 
                 },
-                // onchange : function() {
-                //   self.contentChanged = true
-                //   self.getCursorPosition()
-
-                //   // Runs 2s after the last change    
-                //   var timeoutId;
-                //   clearTimeout(timeoutId)
-                //   timeoutId = setTimeout(function () {
-                //     var content = self.codeEditor.getValue()
-                //     self.saveContent(path, content)
-                //   }, 2000)
-                // },
                 onwatch : function() {
                 },
               })
@@ -1023,6 +1001,11 @@
         }
       },
       expanded: function() {
+        // Always expand the root item.
+        if (this.item.path == '/') {
+          localStorage.setItem(this.item.path, 'true')
+          return true
+        }
         // Restore expand/collapse memory from localstorage.
         // var key = localStorage.key(this.path)
         var value = localStorage.getItem(this.item.path)
@@ -1087,6 +1070,7 @@
       settingsCodeFoldingChecked: localStorage.settingsCodeFolding == '1',
       settingsEmojiChecked: localStorage.settingsEmoji == '1',
       settingsToolbarChecked: localStorage.settingsToolbar == '1',
+      settingsWatchChecked: localStorage.settingsWatch == '1',
       
       // Theme settings.
       selectedGeneralTheme: (

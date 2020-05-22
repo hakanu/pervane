@@ -11,7 +11,7 @@ setuptools.setup(
     version=version,
     author="hakanu",
     author_email="hi@hakanu.net",
-    description="Plain text backed web based markdown note taking and knowledge base building app",
+    description="Plain text backed web based markdown note taking, code editor and knowledge base building app",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/hakanu/pervane",
@@ -20,7 +20,6 @@ setuptools.setup(
         "flask>=1.1.1",
         "Flask-Caching>=1.8.0",
         "Flask-HTTPAuth>=3.3.0",
-        "mistune>=0.8.4",
         "Flask-User>=1.0.2.2",
     ],
     classifiers=[
