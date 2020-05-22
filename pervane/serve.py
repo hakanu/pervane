@@ -72,9 +72,12 @@ parser.add_argument('--host', dest='host', default='0.0.0.0',
                     help='hostname to be binded')
 parser.add_argument('--port', dest='port', default='5000',
                     help='port to be binded')
-parser.add_argument('--dir', dest='root_dir', default=os.environ.get("PERVANE_HOME", "./"),
-                    help='Working folder to show the tree. If PERVANE_HOME environment variable is '
-                    'set and --dir is not provided, PERVANE_HOME is used.')
+parser.add_argument('--dir', dest='root_dir',
+                    default=os.environ.get("PERVANE_HOME", "./"),
+                    help='Working folder to show the tree. If '
+                         'PERVANE_HOME environment variable is '
+                          'set and --dir is not provided, PERVANE_HOME is '
+                          'used.')
 parser.add_argument('--username', dest='username', default=None,
                     help='This is deprecated, please use cookie based login.')
 parser.add_argument('--password', dest='password', default=None,
@@ -720,4 +723,5 @@ def cli_main():
 
 
 if __name__ == '__main__':
+  print('app run with ', args.host, args.port)
   app.run(host=args.host, port=args.port, debug=args.debug)

@@ -90,3 +90,16 @@ ul ul{
 ul ul ul{
   margin-left:1px;
 }
+
+/* Close tab button */
+.nav-tabs > li .close {
+  margin: -2px 0 0 10px;
+  font-size: 18px;
+}
+
+.nav-link {
+  font-size: 10px;
+  padding: 2px;
+  padding-left: 10px;
+  padding-right: 10px;
+}
