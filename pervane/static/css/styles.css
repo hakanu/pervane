@@ -66,6 +66,7 @@ body {
 }
 .item {
   cursor: pointer;
+  font-size: 11px;
 }
 .bold {
   font-weight: bold;
@@ -102,4 +103,8 @@ ul ul ul{
   padding: 2px;
   padding-left: 10px;
   padding-right: 10px;
+}
+
+.small-text {
+  font-size:10px;
 }

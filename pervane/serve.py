@@ -47,7 +47,7 @@ import subprocess
 import sys
 
 from jinja2 import Environment, BaseLoader
-from flask import Flask, render_template, request, jsonify, redirect, url_for
+from flask import Flask, render_template, request, jsonify, redirect, url_for, send_from_directory
 from flask_caching import Cache
 from flask_sqlalchemy import SQLAlchemy
 from flask_user import current_user, login_required, UserManager, UserMixin
@@ -681,6 +681,46 @@ def api_search_handler():
   })
 
 
+@app.route('/api/glob')
+@login_required
+def api_glob_handler():
+  root_dir = _get_root_dir()
+  directory_path = request.args.get('f', '')
+  if not directory_path:
+    return 'You need to glob in a directory'
+  print('globbing: ', directory_path)
+  # Need to eliminate first / in the parameter because we convert 
+  # the actual paths to workspace paths for extra security.
+  # /foo/bar and /test/baz are not joinable. os.path.join results with
+  # /test/baz.
+  glob_root = os.path.join(root_dir, directory_path[1:])
+  # TODO(hakanu): would os.walk be better?
+  raw_files = os.listdir(glob_root)
+  files = []
+  dirs = []
+  print('found ', len(raw_files))
+  for raw_file in raw_files:
+    # Create an actual path to check if it's a directory.
+    raw_file = os.path.join(glob_root, raw_file)
+    print('raw_file: ', raw_file)
+    if os.path.isdir(raw_file):
+      dirs.append(raw_file.replace(_WORKING_DIR, ''))
+      continue
+    else:
+      files.append(raw_file.replace(_WORKING_DIR, ''))
+
+  return jsonify({
+      'result': 'success',
+      'content': {
+        'results': {
+          'dirs': dirs,
+          'files': files,
+        },
+      }
+  })
+  
+
+
 @app.route('/upload', methods=['POST'])
 @login_required
 def file_upload_handler():
@@ -717,11 +757,30 @@ def file_upload_handler():
     })
 
 
+@app.route('/img/<path:file_path>', methods=['GET'])
+@login_required
+def static_file_handler(file_path):
+  """Incoming file path is under users working dir.
+
+  This is not intended to be used for css and js.
+  for them normal workflow from flask is used with /static prefix.
+
+  eg. (for default run with --dir=./example)
+  http://localhost:5001/img/test/images/apple-touch-icon.png
+  http://localhost:5001/img/test/test_video/video.mp4
+  """
+  print('serving from directory', file_path)
+  print('root', _get_root_dir())
+  if not file_path:
+    return 'You need to pass a file path to be served'
+  return send_from_directory(_get_root_dir(),
+                             file_path)
+
+
 def cli_main():
   """Used within the python package cli."""
   app.run(host=args.host, port=args.port, debug=args.debug)
 
 
 if __name__ == '__main__':
-  print('app run with ', args.host, args.port)
   app.run(host=args.host, port=args.port, debug=args.debug)

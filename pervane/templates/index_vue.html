@@ -73,9 +73,10 @@
         <span v-if="item.name">
           <span v-if="item.kind == 'file'" draggable
                 v-on:dragstart="drag($event, item)">
-            <router-link v-if="item.path.endsWith('.jpg')" 
-                         :to="'/f/' + encodeURIComponent(item.path)"
-                         >
+            <router-link 
+                v-if="item.path.endsWith('.jpg') || item.path.endsWith('.png') || item.path.endsWith('.jpeg')"
+                :to="'/n/' + encodeURIComponent(item.path)"
+                >
             <i class="fa fa-image" aria-hidden="true"></i> {{ item.name }}
             </router-link>
 
@@ -92,8 +93,17 @@
         </span>
         <span v-else>/</span>
       </span>
-      <span v-if="item.kind == 'dir'" @click="$emit('add-item', item)">
-        [{{ isOpen ? '+' : '+' }}]
+
+      <router-link
+          :to="'/d/' + encodeURIComponent(item.path)" 
+          title="Preview directory contents" v-if="item.kind == 'dir'">
+        <i class="fa fa-eye"></i>
+      </router-link>
+
+      <span title="Add a child node (file or directory)" 
+            v-if="item.kind == 'dir'"
+            @click="$emit('add-item', item)">
+       [{{ isOpen ? '+' : '+' }}]
       </span>
 
       <ul v-show="expanded()" v-if="item.kind == 'dir'">
@@ -183,6 +193,7 @@
         class="item"
         :item="treeData"
         @add-item="addItem"
+        @open-dir="openDir"
       ></tree-item>
     </ul>
   </div> <!-- / end of sidebar -->
@@ -561,38 +572,115 @@
     },
   }
 
-  const FileView = {
+  const DirectoryView = {
     props: ['path'],
     data: function () {
       return {
-        b64Src: '',
+        globResults: {
+          files: [],
+          dirs: [],
+        },
       };
     },
     template: `
       <div>
-        <img :src="b64Src">
+        <p>
+          <span v-for="breadcrumb in breadcrumbs">
+            <router-link :to="'/d/' + encodeURIComponent(breadcrumb)">
+              {{ breadcrumb.substring(breadcrumb.lastIndexOf('/')) }}
+            </router-link> /
+          </span>
+        </p>
+
+        <div class="row">
+          <div class="col-sm-2" v-for="dir in globResults.dirs">
+            <div class="card" >
+
+              <svg class="bi bi-folder img-fluid" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path d="M9.828 4a3 3 0 01-2.12-.879l-.83-.828A1 1 0 006.173 2H2.5a1 1 0 00-1 .981L1.546 4h-1L.5 3a2 2 0 012-2h3.672a2 2 0 011.414.586l.828.828A2 2 0 009.828 3v1z"/>
+                <path fill-rule="evenodd" d="M13.81 4H2.19a1 1 0 00-.996 1.09l.637 7a1 1 0 00.995.91h10.348a1 1 0 00.995-.91l.637-7A1 1 0 0013.81 4zM2.19 3A2 2 0 00.198 5.181l.637 7A2 2 0 002.826 14h10.348a2 2 0 001.991-1.819l.637-7A2 2 0 0013.81 3H2.19z" clip-rule="evenodd"/>
+              </svg>
+
+              <div class="card-body">
+                <p class="card-text">
+                  <small class="text-muted small-text">
+                    <router-link :to="'/d/' + encodeURIComponent(dir)">
+                      {{ dir.substring(dir.lastIndexOf('/'))}}
+                    </router-link>
+                  </small>
+                </p>
+              </div>
+            </div>
+          </div> <!-- /end of dir card group -->
+
+          <div 
+              v-bind:class="(file.endsWith('.png') || file.endsWith('.jpg') || file.endsWith('.jpeg') || file.endsWith('.mp4')) ? 'col-sm-4' : 'col-sm-2'" 
+              v-for="file in globResults.files">
+            <div class="card" >
+
+              <router-link :to="'/n/' + encodeURIComponent(file)">
+                <span v-if="file.endsWith('.png') || file.endsWith('.jpg') || file.endsWith('.jpeg')">
+                  <img :src="'/img' + file" class="card-img-top" alt="...">
+                </span>
+
+                <span v-else>
+                    <video v-if="file.endsWith('.mp4')" 
+                          class="video-fluid img-fluid" loop muted controls>
+                      <source :src="'/img' + file" type="video/mp4" />
+                    </video>
+                  
+                  <svg v-else class="bi bi-file-earmark-text img-fluid" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M4 1h5v1H4a1 1 0 00-1 1v10a1 1 0 001 1h8a1 1 0 001-1V6h1v7a2 2 0 01-2 2H4a2 2 0 01-2-2V3a2 2 0 012-2z"/>
+                    <path d="M9 4.5V1l5 5h-3.5A1.5 1.5 0 019 4.5z"/>
+                    <path fill-rule="evenodd" d="M5 11.5a.5.5 0 01.5-.5h2a.5.5 0 010 1h-2a.5.5 0 01-.5-.5zm0-2a.5.5 0 01.5-.5h5a.5.5 0 010 1h-5a.5.5 0 01-.5-.5zm0-2a.5.5 0 01.5-.5h5a.5.5 0 010 1h-5a.5.5 0 01-.5-.5z" clip-rule="evenodd"/>
+                  </svg>
+                </span>
+              </router-link>
+
+              <div class="card-body">
+                <p class="card-text">
+                  <small class="text-muted small-text">
+                    <router-link :to="'/n/' + encodeURIComponent(file)">
+                      {{ file.substring(file.lastIndexOf('/'))}}
+                    </router-link>
+                  </small>
+                </p>
+              </div>
+            </div>
+          </div> <!-- /end of file card group -->
+        </div>
+
       </div>
     `,
     created: function() {
-      console.log('file component is mounted', this.path)
-      this.getFileB64()
+      console.log('directory component is mounted', this.path)
+      // Reset open path.
+      localStorage.setItem('openTabPath', '')
+      this.globDirectory()
+    },
+    beforeRouteUpdate (to, from, next) {
+      console.log('before route update: ', to, from, next)
+      localStorage.setItem('openTabPath', '')
+      next()
     },
     methods: {
-      getFileB64: function() {
+      globDirectory: function() {
         let self = this
-        fetch('/api/get_file?f=' + self.path)
+        fetch('/api/glob?f=' + self.path)
           .then(
             function(response) {
               if (response.status !== 200) {
-                console.log('Looks like there was a problem. Status Code: ',
-                            response.status)
+                console.log(
+                    'Looks like there was a problem. Status Code: ',
+                    response.status)
                 return
               }
 
-              // Examine the text in the response
               response.json().then(function(data) {
-                // TODO(hakanu):  Should I assume jpeg?
-                self.b64Src = 'data:image/jpeg;base64,' + data.content
+                console.log('glob result files: ', data.content.results.files)
+                console.log('glob result dirs: ', data.content.results.dirs)
+                self.globResults.files = data.content.results.files
+                self.globResults.dirs = data.content.results.dirs
               })
             }
           )
@@ -600,6 +688,33 @@
             console.log('Fetch Error :-S', err)
           })
       },
+    },
+    computed: {
+      // Directory path pieces for easier navigation to root.
+      breadcrumbs: function() {
+        breadcrumbs = []
+        let pathPieces = this.path.split('/')
+        console.log('pathPieces: ', pathPieces)
+        let prevPath = '/'
+        for (let i = 0; i < pathPieces.length; i++) {
+          const element = pathPieces[i];
+          let newPath = prevPath + (prevPath == '/' ? '' : '/') + element
+          console.log('element: ', element, prevPath, newPath)
+          breadcrumbs.push(newPath)
+          console.log('breadcrumbs: ', breadcrumbs)
+          prevPath = newPath
+        }
+        return breadcrumbs
+      },
+    },
+    watch: {
+      $route(to, from) {
+        // react to route changes...
+        const newPath = this.path
+        console.log('watching route change from DirectoryView', newPath)
+        localStorage.setItem('openTabPath', '')
+        this.globDirectory(newPath)
+      } // End of $route.
     },
   }
 
@@ -641,8 +756,22 @@
           </div>
         </div>
         <span><sub>{{ status }}</sub></span>
-        <div id="editor"></div>
-        <div id="code-editor"></div>
+
+        <!-- static file -->
+        <div v-show="($route.params.path.endsWith('.jpg') || $route.params.path.endsWith('.png') || $route.params.path.endsWith('.jpeg') || $route.params.path.endsWith('.mp4'))">
+          <video v-if="$route.params.path.endsWith('.mp4')" 
+                 :src="'/img' + $route.params.path" 
+                 class="video-fluid img-fluid" loop muted controls>
+            <source :src="'/img' + $route.params.path" type="video/mp4" />
+          </video>
+          <img v-else :src="'/img' + $route.params.path" class="img-fluid">
+        </div>
+
+        <!-- Code or markdown editor -->
+        <div v-show="!($route.params.path.endsWith('.jpg') || $route.params.path.endsWith('.png') || $route.params.path.endsWith('.jpeg') || $route.params.path.endsWith('.mp4'))">
+          <div id="editor"></div>
+          <div id="code-editor"></div>
+        </div>
       </div>
     `,
     beforeRouteUpdate (to, from, next) {
@@ -729,7 +858,7 @@
 
               response.json().then(function(data) {
                 if  (data.content != updatedContent) {
-        console.log('saving since content has changed')
+                  console.log('saving since content has changed')
                   fetch('/api/update', {
                     method: 'POST',
                     headers: {
@@ -794,6 +923,8 @@
               })
 
               return
+            } else {
+              console.log('editor is null can not create')
             }
           } 
 
@@ -926,7 +1057,15 @@
         }
       },  // end of initEditor.
       loadPathInEditor: function(path) {
-        self = this
+        self = this 
+        if (path.endsWith('.jpg')
+            || path.endsWith('.png')
+            || path.endsWith('.jpeg')
+            || path.endsWith('.mp4')
+            ) {
+          return
+        }
+
         fetch('/api/get_content?f=' + path)
           .then(
             function(response) {
@@ -968,9 +1107,14 @@
   // Define VueRouter instance.
   const router = new VueRouter({
     routes:  [
+      // Single note view. Renders markdown, code, images and video.
       { path: '/n/:path', component: NoteView, props: true },
-      { path: '/f/:path', component: FileView, props: true },
+
+      // Search result view.
       { path: '/s/:query', component: SearchView, props: true },
+
+      // Directory browser view.
+      { path: '/d/:path', component: DirectoryView, props: true },
     ]
   })
 
@@ -1177,17 +1321,17 @@
     },
     methods: {
       addItem: function(item) {
-        // item.children.push({
-        //   name: "new stuff"
-        // });
         console.log('showing modal', item, item.path)
         this.newNodeParentPath = item.path
-        $('#nodeModal').modal();
+        $('#nodeModal').modal()
         // Hack to focus on input box upon creation.
         // Without timeout, item is not ready.
         setTimeout(function () {
-          $('#modal-input-new-node-name').focus();
+          $('#modal-input-new-node-name').focus()
         }, 500)
+      },
+      openDir: function(item) {
+        console.log('opening dir contents')
       },
       closeTab: function(path) {
         console.log('closing the tab', path)
