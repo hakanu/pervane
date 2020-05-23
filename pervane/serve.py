@@ -458,7 +458,6 @@ def api_get_tree_handler():
 
 
 @app.route('/api/get_content')
-
 @login_required
 def api_get_content_handler():
   path = request.args.get('f', '').strip()
@@ -769,10 +768,15 @@ def static_file_handler(file_path):
   http://localhost:5001/img/test/images/apple-touch-icon.png
   http://localhost:5001/img/test/test_video/video.mp4
   """
-  print('serving from directory', file_path)
-  print('root', _get_root_dir())
   if not file_path:
     return 'You need to pass a file path to be served'
+
+  path = os.path.join(_WORKING_DIR, file_path[1:])
+  root_dir = _get_root_dir()
+  print('root_dir ', root_dir)
+  if not path.startswith(root_dir) or '..' in path:
+    logging.info('no auth')
+    return 'Not authorized to see this dir' 
   return send_from_directory(_get_root_dir(),
                              file_path)
 
