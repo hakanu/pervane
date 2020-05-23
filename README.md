@@ -224,6 +224,7 @@ pervane --dir=example/
 ```
 When you go to localhost:5000, you need to register.
 Pervane only accepts 1 user. So your notes will only be visible by this single user.
+⚠️ If you see a server error, delete your cookies and retry.
 
 Package details here: https://pypi.org/project/pervane/
 

@@ -138,6 +138,7 @@ if not os.path.exists(_PERVANE_CONFIG_DIR):
 _SQLITE_PATH = 'sqlite:///' + os.path.join(
     _PERVANE_CONFIG_DIR, 'pervane.sqlite')
 logging.info('db path: ', _SQLITE_PATH)
+print('db path: ', _SQLITE_PATH)
 
 # This is for editor to render with higher fidelity with per
 # language colors.
@@ -685,23 +686,25 @@ def api_search_handler():
 def api_glob_handler():
   root_dir = _get_root_dir()
   directory_path = request.args.get('f', '')
-  if not directory_path:
+  if not directory_path or '..' in directory_path:
     return 'You need to glob in a directory'
-  print('globbing: ', directory_path)
   # Need to eliminate first / in the parameter because we convert 
   # the actual paths to workspace paths for extra security.
   # /foo/bar and /test/baz are not joinable. os.path.join results with
   # /test/baz.
   glob_root = os.path.join(root_dir, directory_path[1:])
+
+  if not glob_root.startswith(root_dir) or '..' in glob_root:
+    logging.info('no auth')
+    return 'Not authorized to see this dir' 
+
   # TODO(hakanu): would os.walk be better?
   raw_files = os.listdir(glob_root)
   files = []
   dirs = []
-  print('found ', len(raw_files))
   for raw_file in raw_files:
     # Create an actual path to check if it's a directory.
     raw_file = os.path.join(glob_root, raw_file)
-    print('raw_file: ', raw_file)
     if os.path.isdir(raw_file):
       dirs.append(raw_file.replace(_WORKING_DIR, ''))
       continue
