@@ -8,8 +8,8 @@
 [![](https://img.shields.io/pypi/pyversions/pervane.svg)](https://pypi.org/pypi/pervane/)
 [![](https://img.shields.io/pypi/l/pervane.svg)](https://pypi.org/pypi/pervane/)
 
-Pervane is a bare minimum plain text file based note taking and knowledge base building tool.
-It doubles as simple file server to render given directories files in web browser.
+Pervane is a plain text file based note taking and knowledge base building tool.
+It doubles as simple file server to render given directories files in web browser while it can be used as a cloud IDE too with awesome code highlighting.
 It's like python's built-in SimpleHTTPServer but a little bit feature richer like WYSIWYG note taking experience, sidebar with infinite number of nesting, blazing fast text search, file moving, creating from the browser etc.
 
 Main use case is to create, edit, serve and search the markdown notes in combination with example source files.
@@ -110,6 +110,8 @@ Please shoot an email if I miss anything.
 * Completely private, your files, your computer, no database, no installation (apart from some general python packages).
 * Self hosted (working on a managed version if anyone is interested, drop a messsage!)
 * Notes are stored as plain text files with the names given by yourself. Pervane doesn't rename automatically.
+* Extremely fast UI with quick note switches.
+* Tabbed UI.
 * No added metadata files etc. Just globs your files, caches for N seconds and creates the file tree.
 * Source of truth is your own file system so you can use your favorite markdown editor to modify your notes: QOwnNotes, VSCode, Sublime Text etc.
 * Ignore some files in order not to be shown on the sidebar.
@@ -119,7 +121,7 @@ Please shoot an email if I miss anything.
 * Uses [silver searcher (ag)](https://github.com/ggreer/the_silver_searcher) for searching in an instant throughout the whole folder.
 * Thanks to ag, no indexing or prework is done for search. You can just start using Pervane with one line command.
 * File tree with proper infinite number of nesting, works well for hierarchical note taking and knowledge base building.
-* Basic http authentication.
+* Cookie based authentication.
 * No stats collection, all private.
 * Rich text editing experience thanks to [editor.md](https://pandao.github.io/editor.md/)
 * Spell checker
@@ -133,12 +135,22 @@ Please shoot an email if I miss anything.
 * Quick fuzzy file name search
 * Edit code notes directly 
 * Drag & Drop file upload in anywhere in the page
-* Image rendering in case you they are in the directory.
+* Image/Video rendering in case you they are in the directory.
+* Directory browser with breadcrumb paths.
+* TeX/KaTeX, emoji, task list support.
+* WYSIWYG editor
+* Toggle-able sidebar.
+* Dark mode by default with many themes like monokai, solarized etc.
+* Side-by-side markdown preview with sync scroll.
+* Full screen Zen mode for writing.
+* Autosave.
 
 ### Keyboard shortcuts
 
-* Ctrl + s : Save the file.
-* Ctrl + p : Focus on quick search box on the left sidebar 
+* alt + s : Save the file.
+* alt + g : Focus on quick search box on the left sidebar 
+* alt + n : Create new note in the root dir.
+* alt + h : Toggle sidebar.
 
 ### Sync - backup
 
@@ -287,6 +299,7 @@ Tried to keep the code as simple as possible since I need to take notes today.
 * ~~Image uploads~~
 * ~~Image previews in the folders~~
 * Embeded pdf reader 
+* Inline images in the same directory
 
 ## Keep the engine running
 
