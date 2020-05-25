@@ -139,7 +139,6 @@ if not os.path.exists(_PERVANE_CONFIG_DIR):
 _SQLITE_PATH = 'sqlite:///' + os.path.join(
     _PERVANE_CONFIG_DIR, 'pervane.sqlite')
 logging.info('db path: ', _SQLITE_PATH)
-print('db path: ', _SQLITE_PATH)
 
 # This is for editor to render with higher fidelity with per
 # language colors.
@@ -366,7 +365,6 @@ def _get_file_paths_flat(path):
 
 
 def _get_file_mode(path):
-  print('getting file mode for ', path)
   if '.' in path:
     return _FILE_MODE_DICT.get(
         os.path.splitext(path)[1].replace('.', ''), 'text/html')
@@ -422,7 +420,6 @@ def api_get_file_handler():
   content = ''
   mime_type = get_mime_type(path)
   logging.info('mime_type: %s', mime_type)
-  print('mime_type: ', mime_type)
   if (not mime_type.startswith('image/') and 
       not mime_type.startswith('video/') and
       not mime_type.startswith('text/') and
