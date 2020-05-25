@@ -1,6 +1,6 @@
 ![](https://github.com/hakanu/pervane/raw/master/docs/pervane_logo_small.png)
 
-# Pervane | [Demo](https://www.youtube.com/watch?v=sUr_qzeBxHI) | [Wiki](https://github.com/hakanu/pervane/wiki)
+# Pervane | [Demo](https://youtu.be/2WiFvcgV6lo) | [Wiki](https://github.com/hakanu/pervane/wiki)
 
 [![](https://img.shields.io/badge/status-stable-green.svg)](https://pypi.org/pypi/pervane/)
 ![](https://img.shields.io/badge/dynamic/json?color=green&label=downloads&query=data%5B0%5D.downloads&url=https%3A%2F%2Fpypistats.org%2Fapi%2Fpackages%2Fpervane%2Foverall)
@@ -71,6 +71,7 @@ pervane --dir=example/
 ```
 When you go to localhost:5000, you need to register.
 Pervane only accepts 1 user. So your notes will only be visible by this single user.
+
 ⚠️ If you see a server error, delete your cookies and retry.
 
 Package details here: https://pypi.org/project/pervane/
@@ -101,9 +102,9 @@ pip install --upgrade pervane
 
 ### Demo
 
-#### [Video](https://www.youtube.com/watch?v=sUr_qzeBxHI)
+#### [Video](https://youtu.be/2WiFvcgV6lo)
 
-[![Pervane note taking app demo](http://img.youtube.com/vi/sUr_qzeBxHI/0.jpg)](https://www.youtube.com/watch?v=sUr_qzeBxHI)
+[![Pervane note taking app demo](http://img.youtube.com/vi/2WiFvcgV6lo/0.jpg)](https://youtu.be/2WiFvcgV6lo)
 
 #### Screenshots
 
