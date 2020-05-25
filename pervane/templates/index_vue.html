@@ -620,13 +620,13 @@
 
               <router-link :to="'/n/' + encodeURIComponent(file)">
                 <span v-if="file.endsWith('.png') || file.endsWith('.jpg') || file.endsWith('.jpeg')">
-                  <img :src="'/img' + file" class="card-img-top" alt="...">
+                  <img :src="'/_img' + file" class="card-img-top" alt="...">
                 </span>
 
                 <span v-else>
                     <video v-if="file.endsWith('.mp4')" 
                           class="video-fluid img-fluid" loop muted controls>
-                      <source :src="'/img' + file" type="video/mp4" />
+                      <source :src="'/_img' + file" type="video/mp4" />
                     </video>
                   
                   <svg v-else class="bi bi-file-earmark-text img-fluid" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
@@ -760,11 +760,11 @@
         <!-- static file -->
         <div v-show="($route.params.path.endsWith('.jpg') || $route.params.path.endsWith('.png') || $route.params.path.endsWith('.jpeg') || $route.params.path.endsWith('.mp4'))">
           <video v-if="$route.params.path.endsWith('.mp4')" 
-                 :src="'/img' + $route.params.path" 
+                 :src="'/_img' + $route.params.path" 
                  class="video-fluid img-fluid" loop muted controls>
-            <source :src="'/img' + $route.params.path" type="video/mp4" />
+            <source :src="'/_img' + $route.params.path" type="video/mp4" />
           </video>
-          <img v-else :src="'/img' + $route.params.path" class="img-fluid">
+          <img v-else :src="'/_img' + $route.params.path" class="img-fluid">
         </div>
 
         <!-- Code or markdown editor -->

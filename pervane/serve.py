@@ -52,6 +52,7 @@ from flask_caching import Cache
 from flask_sqlalchemy import SQLAlchemy
 from flask_user import current_user, login_required, UserManager, UserMixin
 
+from werkzeug.routing import BaseConverter
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 
@@ -195,6 +196,14 @@ app.config.from_object(__name__+'.ConfigClass')
 
 # Initialize Flask-SQLAlchemy.
 db = SQLAlchemy(app)
+
+# Regex url matcher.
+class regex_converter(BaseConverter):
+  def __init__(self, url_map, *items):
+    super(regex_converter, self).__init__(url_map)
+    self.regex = items[0]
+
+app.url_map.converters['regex'] = regex_converter 
 
 # Define the User data-model.
 # NB: Make sure to add flask_user UserMixin !!!
@@ -759,7 +768,7 @@ def file_upload_handler():
     })
 
 
-@app.route('/img/<path:file_path>', methods=['GET'])
+@app.route('/_img/<path:file_path>', methods=['GET'])
 @login_required
 def static_file_handler(file_path):
   """Incoming file path is under users working dir.
@@ -776,7 +785,6 @@ def static_file_handler(file_path):
 
   path = os.path.join(_WORKING_DIR, file_path[1:])
   root_dir = _get_root_dir()
-  print('root_dir ', root_dir)
   if not path.startswith(root_dir) or '..' in path:
     logging.info('no auth')
     return 'Not authorized to see this dir' 
