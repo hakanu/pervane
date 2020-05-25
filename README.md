@@ -1,6 +1,6 @@
 ![](https://github.com/hakanu/pervane/raw/master/docs/pervane_logo_small.png)
 
-# Pervane | [Demo](https://www.youtube.com/watch?v=sUr_qzeBxHI)
+# Pervane | [Demo](https://www.youtube.com/watch?v=sUr_qzeBxHI) | [Wiki](https://github.com/hakanu/pervane/wiki)
 
 [![](https://img.shields.io/badge/status-stable-green.svg)](https://pypi.org/pypi/pervane/)
 ![](https://img.shields.io/badge/dynamic/json?color=green&label=downloads&query=data%5B0%5D.downloads&url=https%3A%2F%2Fpypistats.org%2Fapi%2Fpackages%2Fpervane%2Foverall)
@@ -20,22 +20,116 @@ Personally tried many alternatives as file server like [allmark](https://github.
 
 For the other note taking and knowledge base building apps, there is always something missing although how advanced they go.
 
-What I need:
+## Features
 
-* Privacy, my notes are my eyes only.
-* Be able take notes from multiple entry points: desktop, web, phone, tablet.
-* Quickly search notes in any medium.
-* Hold my whole knowledge accumulated over the course of the years (around 4k notes).
-* Easy export so it doesn't lock me in.
-* Easy import so I can onboard without any problems.
-* Be able to self host
-* Nice markdown editor
-* Respect my folder hierarchy
-* Don't mess with my file names
-* git-able so that I can maintain the versions.
-* Hackable with standard CLI tools (ag, rsync, scp, tar, git etc)
-* Be able to show source code files not only markdown.
-* Take code notes, create a code snippet repository and be able to find them back easily.
+* Completely private, your files, your computer, no database, no installation (apart from some general python packages).
+* Self hosted (working on a managed version if anyone is interested, drop a messsage!)
+* Notes are stored as plain text files with the names given by yourself. Pervane doesn't rename automatically.
+* Extremely fast UI with quick note switches.
+* Tabbed UI.
+* No added metadata files etc. Just globs your files, caches for N seconds and creates the file tree.
+* Source of truth is your own file system so you can use your favorite markdown editor to modify your notes: QOwnNotes, VSCode, Sublime Text etc.
+* Ignore some files in order not to be shown on the sidebar.
+* Single python file.
+* Flask based server, totally hackable, just modify, it's all yours.
+* Minimal dependencies, single binary.
+* Uses [silver searcher (ag)](https://github.com/ggreer/the_silver_searcher) for searching in an instant throughout the whole folder.
+* Thanks to ag, no indexing or prework is done for search. You can just start using Pervane with one line command.
+* File tree with proper infinite number of nesting, works well for hierarchical note taking and knowledge base building.
+* Cookie based authentication.
+* No stats collection, all private.
+* Rich text editing experience thanks to [editor.md](https://pandao.github.io/editor.md/)
+* Spell checker
+* Find an replace within the editor.
+* Hide/show preview
+* Full screen editing mode with F11 or toolbar
+* Hide/show toolbar
+* Lots of themes thanks to editor.md
+* Move files in between directories with drag & drop functionality.
+* Keyboard shortcuts
+* Quick fuzzy file name search
+* Edit code notes directly 
+* Drag & Drop file upload in anywhere in the page
+* Image/Video rendering in case you they are in the directory.
+* Directory browser with breadcrumb paths.
+* TeX/KaTeX, emoji, task list support.
+* WYSIWYG editor
+* Toggle-able sidebar.
+* Dark mode by default with many themes like monokai, solarized etc.
+* Side-by-side markdown preview with sync scroll.
+* Full screen Zen mode for writing.
+* Autosave.
+
+## Install
+
+### Via pip
+
+```shell
+screen
+pip install pervane
+pervane --dir=example/
+```
+When you go to localhost:5000, you need to register.
+Pervane only accepts 1 user. So your notes will only be visible by this single user.
+⚠️ If you see a server error, delete your cookies and retry.
+
+Package details here: https://pypi.org/project/pervane/
+
+### Without pip
+
+* Fetch the single python script to somewhere in your machine.
+* Run it in screen or tmux.
+
+```shell
+# Run it in screen to make it always run.
+screen
+
+# Download the latest version.
+git clone https://github.com/hakanu/pervane.git
+cd pervane/pervane
+python3 serve.py --dir=example/
+```
+
+## Update
+
+The tool is still under heavy development, I update the package in pypi multiple
+times per week. Would be great if you keep updating with:
+
+```
+pip install --upgrade pervane
+```
+
+### Demo
+
+#### [Video](https://www.youtube.com/watch?v=sUr_qzeBxHI)
+
+[![Pervane note taking app demo](http://img.youtube.com/vi/sUr_qzeBxHI/0.jpg)](https://www.youtube.com/watch?v=sUr_qzeBxHI)
+
+#### Screenshots
+
+All of the screenshots and more video are located in [Pervane Wiki](https://github.com/hakanu/pervane/wiki) but here are some:
+
+* General look and feel with advanced markdown editor and tabbed view and sidebar for file tree.
+
+![Generel view of the app](https://github.com/hakanu/pervane/wiki/markdown.jpg)
+
+* File tree on the sidebar with infinite nestability and same as your favorite file browser's hierarchy.
+
+![](https://github.com/hakanu/pervane/wiki/tabs.jpg)
+
+![tex and katex preview in the markdown editor](https://github.com/hakanu/pervane/wiki/tex_katex_support.jpg)
+
+* Flow Charts within markdown
+
+![Flowcharts preview](https://github.com/hakanu/pervane/wiki/flow_chart.jpg)
+
+* GFM task lists in markdown
+
+![](https://github.com/hakanu/pervane/wiki/gfm_task_lists.jpg)
+
+* Cloud IDE (code editor in your browser)
+
+![](https://github.com/hakanu/pervane/wiki/code_editor_search_replace.jpg)
 
 ## Comparison
 
@@ -50,8 +144,7 @@ Inspired from this one from notable author.
   * Note limit is not that big.
 * Notion.so: Want to love it but...
   * Impossible to bulk import multiple files.
-  * Copy/paste is a hussle. It has its own blocking system which makes it hard
-  to copy all and paste somewhere else.
+  * Copy/paste is a hussle. It has its own blocking system which makes it hard to copy all and paste somewhere else.
   * Not free.
 * Trello: Kanban approach is great,
   * not so good for knowledgebase building.
@@ -94,56 +187,15 @@ Inspired from this one from notable author.
   * Not file based. Backup location txt files with their own format and name.
   * No bulk import/export. So I could have never onboarded fully onto this.
 * Zim: Similar to pervane, file based.
-  * Desktop app only. 
-  * No web browser, platform dependent. Can not edit notes from ipad since
-  there is no client. Need to sync files and then use an editor.
+  * Desktop app only.
+  * No web browser, platform dependent. Can not edit notes from ipad since there is no client. Need to sync files and then use an editor.
 * dokuwiki: Personal wiki builder with tons of extensions. Solid option with files.
   * Wiki syntax (not my favorite), but you can install markdown extension apparently.
-  * (Personal opinion) I have hard time to manage php servers. 
+  * (Personal opinion) I have hard time to manage php servers.
 
 Please shoot an email if I miss anything.
 
 ## [Discuss](https://reddit.com/r/pervane/)
-
-## Features
-
-* Completely private, your files, your computer, no database, no installation (apart from some general python packages).
-* Self hosted (working on a managed version if anyone is interested, drop a messsage!)
-* Notes are stored as plain text files with the names given by yourself. Pervane doesn't rename automatically.
-* Extremely fast UI with quick note switches.
-* Tabbed UI.
-* No added metadata files etc. Just globs your files, caches for N seconds and creates the file tree.
-* Source of truth is your own file system so you can use your favorite markdown editor to modify your notes: QOwnNotes, VSCode, Sublime Text etc.
-* Ignore some files in order not to be shown on the sidebar.
-* Single python file.
-* Flask based server, totally hackable, just modify, it's all yours.
-* Minimal dependencies, single binary.
-* Uses [silver searcher (ag)](https://github.com/ggreer/the_silver_searcher) for searching in an instant throughout the whole folder.
-* Thanks to ag, no indexing or prework is done for search. You can just start using Pervane with one line command.
-* File tree with proper infinite number of nesting, works well for hierarchical note taking and knowledge base building.
-* Cookie based authentication.
-* No stats collection, all private.
-* Rich text editing experience thanks to [editor.md](https://pandao.github.io/editor.md/)
-* Spell checker
-* Find an replace within the editor.
-* Hide/show preview
-* Full screen editing mode with F11 or toolbar
-* Hide/show toolbar
-* Lots of themes thanks to editor.md
-* Move files in between directories with drag & drop functionality.
-* Keyboard shortcuts
-* Quick fuzzy file name search
-* Edit code notes directly 
-* Drag & Drop file upload in anywhere in the page
-* Image/Video rendering in case you they are in the directory.
-* Directory browser with breadcrumb paths.
-* TeX/KaTeX, emoji, task list support.
-* WYSIWYG editor
-* Toggle-able sidebar.
-* Dark mode by default with many themes like monokai, solarized etc.
-* Side-by-side markdown preview with sync scroll.
-* Full screen Zen mode for writing.
-* Autosave.
 
 ### Keyboard shortcuts
 
@@ -170,7 +222,7 @@ Since it's normal file system files, you can use any sync mechanism to sync your
 
 I'm working on a lightweight mobile app to list and modify the notes.
 For now you can use an mobile editor app with a syncing app as a workaround.
-I use syncthing for this. 
+I use syncthing for this.
 
 ### Testimonials
 
@@ -178,79 +230,11 @@ I have moved all my keep notes, blog posts and project wiki notes from trello an
 They total around 324 directories, 1579 files
 `tree -a .`
 
-## But it's not
+## But it is not a
 
-* A dropbox replacement
+* Dropbox replacement
 * Photo album generator
 * FTP server
-* Cloud code editor
-
-### Demo 
-
-#### Video
-
-[![Pervane note taking app demo](http://img.youtube.com/vi/sUr_qzeBxHI/0.jpg)](https://www.youtube.com/watch?v=sUr_qzeBxHI)
-
-#### Screenshots
-
-![Generel view of the app](https://github.com/hakanu/pervane/raw/master/docs/screenshots/1.jpg)
-
-![Table preview in markdown editor](https://github.com/hakanu/pervane/raw/master/docs/screenshots/2.jpg)
-
-![tex and katex preview in the markdown editor](https://github.com/hakanu/pervane/raw/master/docs/screenshots/3.jpg)
-
-![Flowcharts preview](https://github.com/hakanu/pervane/raw/master/docs/screenshots/4.jpg)
-
-![Sequence diagram in the editor](https://github.com/hakanu/pervane/raw/master/docs/screenshots/5.jpg)
-
-![Settings](https://github.com/hakanu/pervane/raw/master/docs/screenshots/6.jpg)
-
-![Create new directory](https://github.com/hakanu/pervane/raw/master/docs/screenshots/7.jpg)
-
-![Edit recently created file](https://github.com/hakanu/pervane/raw/master/docs/screenshots/8.jpg)
-
-![Folder hierarchy in file browser](https://github.com/hakanu/pervane/raw/master/docs/screenshots/9.jpg)
-
-![Editing this file from this app](https://github.com/hakanu/pervane/raw/master/docs/screenshots/10.jpg)
-
-## Install
-
-### Via pip
-
-```shell
-screen
-pip install pervane
-pervane --dir=example/
-```
-When you go to localhost:5000, you need to register.
-Pervane only accepts 1 user. So your notes will only be visible by this single user.
-⚠️ If you see a server error, delete your cookies and retry.
-
-Package details here: https://pypi.org/project/pervane/
-
-### Without pip
-
-* Fetch the single python script to somewhere in your machine.
-* Run it in screen or tmux.
-
-```shell
-# Run it in screen to make it always run.
-screen
-
-# Download the latest version.
-git clone https://github.com/hakanu/pervane.git
-cd pervane/pervane
-python3 serve.py --dir=example/
-```
-
-## Update
-
-The tool is still under heavy development, I update the package in pypi multiple
-times per week. Would be great if you keep updating with:
-
-```
-pip install --upgrade pervane
-```
 
 ## Options
 
@@ -263,6 +247,27 @@ pip install --upgrade pervane
 * `--cache_seconds`: Seconds to bust the cache. Mainly used for file tree re-reading.
 * `--debug`: Enable more verbose logging.
 * `--version`: Show version.
+
+## Why did you build yet another markdown editor?
+
+Fair question, what I need was:
+
+* Privacy, my notes are my eyes only.
+* Be able take notes from multiple entry points: desktop, web, phone, tablet.
+* Quickly search notes in any medium.
+* Hold my whole knowledge accumulated over the course of the years (around 4k notes).
+* Easy export so it doesn't lock me in.
+* Easy import so I can onboard without any problems.
+* Be able to self host
+* Nice markdown editor
+* Respect my folder hierarchy
+* Don't mess with my file names
+* git-able so that I can maintain the versions.
+* Hackable with standard CLI tools (ag, rsync, scp, tar, git etc)
+* Be able to show source code files not only markdown.
+* Take code notes, create a code snippet repository and be able to find them back easily.
+
+And there was no good alternative, so here is pervane for you.
 
 ## Contribute
 
@@ -284,7 +289,7 @@ python3 pervane/serve.py --debug=true
 Tried to keep the code as simple as possible since I need to take notes today.
 
 * Flask based python web server
-* jquery, bootstrap, bootswatch, dropzone.js, editor.md.
+* Vue.js, jquery, bootstrap, bootswatch, dropzone.js, editor.md.
 
 ## TODO
 
