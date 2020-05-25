@@ -311,7 +311,10 @@ Tried to keep the code as simple as possible since I need to take notes today.
 * ~~Image uploads~~
 * ~~Image previews in the folders~~
 * Embeded pdf reader 
-* Inline images in the same directory
+* ~~Inline images in the same directory~~
+* ~~File browser~~
+* ~~Cloud IDE features for code editing and highlighting~~
+* ~~Tabbed view~~
 
 ## Keep the engine running
 
