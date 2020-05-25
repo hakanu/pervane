@@ -248,6 +248,12 @@ They total around 324 directories, 1579 files
 * `--debug`: Enable more verbose logging.
 * `--version`: Show version.
 
+## Migration paths
+
+* [Move from Google Keep to Pervane](https://github.com/hakanu/pervane/wiki/Move-Keep-Notes-to-Pervane)
+* [WIP] Move from Evernote to Pervane
+* [WIP] Move from Onenote to Pervane
+
 ## Why did you build yet another markdown editor?
 
 Fair question, what I need was:
