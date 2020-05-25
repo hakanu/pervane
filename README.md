@@ -197,14 +197,14 @@ Please shoot an email if I miss anything.
 
 ## [Discuss](https://reddit.com/r/pervane/)
 
-### Keyboard shortcuts
+## Keyboard shortcuts
 
 * alt + s : Save the file.
 * alt + g : Focus on quick search box on the left sidebar 
 * alt + n : Create new note in the root dir.
 * alt + h : Toggle sidebar.
 
-### Sync - backup
+## Sync - backup
 
 Since it's normal file system files, you can use any sync mechanism to sync your files with one of these
 - [Syncthing](https://syncthing.net/): my go-to self hosted syncing mechanism, too few impact on CPU
