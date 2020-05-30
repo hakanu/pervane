@@ -255,7 +255,8 @@
             </div>
             <input id="modal-input-new-node-name" type="text" 
                    name="new_node_name" v-model="newNodeName" 
-                   class="form-control" placeholder="Type new node's name">
+                   class="form-control" placeholder="Type new node's name"
+                   v-on:keyup.enter="addNode(newNodeName, newNodeParentPath)">
           </div>
         </div>
         <div class="modal-footer">
