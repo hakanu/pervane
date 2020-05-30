@@ -1,4 +1,4 @@
-# Pervane
+`# Pervane
 
 ![](https://github.com/hakanu/pervane/raw/master/docs/pervane_logo_small.png)
 

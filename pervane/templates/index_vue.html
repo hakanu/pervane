@@ -587,7 +587,7 @@
         <p>
           <span v-for="breadcrumb in breadcrumbs">
             <router-link :to="'/d/' + encodeURIComponent(breadcrumb)">
-              {{ breadcrumb.substring(breadcrumb.lastIndexOf('/')) }}
+              {{ breadcrumb.substring(breadcrumb.lastIndexOf('/')).replace('/', '') }}
             </router-link> /
           </span>
         </p>
