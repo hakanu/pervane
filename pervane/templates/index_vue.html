@@ -750,12 +750,15 @@
               <i class="fa fa-floppy-o" aria-hidden="true"></i>
             </button>
 
-            <button
-                class="btn btn-secondary" 
-                v-else
-                @click="saveContent($route.params.path, codeEditor.getValue())">
-              <i class="fa fa-floppy-o" aria-hidden="true"></i>
-            </button>
+            <!-- If it's not markdown, check if it's a code file -->
+            <span v-else>
+              <button
+                  class="btn btn-secondary" 
+                  v-if="!($route.params.path.endsWith('.jpg') ||  $route.params.path.endsWith('.mp4') || $route.params.path.endsWith('.png') || $route.params.path.endsWith('.jpeg'))"
+                  @click="saveContent($route.params.path, codeEditor.getValue())">
+                <i class="fa fa-floppy-o" aria-hidden="true"></i>
+              </button>
+            </span>
             <br>
           </div>
         </div>
