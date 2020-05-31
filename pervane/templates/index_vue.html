@@ -198,7 +198,7 @@
     </ul>
   </div> <!-- / end of sidebar -->
 
-  <div class="col-sm-10"> <!-- tabs -->
+  <div v-bind:class="[showSidebar ? 'col-sm-10' : 'col-sm-12']"> <!-- tabs -->
     <!-- tab headers -->
     <div id="tab-headers">
 
