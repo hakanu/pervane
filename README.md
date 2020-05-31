@@ -203,6 +203,9 @@ Please shoot an email if I miss anything.
 * alt + g : Focus on quick search box on the left sidebar 
 * alt + n : Create new note in the root dir.
 * alt + h : Toggle sidebar.
+* ctrl + b: Bold text
+* ctrl + i: italic text.
+* ctrl + k: make link.
 
 ## Sync - backup
 
@@ -220,9 +223,15 @@ Since it's normal file system files, you can use any sync mechanism to sync your
 
 ### Mobile
 
-I'm working on a lightweight mobile app to list and modify the notes.
-For now you can use an mobile editor app with a syncing app as a workaround.
-I use syncthing for this.
+Since pervane works with files, you can sync your files with your favorite sync
+tool which can be let's say syncthing. You can easily use any markdown editor from the store and show your sync location for your edits.
+
+For iOS, there is no syncthing so I recommend going for something like 
+nextcloud, google drive or dropbox etc option with an offline markdown editor.
+
+eg. I really like this one for android:
+(Markor: Markdown Editor - todo.txt - Notes Offline)
+https://play.google.com/store/apps/details?id=net.gsantner.markor
 
 ### Testimonials
 
