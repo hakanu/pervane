@@ -55,7 +55,7 @@ from flask_user import current_user, login_required, UserManager, UserMixin
 from werkzeug.routing import BaseConverter
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
-
+from atomicfile import AtomicFile
 
 mimetypes.init()
 
@@ -567,8 +567,9 @@ def api_update_handler():
     return _failure_json(err)
 
   try:
-    with open(path, 'w') as f:
+    with AtomicFile(path, "w") as f:
       f.write(updated_content)
+      
     return jsonify({'result': 'success'})
   except Exception as e:
     logging.error('There is an error while writing: %s. Error: %s', path, str(e))
