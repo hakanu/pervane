@@ -75,7 +75,7 @@ parser.add_argument('--host', dest='host', default='0.0.0.0',
 parser.add_argument('--port', dest='port', default='5000',
                     help='port to be binded')
 parser.add_argument('--dir', dest='root_dir',
-                    default=os.environ.get("PERVANE_HOME", "./"),
+                    default=os.environ.get('PERVANE_HOME', './'),
                     help='Working folder to show the tree. If '
                          'PERVANE_HOME environment variable is '
                           'set and --dir is not provided, PERVANE_HOME is '
@@ -115,8 +115,8 @@ args = parser.parse_args()
 
 if args.version:
   # early return if only the version is asked.
-  version_file =  os.path.join(os.path.dirname(os.path.realpath(__file__)), "version.txt")
-  with open(version_file, "r") as version_fh:
+  version_file =  os.path.join(os.path.dirname(os.path.realpath(__file__)), 'version.txt')
+  with open(version_file, 'r') as version_fh:
     version = version_fh.readline()
     print('Pervane ', version)
     sys.exit()
@@ -305,8 +305,12 @@ def make_tree(path):
 
 
 def _get_workspace_path(path):
+  """Shortens the given absolute path by removing the root dir.
+  
+  For instance, /home/user/pervane/note-dir/note1.md becomes
+  /note-dir/note1.md"""
   path = path.replace(_get_root_dir(trailing_separator=False), '')
-  return path if path.startswith(os.sep) else os.sep + path
+  return path if path.startswith(os.sep) else os.path.join(os.sep, path)
 
 
 def _make_tree(path):
@@ -382,26 +386,48 @@ def _get_request_json(arg_name):
 
 
 def _to_real_path(parent_path, relative_path):
-  # ignores the heading '/' in relative_path
-  start = 1 if relative_path.startswith('/') else 0
-  absoluate_path = os.path.join(parent_path, relative_path[start:])
+  """Creates an absolute path from given paths.
+
+  If there is any . or .. in the merged path, it is evaluated and
+  the real path is generated. For instance, /home/user/pervane and
+  /../../file1 results in /home/file1. 
+
+  Heading separator of relative path is ignored.
+  """
+  start_index = 1 if relative_path.startswith(os.sep) else 0
+  absoluate_path = os.path.join(parent_path, relative_path[start_index:])
   return os.path.realpath(absoluate_path)
 
 
-def _get_real_path(path):
-  if not path:
+def _get_real_path(workspace_path):
+  """Converts the given workspace path into an absolute path.
+
+  A tuple of a real path and an error is returned. In this tuple, either 
+  the real path or error is present. The error is present in the returned tuple
+  either if no workspace dir is given or the generated real path is not under 
+  the working directory.
+  """
+  if not workspace_path:
     return (None, 'No path is given')
 
   root_dir = _get_root_dir(trailing_separator=False)
-  path = _to_real_path(root_dir, path)
+  path = _to_real_path(root_dir, workspace_path)
 
-  if path.startswith(root_dir):
-    return (path, None)
-
-  return (None, 'Not authorized')
+  return (path, None) if path.startswith(root_dir) else (None, 'Not authorized')
 
 
 def _get_new_node_name(new_node_name):
+  """Parses the given node name to either a file name or a directory name.
+
+  A triplet of a file name, a directory name, and an error is returned. In this
+  triplet, either the file name, directory name, or error is present. If there
+  is no '/' in the given node name, it is considered as a file. If there is no
+  extension in the file name, '.md' is appended to it. If extension is present,
+  it must be an allowed extension, which is specified by args.note_extensions.
+
+  An error is returned if node node is missing, or the parsed directory or file
+  name is equal to '.' or '..', or the file name contains an invalid extension.
+  """
   if not new_node_name:
     return (None, None, "empty file name!")
 
@@ -411,26 +437,26 @@ def _get_new_node_name(new_node_name):
     new_node_name = new_node_name[1:].strip()
 
   if not new_node_name:
-    return (None, None, "empty file name!")
+    return (None, None, 'empty file name!')
 
   if new_node_name.endswith(os.path.sep):
-    # eliminate the tailing file separator
+    # Eliminate the tailing file separator.
     dir_name = new_node_name[:-1]
     if not dir_name or  dir_name == '.' or dir_name == '..':
-      return (None, None, "invalid directory name: " + dir_name)
+      return (None, None, 'invalid directory name: ' + dir_name)
 
     return (dir_name, None, None)
 
   if new_node_name == '.' or new_node_name == '..':
-    return (None, None, "invalid file name: " + new_node_name)
+    return (None, None, 'invalid file name: ' + new_node_name)
 
   if '.' in new_node_name:
     file_name, extension = os.path.splitext(new_node_name)
     if extension not in args.note_extensions:
-      return (None, None, "invalid note extension: " + new_node_name)
+      return (None, None, 'invalid note extension: ' + new_node_name)
   else:
-    # append .md if there is no extension
-    file_name = new_node_name + ".md"
+    # Append .md if there is no extension.
+    file_name = new_node_name + '.md'
 
   return (None, file_name, None)
 
@@ -507,7 +533,7 @@ def api_get_file_handler():
     })
   except Exception as e:
     logging.error('There is an error while reading: %s', str(e))
-    # don't leak verified path
+    # Don't leak the absolute path.
     return _failure_json(('Reading %s failed' % requested_path))
 
 
@@ -549,7 +575,7 @@ def api_get_content_handler():
     })
   except Exception as e:
     logging.error('There is an error while reading: %s. Error: %s', path, str(e))
-    # don't leak the absolute path
+    # Don't leak the absolute path.
     return _failure_json(('Reading %s failed' % requested_path))
 
 
@@ -567,13 +593,13 @@ def api_update_handler():
     return _failure_json(err)
 
   try:
-    with AtomicFile(path, "w") as f:
+    with AtomicFile(path, 'w') as f:
       f.write(updated_content)
       
     return jsonify({'result': 'success'})
   except Exception as e:
     logging.error('There is an error while writing: %s. Error: %s', path, str(e))
-    # don't leak the absolute path
+    # Don't leak the absolute path.
     return _failure_json(('Writing %s failed' % requested_path))
 
 
@@ -794,7 +820,7 @@ def file_upload_handler():
     dest_path, err = _get_real_path(filename)
 
     if err:
-      return _failure_json("No auth")
+      return _failure_json('No auth')
 
     file.save(dest_path)
     logging.info('Upload is successful, refreshing the current page '
