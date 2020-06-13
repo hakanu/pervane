@@ -1229,7 +1229,7 @@
     router,
     el: "#demo",
     data: {
-      treeData: tree,//treeData
+      treeData: tree,
       showSidebar: true,
       rootDirPath: rootDirPath,
       newNodeName: '',
@@ -1322,6 +1322,21 @@
         self.showSidebar = !self.showSidebar
         return false
       })
+
+      // Check if it's first time running pervane.
+      // TODO(hakanu): this is currently not working. 
+      // Find a way for security leaks of user's root dir to javascript part.
+      let rootDirPathLS = (localStorage.getItem('rootDirPath') || '')
+      if (rootDirPathLS != rootDirPath) {
+        console.log('Running pervane from another dir so cleaning up previously opened tabs')
+        
+        // Clean up the previously opened tabs.
+        localStorage.setItem('openTabPaths', '')
+        localStorage.setItem('openTabPath', '')
+
+        // Persist this action in localstorage for next time.
+        localStorage.setItem('rootDirPath', rootDirPath)
+      }
 
       // Start rendering previously open tabs if there is any.
       let openTabPath = (localStorage.getItem('openTabPath') || '')
