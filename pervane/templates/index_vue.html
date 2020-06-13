@@ -1343,6 +1343,7 @@
       closeTab: function(path) {
         console.log('closing the tab', path)
         let openTabPaths = (localStorage.getItem('openTabPaths') || '').split(',')
+        let openTabPath = (localStorage.getItem('openTabPath') || '')
         let elementIndexToDelete = openTabPaths.indexOf(path)
         if (elementIndexToDelete == -1) {
           return
@@ -1350,9 +1351,30 @@
 
         openTabPaths.splice(elementIndexToDelete, 1);
         localStorage.setItem('openTabPaths', openTabPaths.join(','))
+
+        // Activate last tab in the tab bar.
+        if  (path == openTabPath) {
+          if (openTabPaths.length > 0) {
+            openTabPath = openTabPaths[openTabPaths.length - 1]
+          } else {
+            openTabPath = ''
+          }
+        }
+        // Save open tab path to local storage.
+        localStorage.setItem('openTabPath', openTabPath)
+
         // Recompute the computed property to reflect the removal to the tabs.
-        // this.$recompute('openTabHeaders')
         this.$forceUpdate()
+
+        if (openTabPath != '') {
+          router.push({ 
+            path: '/n/' + encodeURIComponent(openTabPath) 
+          })
+        } else {
+          router.push({ 
+            path: '/' 
+          })
+        }
       },
       showSettingsModal: function() {
         console.log('show settings modal')
