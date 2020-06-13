@@ -1331,6 +1331,7 @@
         console.log('showing modal', item, item.path)
         this.newNodeParentPath = item.path
         $('#nodeModal').modal()
+        this.newNodeName = ''
         // Hack to focus on input box upon creation.
         // Without timeout, item is not ready.
         setTimeout(function () {

@@ -309,8 +309,11 @@ def _get_workspace_path(path):
   
   For instance, /home/user/pervane/note-dir/note1.md becomes
   /note-dir/note1.md"""
+  print('path: ', path)
   path = path.replace(_get_root_dir(trailing_separator=False), '')
-  return path if path.startswith(os.sep) else os.path.join(os.sep, path)
+  val = path if path.startswith(os.sep) else os.path.join(os.sep, path)
+  print('return val :' , val)
+  return val
 
 
 def _make_tree(path):
@@ -450,10 +453,12 @@ def _get_new_node_name(new_node_name):
   if new_node_name == '.' or new_node_name == '..':
     return (None, None, 'invalid file name: ' + new_node_name)
 
+  file_name = ''
   if '.' in new_node_name:
     file_name, extension = os.path.splitext(new_node_name)
     if extension not in args.note_extensions:
       return (None, None, 'invalid note extension: ' + new_node_name)
+    file_name = new_node_name  # Preserve file's original extension.
   else:
     # Append .md if there is no extension.
     file_name = new_node_name + '.md'
@@ -648,7 +653,7 @@ def add_node_handler():
       f = open(new_file_path, 'x')
     except OSError as e:
       logging.error('Could not create new file: %s. Error: %s',
-                  new_file_path, str(e))
+                    new_file_path, str(e))
       return jsonify({
           'result':  'fail',
           'message': 'failed to create markdown file.',
@@ -659,7 +664,7 @@ def add_node_handler():
           'result':  'success',
           'message': 'created the file.',
           'type': 'file',
-          'entity': _get_workspace_path(file_name),
+          'entity': _get_workspace_path(new_file_path),
       })
 
 
