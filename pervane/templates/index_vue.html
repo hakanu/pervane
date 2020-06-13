@@ -1301,6 +1301,14 @@
         self.showSidebar = !self.showSidebar
         return false
       })
+
+      // Start rendering previously open tabs if there is any.
+      let openTabPath = (localStorage.getItem('openTabPath') || '')
+      if (openTabPath != '') {
+        router.push({ 
+          path: '/n/' + encodeURIComponent(openTabPath) 
+        })
+      }
     },
     computed: {
       rootStyle: function() {
