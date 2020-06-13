@@ -47,7 +47,7 @@ import subprocess
 import sys
 
 from jinja2 import Environment, BaseLoader
-from flask import Flask, render_template, request, jsonify, redirect, url_for, send_from_directory
+from flask import Flask, render_template, request, jsonify, redirect, url_for, send_from_directory, flash
 from flask_caching import Cache
 from flask_sqlalchemy import SQLAlchemy
 from flask_user import current_user, login_required, UserManager, UserMixin
@@ -55,10 +55,11 @@ from flask_user import current_user, login_required, UserManager, UserMixin
 from werkzeug.routing import BaseConverter
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
+from atomicfile import AtomicFile
 
 mimetypes.init()
 
-def str2bool(v):
+def _str2bool(v):
   if isinstance(v, bool):
    return v
   if v.lower() in ('yes', 'true', 't', 'y', '1'):
@@ -74,7 +75,7 @@ parser.add_argument('--host', dest='host', default='0.0.0.0',
 parser.add_argument('--port', dest='port', default='5000',
                     help='port to be binded')
 parser.add_argument('--dir', dest='root_dir',
-                    default=os.environ.get("PERVANE_HOME", "./"),
+                    default=os.environ.get('PERVANE_HOME', './'),
                     help='Working folder to show the tree. If '
                          'PERVANE_HOME environment variable is '
                           'set and --dir is not provided, PERVANE_HOME is '
@@ -101,10 +102,10 @@ parser.add_argument(
     default='Welcome to Pervane! This is default welcome message.',
     help='Cache the sidebar file tree creation.')
 parser.add_argument(
-    '--allow_multi_user', type=str2bool, dest='allow_multi_user', default=False,
+    '--allow_multi_user', type=_str2bool, dest='allow_multi_user', default=False,
     help='Should pervane allow multiple users to see the same notes? Be careful.')
 parser.add_argument(
-    '--debug', type=str2bool, dest='debug', default=False,
+    '--debug', type=_str2bool, dest='debug', default=False,
     help='Show debug logs')
 parser.add_argument(
     '--version', action='store_true', dest='version', default=False,
@@ -114,8 +115,8 @@ args = parser.parse_args()
 
 if args.version:
   # early return if only the version is asked.
-  version_file =  os.path.join(os.path.dirname(os.path.realpath(__file__)), "version.txt")
-  with open(version_file, "r") as version_fh:
+  version_file =  os.path.join(os.path.dirname(os.path.realpath(__file__)), 'version.txt')
+  with open(version_file, 'r') as version_fh:
     version = version_fh.readline()
     print('Pervane ', version)
     sys.exit()
@@ -255,16 +256,15 @@ def _check_pervane_needs_update():
     logging.error('Failed to check newest versions: ', str(e))
     # If for some reason, user is not using pip, don't crush on
     # this.
-    return {'needs_update': True}
+    return {'needs_update': False}
 
 
-def _get_root_dir():
-  return (
-      _WORKING_DIR if not args.allow_multi_user else os.path.join(_WORKING_DIR, current_user.username)
-  ) + os.path.sep
+def _get_root_dir(trailing_separator = True):
+  path = _WORKING_DIR if not args.allow_multi_user else os.path.join(_WORKING_DIR, current_user.username)
+  return path + os.path.sep if trailing_separator else path
 
 
-def program_installed(binary):
+def _is_program_installed(binary):
   rc = subprocess.call(['which', binary])
   if rc == 0:
     return True 
@@ -272,7 +272,7 @@ def program_installed(binary):
     return False
 
 
-def allowed_file(filename):
+def _is_filename_allowed(filename):
   return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
@@ -304,13 +304,13 @@ def make_tree(path):
   return _make_tree(path)
 
 
-def _get_workspace_path(fn):
-  workspace_path = fn.replace(_get_root_dir(), '')
-  # Prepend separator in case user enter root dir with / at the
-  # end.
-  if (not workspace_path.startswith(os.sep)):
-    workspace_path = os.sep + workspace_path
-  return workspace_path
+def _get_workspace_path(path):
+  """Shortens the given absolute path by removing the root dir.
+  
+  For instance, /home/user/pervane/note-dir/note1.md becomes
+  /note-dir/note1.md"""
+  path = path.replace(_get_root_dir(trailing_separator=False), '')
+  return path if path.startswith(os.sep) else os.path.join(os.sep, path)
 
 
 def _make_tree(path):
@@ -318,34 +318,34 @@ def _make_tree(path):
 
   Can not be cached due to recursion.
   """
-  tree = dict(name=os.path.basename(path),
+  if is_ignored(path):
+   return
+
+  this_node = dict(name=os.path.basename(path),
               path=_get_workspace_path(path),
               children=[], kind='dir')
 
-  if check_match(path):
-   return 
   try:
-    lst = os.listdir(path)
+    children = os.listdir(path)
   except OSError:
     pass #ignore errors
   else:
-    for name in lst:
-      fn = os.path.join(path, name)
+    for child_name in children:
+      child_path = os.path.join(path, child_name)
 
-      if check_match(fn):
+      if is_ignored(child_path):
         continue
 
-      if os.path.isdir(fn):
-        tree['children'].append(_make_tree(fn))
+      if os.path.isdir(child_path):
+        this_node['children'].append(_make_tree(child_path))
       else:
-        workspace_path = _get_workspace_path(fn) 
-        tree['children'].append(dict(
-            name=name, path=workspace_path, kind='file', 
-            ext=os.path.splitext(fn)[1]))
-  return tree
+        this_node['children'].append(dict(
+          name=child_name, path=_get_workspace_path(child_path),
+          kind='file', ext=os.path.splitext(child_path)[1]))
+  return this_node
 
 
-def check_match(file_path):
+def is_ignored(file_path):
   for pattern in args.ignore_patterns:
     result = re.search(pattern, str(file_path))
     if result:
@@ -353,13 +353,14 @@ def check_match(file_path):
 
 
 def _get_file_paths_flat(path):
-  if check_match(path):
+  if is_ignored(path):
     return 
   leaves = []
+  root_dir = _get_root_dir(trailing_separator=False)
   for root, dirs, files in os.walk(path, topdown=False):
     for name in files:
       leaves.append(
-        os.path.join(root, name).replace(_get_root_dir(), os.path.sep)
+        os.path.join(root, name).replace(root_dir, '')
       )
   return leaves
 
@@ -369,6 +370,102 @@ def _get_file_mode(path):
     return _FILE_MODE_DICT.get(
         os.path.splitext(path)[1].replace('.', ''), 'text/html')
   return 'text/html'
+
+
+def _get_file_mod_time(path):
+  mod_secs = os.path.getmtime(path)
+  return datetime.datetime.fromtimestamp(mod_secs).strftime('%Y-%m-%d %H:%M:%S')
+
+
+def _get_request_param(arg_name):
+  return request.args.get(arg_name, '').strip()
+
+
+def _get_request_json(arg_name):
+  return request.json.get(arg_name, '').strip()
+
+
+def _to_real_path(parent_path, relative_path):
+  """Creates an absolute path from given paths.
+
+  If there is any . or .. in the merged path, it is evaluated and
+  the real path is generated. For instance, /home/user/pervane and
+  /../../file1 results in /home/file1. 
+
+  Heading separator of relative path is ignored.
+  """
+  start_index = 1 if relative_path.startswith(os.sep) else 0
+  absoluate_path = os.path.join(parent_path, relative_path[start_index:])
+  return os.path.realpath(absoluate_path)
+
+
+def _get_real_path(workspace_path):
+  """Converts the given workspace path into an absolute path.
+
+  A tuple of a real path and an error is returned. In this tuple, either 
+  the real path or error is present. The error is present in the returned tuple
+  either if no workspace dir is given or the generated real path is not under 
+  the working directory.
+  """
+  if not workspace_path:
+    return (None, 'No path is given')
+
+  root_dir = _get_root_dir(trailing_separator=False)
+  path = _to_real_path(root_dir, workspace_path)
+
+  return (path, None) if path.startswith(root_dir) else (None, 'Not authorized')
+
+
+def _get_new_node_name(new_node_name):
+  """Parses the given node name to either a file name or a directory name.
+
+  A triplet of a file name, a directory name, and an error is returned. In this
+  triplet, either the file name, directory name, or error is present. If there
+  is no '/' in the given node name, it is considered as a file. If there is no
+  extension in the file name, '.md' is appended to it. If extension is present,
+  it must be an allowed extension, which is specified by args.note_extensions.
+
+  An error is returned if node node is missing, or the parsed directory or file
+  name is equal to '.' or '..', or the file name contains an invalid extension.
+  """
+  if not new_node_name:
+    return (None, None, "empty file name!")
+
+  new_node_name = new_node_name.strip()
+
+  if new_node_name.startswith(os.path.sep):
+    new_node_name = new_node_name[1:].strip()
+
+  if not new_node_name:
+    return (None, None, 'empty file name!')
+
+  if new_node_name.endswith(os.path.sep):
+    # Eliminate the tailing file separator.
+    dir_name = new_node_name[:-1]
+    if not dir_name or  dir_name == '.' or dir_name == '..':
+      return (None, None, 'invalid directory name: ' + dir_name)
+
+    return (dir_name, None, None)
+
+  if new_node_name == '.' or new_node_name == '..':
+    return (None, None, 'invalid file name: ' + new_node_name)
+
+  if '.' in new_node_name:
+    file_name, extension = os.path.splitext(new_node_name)
+    if extension not in args.note_extensions:
+      return (None, None, 'invalid note extension: ' + new_node_name)
+  else:
+    # Append .md if there is no extension.
+    file_name = new_node_name + '.md'
+
+  return (None, file_name, None)
+
+
+def _failure_json(err):
+  if err == 'success':
+    raise ValueError
+  return jsonify({'result' : err})
+
 
 
 @app.route('/api/check_updates')
@@ -400,24 +497,12 @@ def front_page_handler():
 @app.route('/api/get_file')
 @login_required
 def api_get_file_handler():
-  path = request.args.get('f', '')
-  if not path:
-    return 'No path is given'
-  original_path = path
+  requested_path = _get_request_param('f')
+  path, err = _get_real_path(requested_path)
 
-  # Even though passed path has separators, we get the last piece
-  #  /hakuna/matata/yo => yo.
-  # Trying to be defensive here against custom requests.
+  if err:
+    return _failure_json('invalid path: ' + err)
 
-  # Get rid of that separator as first char and join with working dir.
-  # /hakuna/test.md becomes /tmp/notes/hakuna/test.md
-  path = os.path.join(_WORKING_DIR, path[1:])
-  root_dir = _get_root_dir() 
-  if not path.startswith(root_dir):
-    logging.info('no auth')
-    return ('Not authorized to see this dir')
-  html_content = ''
-  content = ''
   mime_type = get_mime_type(path)
   logging.info('mime_type: %s', mime_type)
   if (not mime_type.startswith('image/') and 
@@ -425,30 +510,31 @@ def api_get_file_handler():
       not mime_type.startswith('text/') and
       # js source is not text for some reason. Need to be excepted.
       not mime_type == 'application/javascript'):
-    return ('No idea how to show this file %s' %
-            original_path)
+    return jsonify({'result' : ('No idea how to show this file %s' %
+            requested_path)})
 
-  # Text is our main interest.
-  if mime_type.startswith('text/'):
-    try:
+  try:
+    html_content = ''
+    # Text is our main interest.
+    if mime_type.startswith('text/'):
       with open(path, 'r') as f:
-        content = f.read()
-      html_content = content
-    except Exception as e:
-      logging.error('There is an error while reading: %s', str(e))
-      return 'File reading failed.'
-  elif mime_type.startswith('image/'):
-    try:
+        html_content = f.read()
+    elif mime_type.startswith('image/'):
       with open(path, 'rb') as f:
-        content = base64.b64encode(f.read()).decode('ascii')
-      html_content = content
-    except Exception as e:
-      logging.error('There is an error while reading: %s', str(e))
-      return 'File reading failed.'
-  return jsonify({
+        html_content = base64.b64encode(f.read()).decode('ascii')
+
+    # TODO [basri] mime_type could be video or js here. we return nothing in this case?
+    mod_time = _get_file_mod_time(path)
+
+    return jsonify({
       'result': 'success',
       'content': html_content,
-  })
+      'mod_time': mod_time
+    })
+  except Exception as e:
+    logging.error('There is an error while reading: %s', str(e))
+    # Don't leak the absolute path.
+    return _failure_json(('Reading %s failed' % requested_path))
 
 
 @app.route('/api/get_tree')
@@ -467,53 +553,54 @@ def api_get_tree_handler():
 @app.route('/api/get_content')
 @login_required
 def api_get_content_handler():
-  path = request.args.get('f', '').strip()
-  if '..' in path:
-    return 'You can not use relative paths'
+  requested_path = _get_request_param('f')
+  path, err = _get_real_path(requested_path)
 
-  path = os.path.join(_WORKING_DIR, path[1:])
-  root_dir = _get_root_dir()
-  if not path.startswith(root_dir):
-    logging.info('no auth')
-    return 'Not authorized to see this dir' 
+  if err:
+    return _failure_json('invalid path: ' + err)
 
   # Obtain the file type to be rendered in editor from path.
-  file_mode = _get_file_mode(path)
+  file_mode = _get_file_mode(requested_path)
 
   try:
     with open(path, 'r') as f:
       content = f.read()
+      mod_time = _get_file_mod_time(path)
+
     return jsonify({
         'result': 'success',
         'content': content,
         'file_mode': file_mode,
+        'mod_time': mod_time
     })
   except Exception as e:
-    return jsonify(
-      {'result': 'smt went wrong ' + str(e)})
+    logging.error('There is an error while reading: %s. Error: %s', path, str(e))
+    # Don't leak the absolute path.
+    return _failure_json(('Reading %s failed' % requested_path))
 
 
 @app.route('/api/update', methods=['POST'])
 @login_required
 def api_update_handler():
-  updated_content = request.json.get('updated_content', '').strip()
-  root_dir = _get_root_dir()
-  file_path = os.path.join(
-      _WORKING_DIR, request.json.get('file_path', '').strip()[1:])
-  if not file_path:
-    return jsonify({'result': 'File path is empty'})
-  
-  if not file_path.startswith(root_dir):
-    return jsonify({'result': 'Unauth file modification'})
-
+  # TODO [basri] is it a good idea to strip spaces from user's own text?
+  updated_content = _get_request_json('updated_content')
   if not updated_content:
-    return jsonify({'result': 'File content is empty'})
+    return _failure_json('File content is empty')
+
+  requested_path = _get_request_json('file_path')
+  path, err = _get_real_path(requested_path)
+  if err:
+    return _failure_json(err)
+
   try:
-    with open(file_path, 'w') as f:
+    with AtomicFile(path, 'w') as f:
       f.write(updated_content)
+      
+    return jsonify({'result': 'success'})
   except Exception as e:
-    return jsonify({'result': 'update failed', 'error': str(e)})
-  return jsonify({'result': 'success'}) 
+    logging.error('There is an error while writing: %s. Error: %s', path, str(e))
+    # Don't leak the absolute path.
+    return _failure_json(('Writing %s failed' % requested_path))
 
 
 @app.route('/api/add_node', methods=['POST'])
@@ -521,37 +608,24 @@ def api_update_handler():
 def add_node_handler():
   root_dir = _get_root_dir()
 
-  # Parent path comes like /username or / so the real parent path needs to be built.
-  # Remove / from the GET param.
-  parent_path = os.path.join(
-      _WORKING_DIR, request.json.get('parent_path', '').strip()[1:])
+  parent_path, err = _get_real_path(_get_request_json('parent_path'))
+  if err:
+    return _failure_json(err)
 
-  # Eliminate file separator.
-  new_node_name = request.json.get('new_node_name', '').strip()
-  is_dir = False
-  if new_node_name.endswith(os.path.sep):
-    is_dir = True
-    # Strip the /.
-    new_node_name = new_node_name[:-1]
-  if not parent_path or not new_node_name:
-    return jsonify({
-        'result': 'fail',
-        'message': 'Path can not be empty',
-    })
-  new_node_name = new_node_name.strip()
+  dir_name, file_name, err = _get_new_node_name(
+    _get_request_json('new_node_name'))
 
-  if not parent_path.startswith(root_dir):
-    return jsonify({
-        'result': 'fail',
-        'message': 'Unauth file modification',
-    })
+  if err:
+    return _failure_json(err)
 
-  if is_dir:
-    path = os.path.join(parent_path, new_node_name)
-    logging.info('Creating new node as dir %s', path)
+  if dir_name:
+    new_dir_path = _to_real_path(parent_path, dir_name)
+    logging.info('Creating new dir: %s', new_dir_path)
     try:
-      os.mkdir(path)
-    except OSError:
+      os.mkdir(new_dir_path)
+    except OSError as e:
+      logging.error('Could not create new dir: %s. Error: %s',
+                  new_dir_path, str(e))
       return jsonify({
           'result': 'fail',
           'message': (
@@ -565,15 +639,16 @@ def add_node_handler():
           'result':  'success', 
           'message': 'created the directory',
           'type': 'dir',
-          'entity': os.path.join(
-            path, os.path.sep).replace(_WORKING_DIR, ''),
+          'entity': _get_workspace_path(new_dir_path),
       })
   else:
-    suffix = '' if new_node_name.endswith('.md') else '.md'
-    path = os.path.join(parent_path, new_node_name + suffix)
+    new_file_path = _to_real_path(parent_path, file_name)
+    logging.info('Creating new file: %s', new_file_path)
     try:
-      f = open(path, 'x')
-    except OSError:
+      f = open(new_file_path, 'x')
+    except OSError as e:
+      logging.error('Could not create new file: %s. Error: %s',
+                  new_file_path, str(e))
       return jsonify({
           'result':  'fail',
           'message': 'failed to create markdown file.',
@@ -582,32 +657,30 @@ def add_node_handler():
     else:
       return jsonify({
           'result':  'success',
-          'message': 'created the directory: ' + path.replace(
-              _WORKING_DIR, ''),
+          'message': 'created the file.',
           'type': 'file',
-          'entity': path.replace(_WORKING_DIR, ''),
+          'entity': _get_workspace_path(file_name),
       })
 
 
 @app.route('/api/move_file')
 @login_required
 def api_move_handler():
-  source_path = os.path.join(
-      _WORKING_DIR, request.args.get('source_path', '').strip()[1:])
-  root_dir = _get_root_dir()
-  dest_dir = os.path.join(
-      _WORKING_DIR, request.args.get('dest_dir', '').strip()[1:])
-  if (not source_path.startswith(root_dir) or
-      not dest_dir.startswith(root_dir)):
+  source_path, err1 = _get_real_path(_get_request_param('source_path'))
+  dest_dir, err2 = _get_real_path(_get_request_param('dest_dir'))
+
+  if err1 or err2:
     logging.info('no auth')
-    return 'Not authorized to see this dir.'
+    return _failure_json('Not authorized')
+
   try:
     base_name = os.path.basename(source_path)
-    dest_path = os.path.join(dest_dir, base_name)
-    logging.info('Moving: %s %s %s %s', source_path, dest_path, 
+    dest_path = _to_real_path(dest_dir, base_name)
+
+    logging.info('Moving: %s %s %s %s', source_path, dest_path,
                  base_name, dest_dir)
     if os.path.exists(dest_path):
-      logging.error('Destination path, exists, renaming the moved file', 
+      logging.error('Destination path exists, renaming the moved file',
                     dest_path)
       base_name, extension = os.path.splitext(dest_path)
       dest_path = base_name + '_' + datetime.datetime.now().strftime(
@@ -619,19 +692,21 @@ def api_move_handler():
         'dest_path': dest_path
     })
   except Exception as e:
-    return jsonify({'result': 'smt went wrong '})
+    logging.error('There is an error while moving %s to %s. Error: %s',
+                  source_path, dest_dir, str(e))
+    return _failure_json('smt went wrong')
 
 
 @app.route('/api/search')
 @login_required
 def api_search_handler():
-  root_dir = _get_root_dir()
-  query = request.args.get('query', '')
+  query = _get_request_param('query')
   if not query:
-    return 'You need to search for something'
+    return _failure_json('You need to search for something')
 
+  root_dir = _get_root_dir()
   cmd = ''
-  if program_installed('ag'):
+  if _is_program_installed('ag'):
     # ackmate mode for re-using same parsing logic.
     cmd = ['ag', query, root_dir, '--ackmate', '--stats', '-m', '2']
     logging.info('Using ag for search')
@@ -643,6 +718,8 @@ def api_search_handler():
   process = subprocess.Popen(cmd, stdout=subprocess.PIPE)
   output, error = process.communicate()
 
+  # TODO [basri] what if error occurs?
+
   # Convert output from binary to string.
   output = output.decode('utf-8')
   lines = output.split('\n')
@@ -653,13 +730,15 @@ def api_search_handler():
 
   # Extract stats tail first.
   # ack doesn't have stats, ag has stats in the last 6 lines.
-  tail = -6 if cmd[0] == 'ag' else -1
-  delim = ';' if cmd[0] == 'ag' else ':'
-  prefix = ':' if cmd[0] == 'ag' else ''
+  tail, delim, prefix = (-6, ';', ':') if cmd[0] == 'ag' else (-1, ':', '')
 
   stats_str = ' '.join(lines[tail:])
   in_file_started = False
   for line in lines[:tail]:
+    if line and line[-1] == '\0':
+      # get rid of NULL terminator
+      line = line[:-1]
+
     # Check if the line starts with a number or a letter.
     # Number indicates that it's a file match starting.
     if line.startswith(prefix + root_dir):
@@ -672,9 +751,8 @@ def api_search_handler():
       in_file_results.append({
           'snippet': line,
       })
-
       results.append({
-        'file': fn.replace(':', '').replace(_WORKING_DIR, ''),
+        'file': _get_workspace_path(fn.replace(':', '')),
         'matches': in_file_results,
       }) 
 
@@ -691,18 +769,9 @@ def api_search_handler():
 @login_required
 def api_glob_handler():
   root_dir = _get_root_dir()
-  directory_path = request.args.get('f', '')
-  if not directory_path or '..' in directory_path:
-    return 'You need to glob in a directory'
-  # Need to eliminate first / in the parameter because we convert 
-  # the actual paths to workspace paths for extra security.
-  # /foo/bar and /test/baz are not joinable. os.path.join results with
-  # /test/baz.
-  glob_root = os.path.join(root_dir, directory_path[1:])
-
-  if not glob_root.startswith(root_dir) or '..' in glob_root:
-    logging.info('no auth')
-    return 'Not authorized to see this dir' 
+  glob_root, err = _get_real_path(_get_request_param('f'))
+  if err:
+    return _failure_json('You need to glob in a directory')
 
   # TODO(hakanu): would os.walk be better?
   raw_files = os.listdir(glob_root)
@@ -710,7 +779,7 @@ def api_glob_handler():
   dirs = []
   for raw_file in raw_files:
     # Create an actual path to check if it's a directory.
-    raw_file = os.path.join(glob_root, raw_file)
+    raw_file = _to_real_path(glob_root, raw_file)
     if os.path.isdir(raw_file):
       dirs.append(raw_file.replace(_WORKING_DIR, ''))
       continue
@@ -736,33 +805,34 @@ def file_upload_handler():
   # check if the post request has the file part
   if 'file' not in request.files:
     flash('No file part')
-    return jsonif({'result': 'fail no file part'})
+    return _failure_json('fail no file part')
   file = request.files['file']
   # if user does not select file, browser also
   # submit an empty part without filename
   if file.filename == '':
     flash('No selected file')
-    return jsonif({'result': 'fail no selected file'})
-  if file and allowed_file(file.filename):
+    return _failure_json('fail no selected file')
+  if file and _is_filename_allowed(file.filename):
     filename = secure_filename(file.filename)
     base_name, extension = os.path.splitext(filename)
-    dest_path = os.path.join(
-        root_dir, base_name + '_' + 
-        datetime.datetime.now().strftime('%Y%m%d_%H%M') + extension)
+    filename = base_name + '_' + datetime.datetime.now().strftime('%Y%m%d_%H%M') + extension
+
+    dest_path, err = _get_real_path(filename)
+
+    if err:
+      return _failure_json('No auth')
+
     file.save(dest_path)
     logging.info('Upload is successful, refreshing the current page '
            'to show new file')
     return jsonify({
         'result': 'success',
         'message': 'File is successfully uploaded.',
-        'entity': dest_path.replace(_WORKING_DIR, ''),
+        'entity': filename,
     })
   else:
-    return jsonify({
-        'result': 'fail',
-        'message': 'probably the extension is not one of the allowed ones: '
-        'gif, pdf, png, jpg',  
-    })
+    return _failure_json('probably the extension is not one of the allowed ones: '
+        'gif, pdf, png, jpg')
 
 
 @app.route('/_img/<path:file_path>', methods=['GET'])
@@ -777,16 +847,12 @@ def static_file_handler(file_path):
   http://localhost:5001/img/test/images/apple-touch-icon.png
   http://localhost:5001/img/test/test_video/video.mp4
   """
-  if not file_path:
-    return 'You need to pass a file path to be served'
 
-  path = os.path.join(_WORKING_DIR, file_path[1:])
-  root_dir = _get_root_dir()
-  if not path.startswith(root_dir) or '..' in path:
-    logging.info('no auth')
-    return 'Not authorized to see this dir' 
-  return send_from_directory(_get_root_dir(),
-                             file_path)
+  path, err = _get_real_path(file_path)
+  if err:
+    return _failure_json(err)
+
+  return send_from_directory(_get_root_dir(), file_path)
 
 
 def cli_main():
