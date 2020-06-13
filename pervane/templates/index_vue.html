@@ -911,7 +911,6 @@
             }
 
             if (this.editor) {
-              // this.editor.editor.remove()
               self.editor.setMarkdown(data.content + '\n')
               self.editor.show()
 
@@ -940,7 +939,6 @@
               self.editor.hide()
             }
             if (this.codeEditor) {
-              // this.editor.editor.remove()
               self.codeEditor.setValue(data.content)
               self.codeEditor.show()
 
@@ -1183,7 +1181,6 @@
         var sourcePath = ev.dataTransfer.getData('sourcePath')
         var destDir = droppedItem.path
         console.log('Moving ', sourcePath, ' to dest ', destDir)
-      //  return
 
         fetch(
           '/api/move_file?source_path=' + sourcePath + '&dest_dir=' + destDir, {
@@ -1193,8 +1190,32 @@
           .then(result => {
             console.log('Success:', result)
             self.$emit('refreshTree')
+
+            // Get rid of moved file if it's open in the tabs.
+            let openTabPaths = (localStorage.getItem('openTabPaths') || '').split(',')
+            let openTabPath = (localStorage.getItem('openTabPath') || '')
+            if (openTabPaths.includes(sourcePath)) {
+              console.log('moved file is among open tabs')
+              let elementIndexToDelete = openTabPaths.indexOf(sourcePath)
+              openTabPaths.splice(elementIndexToDelete, 1);
+              localStorage.setItem('openTabPaths', openTabPaths.join(','))
+
+              // Activate last tab in the tab bar.
+              if (openTabPath == sourcePath) {
+                // Is there any open tabs left? If so go for last from right.
+                if (openTabPaths.length > 0) {
+                  openTabPath = openTabPaths[openTabPaths.length - 1]
+                } else {
+                  // If not go with empty open tab path.
+                  openTabPath = ''
+                }
+              }
+              // Save open tab path to local storage.
+              localStorage.setItem('openTabPath', openTabPath)
+            }
+
             location.reload()
-            })
+          })
           .catch(error => {
             console.error('Error:', error)
           }) // End of fetch.
