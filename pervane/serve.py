@@ -309,11 +309,8 @@ def _get_workspace_path(path):
   
   For instance, /home/user/pervane/note-dir/note1.md becomes
   /note-dir/note1.md"""
-  print('path: ', path)
   path = path.replace(_get_root_dir(trailing_separator=False), '')
-  val = path if path.startswith(os.sep) else os.path.join(os.sep, path)
-  print('return val :' , val)
-  return val
+  return path if path.startswith(os.sep) else os.path.join(os.sep, path)
 
 
 def _make_tree(path):
