@@ -450,15 +450,11 @@ def _get_new_node_name(new_node_name):
   if new_node_name == '.' or new_node_name == '..':
     return (None, None, 'invalid file name: ' + new_node_name)
 
-  file_name = ''
-  if '.' in new_node_name:
-    file_name, extension = os.path.splitext(new_node_name)
-    if extension not in args.note_extensions:
-      return (None, None, 'invalid note extension: ' + new_node_name)
-    file_name = new_node_name  # Preserve file's original extension.
-  else:
+  if '.' not in new_node_name:
     # Append .md if there is no extension.
     file_name = new_node_name + '.md'
+  else:
+    file_name = new_node_name
 
   return (None, file_name, None)
 
