@@ -37,7 +37,7 @@ For the other note taking and knowledge base building apps, there is always some
 * File tree with proper infinite number of nesting, works well for hierarchical note taking and knowledge base building.
 * Cookie based authentication.
 * No stats collection, all private.
-* Rich text editing experience thanks to [editor.md](https://pandao.github.io/editor.md/)
+* Rich text editing experience thanks to [editor.md](https://pandao.github.io/editor.md/).
 * Spell checker
 * Find an replace within the editor.
 * Hide/show preview
