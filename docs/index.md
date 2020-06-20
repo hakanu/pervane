@@ -1,6 +1,6 @@
 ![](https://github.com/hakanu/pervane/raw/master/docs/pervane_logo_small.png)
 
-# Pervane | [Demo](https://www.youtube.com/watch?v=sUr_qzeBxHI) | [Wiki](https://github.com/hakanu/pervane/wiki)
+# Pervane | [Demo](https://youtu.be/2WiFvcgV6lo) | [Wiki](https://github.com/hakanu/pervane/wiki)
 
 [![](https://img.shields.io/badge/status-stable-green.svg)](https://pypi.org/pypi/pervane/)
 ![](https://img.shields.io/badge/dynamic/json?color=green&label=downloads&query=data%5B0%5D.downloads&url=https%3A%2F%2Fpypistats.org%2Fapi%2Fpackages%2Fpervane%2Foverall)
@@ -30,7 +30,6 @@ For the other note taking and knowledge base building apps, there is always some
 * No added metadata files etc. Just globs your files, caches for N seconds and creates the file tree.
 * Source of truth is your own file system so you can use your favorite markdown editor to modify your notes: QOwnNotes, VSCode, Sublime Text etc.
 * Ignore some files in order not to be shown on the sidebar.
-* Single python file.
 * Flask based server, totally hackable, just modify, it's all yours.
 * Minimal dependencies, single binary.
 * Uses [silver searcher (ag)](https://github.com/ggreer/the_silver_searcher) for searching in an instant throughout the whole folder.
@@ -71,6 +70,7 @@ pervane --dir=example/
 ```
 When you go to localhost:5000, you need to register.
 Pervane only accepts 1 user. So your notes will only be visible by this single user.
+
 ⚠️ If you see a server error, delete your cookies and retry.
 
 Package details here: https://pypi.org/project/pervane/
@@ -101,9 +101,9 @@ pip install --upgrade pervane
 
 ### Demo
 
-#### [Video](https://www.youtube.com/watch?v=sUr_qzeBxHI)
+#### [Video](https://youtu.be/2WiFvcgV6lo)
 
-[![Pervane note taking app demo](http://img.youtube.com/vi/sUr_qzeBxHI/0.jpg)](https://www.youtube.com/watch?v=sUr_qzeBxHI)
+[![Pervane note taking app demo](http://img.youtube.com/vi/2WiFvcgV6lo/0.jpg)](https://youtu.be/2WiFvcgV6lo)
 
 #### Screenshots
 
@@ -203,6 +203,9 @@ Please shoot an email if I miss anything.
 * alt + g : Focus on quick search box on the left sidebar 
 * alt + n : Create new note in the root dir.
 * alt + h : Toggle sidebar.
+* ctrl + b: Bold text
+* ctrl + i: italic text.
+* ctrl + k: make link.
 
 ## Sync - backup
 
@@ -220,9 +223,15 @@ Since it's normal file system files, you can use any sync mechanism to sync your
 
 ### Mobile
 
-I'm working on a lightweight mobile app to list and modify the notes.
-For now you can use an mobile editor app with a syncing app as a workaround.
-I use syncthing for this.
+Since pervane works with files, you can sync your files with your favorite sync
+tool which can be let's say syncthing. You can easily use any markdown editor from the store and show your sync location for your edits.
+
+For iOS, there is no syncthing so I recommend going for something like 
+nextcloud, google drive or dropbox etc option with an offline markdown editor.
+
+eg. I really like this one for android:
+(Markor: Markdown Editor - todo.txt - Notes Offline)
+https://play.google.com/store/apps/details?id=net.gsantner.markor
 
 ### Testimonials
 
@@ -311,7 +320,10 @@ Tried to keep the code as simple as possible since I need to take notes today.
 * ~~Image uploads~~
 * ~~Image previews in the folders~~
 * Embeded pdf reader 
-* Inline images in the same directory
+* ~~Inline images in the same directory~~
+* ~~File browser~~
+* ~~Cloud IDE features for code editing and highlighting~~
+* ~~Tabbed view~~
 
 ## Keep the engine running
 
