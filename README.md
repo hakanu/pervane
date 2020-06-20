@@ -30,7 +30,6 @@ For the other note taking and knowledge base building apps, there is always some
 * No added metadata files etc. Just globs your files, caches for N seconds and creates the file tree.
 * Source of truth is your own file system so you can use your favorite markdown editor to modify your notes: QOwnNotes, VSCode, Sublime Text etc.
 * Ignore some files in order not to be shown on the sidebar.
-* Single python file.
 * Flask based server, totally hackable, just modify, it's all yours.
 * Minimal dependencies, single binary.
 * Uses [silver searcher (ag)](https://github.com/ggreer/the_silver_searcher) for searching in an instant throughout the whole folder.
