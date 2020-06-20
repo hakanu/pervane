@@ -90,7 +90,7 @@ parser.add_argument(
     '--ignore_patterns', dest='ignore_patterns', nargs='*',
     default=['env/.*', '.git', '.*.swp', '.*.pyc', '__pycache__', '.allmark',
              '_vnote.json', '!!!meta.json', 'PaxHeader', '.nojekyll',
-             '.*.sqlite'],
+             '.*.sqlite', '.*.plist'],
     help='Ignored file patterns during file tree creation.')
 parser.add_argument(
     '--note_extensions', dest='note_extensions', nargs='*',
