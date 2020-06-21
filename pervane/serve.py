@@ -70,9 +70,11 @@ def _str2bool(v):
     raise argparse.ArgumentTypeError('Boolean value expected.')
 
 parser = argparse.ArgumentParser(description='Process input from user.')
-parser.add_argument('--host', dest='host', default='0.0.0.0',
+parser.add_argument('--host', dest='host',
+                    default=os.environ.get('PERVANE_HOST', '0.0.0.0'),
                     help='hostname to be binded')
-parser.add_argument('--port', dest='port', default='5000',
+parser.add_argument('--port', dest='port',
+                    default=os.environ.get('PERVANE_PORT', '5000'),
                     help='port to be binded')
 parser.add_argument('--dir', dest='root_dir',
                     default=os.environ.get('PERVANE_HOME', './'),
@@ -80,6 +82,10 @@ parser.add_argument('--dir', dest='root_dir',
                          'PERVANE_HOME environment variable is '
                           'set and --dir is not provided, PERVANE_HOME is '
                           'used.')
+parser.add_argument('--config_dir', dest='config_dir',
+                    default=os.environ.get('PERVANE_CONFIG_HOME',
+                    os.path.join(str(pathlib.Path.home()), '.pervane')),
+                    help='config dir help')
 parser.add_argument('--username', dest='username', default=None,
                     help='This is deprecated, please use cookie based login.')
 parser.add_argument('--password', dest='password', default=None,
@@ -102,10 +108,12 @@ parser.add_argument(
     default='Welcome to Pervane! This is default welcome message.',
     help='Cache the sidebar file tree creation.')
 parser.add_argument(
-    '--allow_multi_user', type=_str2bool, dest='allow_multi_user', default=False,
+    '--allow_multi_user', type=_str2bool, dest='allow_multi_user',
+    default=os.environ.get('PERVANE_ALLOW_MULTI_USER', 'False'),
     help='Should pervane allow multiple users to see the same notes? Be careful.')
 parser.add_argument(
-    '--debug', type=_str2bool, dest='debug', default=False,
+    '--debug', type=_str2bool, dest='debug',
+    default=os.environ.get('PERVANE_DEBUG', 'False'),
     help='Show debug logs')
 parser.add_argument(
     '--version', action='store_true', dest='version', default=False,
@@ -131,7 +139,7 @@ if args.username or args.password:
 # We should always work with absolute path in order not to cause security issues
 _WORKING_DIR = os.path.abspath(args.root_dir)
 # Platform independent way of obtaining home folder.
-_PERVANE_CONFIG_DIR = os.path.join(str(pathlib.Path.home()), '.pervane')
+_PERVANE_CONFIG_DIR = os.path.abspath(args.config_dir)
 logging.info('config dir: ', _PERVANE_CONFIG_DIR)
 if not os.path.exists(_PERVANE_CONFIG_DIR):
   logging.info('Pervane config dir does not exist, creating at %s',
@@ -422,8 +430,7 @@ def _get_new_node_name(new_node_name):
   A triplet of a file name, a directory name, and an error is returned. In this
   triplet, either the file name, directory name, or error is present. If there
   is no '/' in the given node name, it is considered as a file. If there is no
-  extension in the file name, '.md' is appended to it. If extension is present,
-  it must be an allowed extension, which is specified by args.note_extensions.
+  extension in the file name, '.md' is appended to it.
 
   An error is returned if node node is missing, or the parsed directory or file
   name is equal to '.' or '..', or the file name contains an invalid extension.

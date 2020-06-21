@@ -248,13 +248,13 @@ They total around 324 directories, 1579 files
 ## Options
 
 * `--dir`: Note root directory. File tree will be generated from this. If `PERVANE_HOME` environment variable is set and --dir is not provided, `PERVANE_HOME` is used.
-* `--host`: defaults to 0.0.0.0. Hostname to be binded.
-* `--port`: defaults to 5000. Port number to be binded.
+* `--host`: defaults to 0.0.0.0. Hostname to be binded. If `PERVANE_HOST` environment variable is set and --host is not provided, `PERVANE_HOST` is used.
+* `--port`: defaults to 5000. Port number to be binded. If `PERVANE_PORT` environment variable is set and --port is not provided, `PERVANE_PORT` is used.
 * `--username`: DEPRECATED. Authentication is now based on cookie based login. defaults to 'hakuna'. Username for basic http auth.
 * `--password`: DEPRECATED. Authentication is now based on cookie based login. defaults to 'matata'. Username for basic http auth.
 * `--front_page_message`: / message.
 * `--cache_seconds`: Seconds to bust the cache. Mainly used for file tree re-reading.
-* `--debug`: Enable more verbose logging.
+* `--debug`: Enable more verbose logging. If `PERVANE_DEBUG` environment variable is set and --debug is not provided, `PERVANE_DEBUG` is used.
 * `--version`: Show version.
 
 ## Migration paths
