@@ -85,7 +85,7 @@ parser.add_argument('--dir', dest='root_dir',
 parser.add_argument('--config_dir', dest='config_dir',
                     default=os.environ.get('PERVANE_CONFIG_HOME',
                     os.path.join(str(pathlib.Path.home()), '.pervane')),
-                    help='config dir help')
+                    help='Directory to keep internal files of pervane.')
 parser.add_argument('--username', dest='username', default=None,
                     help='This is deprecated, please use cookie based login.')
 parser.add_argument('--password', dest='password', default=None,
