@@ -4,6 +4,7 @@ Flask-HTTPAuth
 Flask-User
 Flask-BabelEx
 Flask-Login
+Flask-SQLAlchemy
 jinja2
 email_validator
 atomicfile

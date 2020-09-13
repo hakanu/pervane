@@ -352,7 +352,7 @@
         <div class="modal-body">
           <header>
             <h5>Enabled Features</h5>
-            <sub>You need to refresh the page for settings to be effective</sub>
+            <sub>You need to refresh the page for settings to be effective.</sub>
             <div class="form-check">
               <input class="form-check-input" type="checkbox" value="" 
                      id="settings-katex" 
@@ -410,6 +410,13 @@
                      v-model="settingsWatchChecked"
                      @change="saveSettings($event, 'settingsWatch')">
               <label class="form-check-label" for="settings-watch">Show Markdown Preview?</label>
+              <br>
+              
+              <input class="form-check-input" type="checkbox" value="" 
+                     id="settings-render-html-tags"
+                     v-model="settingsRenderHtmlTags"
+                     @change="saveSettings($event, 'settingsRenderHtmlTags')">
+              <label class="form-check-label" for="settings-render-html-tags">Render HTML tags in Markdown</label>
               <br>
             </div>
 
@@ -987,6 +994,7 @@
                 theme: (localStorage.theme) ? localStorage.theme : 'dark',
                 previewTheme: (localStorage.previewTheme) ? localStorage.previewTheme : 'dark',
                 editorTheme: (localStorage.editorTheme) ? localStorage.editorTheme : "pastel-on-dark",
+                htmlDecode : (localStorage.settingsRenderHtmlTags) ? "style,script,iframe|on*" : false,  // Enable HTML tag parsing. For security, it is not enabled by default
                 markdown: data.content,
                 value: '',
                 path: '/static/js/lib/',  // Autoload modules mode.
@@ -1247,6 +1255,7 @@
       settingsEmojiChecked: localStorage.settingsEmoji ? localStorage.settingsEmoji == '1' : '1',
       settingsToolbarChecked: localStorage.settingsToolbar ? localStorage.settingsToolbar == '1' : '1',
       settingsWatchChecked: localStorage.settingsWatch ? localStorage.settingsWatch == '1' : '1',
+      settingsRenderHtmlTags: localStorage.settingsRenderHtmlTags ? localStorage.settingsRenderHtmlTags == '1' : '1',
       
       // Theme settings.
       selectedGeneralTheme: (
