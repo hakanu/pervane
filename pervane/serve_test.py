@@ -2,6 +2,7 @@ import unittest
 import serve
 import argparse
 
+
 class ServeTest(unittest.TestCase):
     def test_str2bool(self):
         self.assertTrue(serve._str2bool('True'))
@@ -72,5 +73,3 @@ class ServeTest(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-
-        
