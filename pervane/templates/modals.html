@@ -1,0 +1,248 @@
+{% raw %}
+<!-- Define modals -->
+<!-- New folder/file Modal -->
+<div class="modal fade" id="nodeModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLongTitle">Create new node</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>Put / at the end if you want to create a directory. Otherwise we append a .md suffix for you.</p>
+        <div class="input-group mb-3">
+          <div class="input-group-prepend">
+            <span id="modal-input-prefix" class="input-group-text">
+              {{ newNodeParentPath }}
+            </span>
+          </div>
+          <input id="modal-input-new-node-name" type="text" 
+                  name="new_node_name" v-model="newNodeName" 
+                  class="form-control" placeholder="Type new node's name"
+                  v-on:keyup.enter="addNode(newNodeName, newNodeParentPath)">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+          Close
+        </button>
+        <button type="button" class="btn btn-primary" 
+                @click="addNode(newNodeName, newNodeParentPath)">
+          Add node
+        </button>
+      </div>
+    </div>
+  </div>
+</div> <!-- / new node modal -->
+
+<!-- Shortcuts Modal -->
+<div class="modal fade" id="shortcuts-modal" tabindex="-1" role="dialog" 
+      aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel2">
+          Keyboard Shortcuts
+        </h5>
+        <button type="button" class="close" data-dismiss="modal"
+                aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>New note: <span><b>alt + n</b></span></p>
+        <p>Save: <span><b>alt + s</b> or <b>save + s</b></span></p>
+        <p>Quick search: <span><b>alt + g</b></span></p>
+        <p>Hide/Show sidebar: <span><b>alt + h</b></span></p>
+        <p>Bold text: <span><b>ctrl + b</b></span></p>
+        <p>Italic text: <span><b>ctrl + i</b></span></p>
+        <p>Convert text to link: <span><b>ctrl + k</b></span></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div> <!--  /shortcuts modal -->
+
+<!-- Update Modal -->
+<div class="modal fade" id="update-modal" tabindex="-1" role="dialog" 
+      aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel2">
+          Pervane needs to be updated 
+        </h5>
+        <button type="button" class="close" data-dismiss="modal"
+                aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>This version of Pervane installed in your PC is outdated.</p>
+        <p>In order to use the most secure version, you should install the latest version with this command easily</p>
+        <pre>pip install --upgrade pervane</pre>
+        <p>
+          <a href="https://pypi.org/project/pervane" target="_blank">
+            Pervane @ Pypi
+          </a>
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div> <!--  /update modal -->
+
+<!-- Settings Modal -->
+<div class="modal fade" id="settings-modal" tabindex="-1" role="dialog" 
+      aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Settings</h5>
+        <button type="button" class="close" data-dismiss="modal" 
+                aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <header>
+          <h5>Enabled Features</h5>
+          <sub>You need to refresh the page for settings to be effective.</sub>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" value="" 
+                    id="settings-katex" 
+                    v-model="settingsKatexChecked"
+                    @change="saveSettings($event, 'settingsKatex')">
+            <label class="form-check-label" for="settings-katex">TEX / KaTEX</label>
+            <br>
+
+            <input class="form-check-input" type="checkbox" value="" 
+                    id="settings-charts"
+                    v-model="settingsChartsChecked"
+                    @change="saveSettings($event, 'settingsCharts')">
+            <label class="form-check-label" for="settings-charts">Charts</label>
+            <br>
+
+            <input class="form-check-input" type="checkbox" value="" 
+                    id="settings-task-lists"
+                    v-model="settingsTaskListsChecked"
+                    @change="saveSettings($event, 'settingsTaskLists')">
+
+            <label class="form-check-label" for="settings-task-lists">Task Lists</label>
+            <br>
+
+            <input class="form-check-input" type="checkbox" value="" 
+                    id="settings-sequences"
+                    v-model="settingsSequencesChecked"
+                    @change="saveSettings($event, 'settingsSequences')">
+
+            <label class="form-check-label" for="settings-sequences">Sequence diagrams</label>
+            <br>
+
+            <input class="form-check-input" type="checkbox" value="" 
+                    id="settings-code-folding"
+                    v-model="settingsCodeFoldingChecked"
+                    @change="saveSettings($event, 'settingsCodeFolding')">
+            <label class="form-check-label" for="settings-code-folding">Code folding</label>
+            <br>
+
+            <input class="form-check-input" type="checkbox" value="" 
+                    id="settings-emoji"
+                    v-model="settingsEmojiChecked"
+                    @change="saveSettings($event, 'settingsEmoji')">
+            <label class="form-check-label" for="settings-emoji">Emoji rendering</label>
+            <br>
+
+            <input class="form-check-input" type="checkbox" value="" 
+                    id="settings-toolbar"
+                    v-model="settingsToolbarChecked"
+                    @change="saveSettings($event, 'settingsToolbar')">
+            <label class="form-check-label" for="settings-toolbar">Show WYSIWYG toolbar?</label>
+            <br>
+
+            <input class="form-check-input" type="checkbox" value="" 
+                    id="settings-watch"
+                    v-model="settingsWatchChecked"
+                    @change="saveSettings($event, 'settingsWatch')">
+            <label class="form-check-label" for="settings-watch">Show Markdown Preview?</label>
+            <br>
+            
+            <input class="form-check-input" type="checkbox" value="" 
+                    id="settings-render-html-tags"
+                    v-model="settingsRenderHtmlTags"
+                    @change="saveSettings($event, 'settingsRenderHtmlTags')">
+            <label class="form-check-label" for="settings-render-html-tags">Render HTML tags in Markdown</label>
+            <br>
+          </div>
+
+          <h5>Themes</h5>
+          <div class="form-group">
+            <label for="editormd-theme-select">General Theme</label>
+            <select class="form-control" id="editormd-theme-select" 
+                    @change="themeSelected('theme', selectedGeneralTheme)"
+                    v-model="selectedGeneralTheme"
+                    >
+              <option v-for="theme in generalThemes" 
+                      :value="theme">{{ theme }}</option>
+            </select><br>
+            <label for="editor-area-theme-select">Editor Theme</label>
+            <select class="form-control" id="editor-area-theme-select"
+                    @change="themeSelected('editorTheme', selectedEditorTheme)"
+                    v-model="selectedEditorTheme"
+                    >
+              <option v-for="theme in editorThemes" 
+                      :value="theme">{{ theme }}</option>
+            </select><br>
+            <label for="preview-area-theme-select">Preview Theme</label>
+            <select class="form-control" id="preview-area-theme-select"
+                    @change="themeSelected('previewTheme', selectedPreviewTheme)"
+                    v-model="selectedPreviewTheme"
+                    >
+              <option v-for="theme in previewThemes" 
+                      :value="theme">{{ theme }}</option>
+            </select><br>
+          </div>
+
+          <div class="form-group">
+            <label for="settings-sidebar-background-color">
+              Sidebar background color (either hex with # or human readable CSS color)
+            </label>
+            <input type="text" class="form-control" 
+                    id="settings-sidebar-background-color"
+                    v-model="settingsSidebarBackgroundColor"
+                    v-on:change="saveColor('settingsSidebarBackgroundColor', settingsSidebarBackgroundColor)"
+                    >
+          </div>
+
+          <div class="form-group">
+            <label for="settings-body-background-color">
+              Body background color (either hex with # or human readable CSS color)
+            </label>
+            <input type="text" class="form-control" 
+                    id="settings-body-background-color"
+                    v-model="settingsBodyBackgroundColor"
+                    v-on:change="saveColor('settingsBodyBackgroundColor', settingsBodyBackgroundColor)"
+                    >
+          </div>
+
+        </header>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div> <!-- /settings modal -->
+{% endraw %}

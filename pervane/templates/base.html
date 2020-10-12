@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  {% include "head.html" %}
+</head>
+
+<body>
+  <div class="d-flex" v-bind:style="rootStyle" id="wrapper">
+    <!-- Settings, new file creation modal etc -->
+    {% include "modals.html" %}
+
+    {% include "sidebar.html" %} 
+
+    <!-- Page Content -->
+    <div id="page-content-wrapper">
+      <!-- {% include "navbar.html"%} -->
+
+      <div class="container-fluid">
+        {% block content %}
+          
+        {% endblock %}
+        {% include "footer.html" %}
+      </div>
+
+    </div>
+    <!-- /#page-content-wrapper -->
+
+  </div>
+</body>
+
+{% include "js.html" %}
+
+</html>

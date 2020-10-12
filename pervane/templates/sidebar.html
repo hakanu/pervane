@@ -1,0 +1,51 @@
+<!-- Sidebar -->
+{% raw %}
+<div class="border-right" id="sidebar-wrapper" v-if="showSidebar" v-bind:style="sidebarStyle">
+
+  <div class="sidebar-heading">
+    <a href="/">Pervane</a>
+  </div>
+  <div class="">
+    <span>
+      <form class="" @submit.prevent="initSearch">
+        <input class="search form-control" type="text" name="query"
+              v-model="query"
+              placeholder="Search all notes"
+              aria-label="Search">
+      </form>
+    </span>
+  </div>
+  <br>
+
+  <div class="">
+    <span>
+      <input class="search form-control" id="search-field" 
+              placeholder="Quick search (alt + g)" @input="doQuickSearch"
+              v-model="quickSearchQuery" />
+    </span>
+  </div>
+
+  <!-- Quick search results -->
+  <div class="list-group list-group-flush">
+    <a v-for="quickResult in quickResults" 
+        class="list-group-item list-group-item-action bg-light">
+      <router-link :to="'/n/' + encodeURIComponent(quickResult.target)">
+        [{{quickResult.score}}]: {{ quickResult.target }}
+      </router-link>
+    </a>
+  </div>
+
+  <!-- File tree for real -->
+  <div class="list-group list-group-flush sidebar">
+    <ul id="root-ul" class="">
+      <tree-item
+        class="item"
+        :item="treeData"
+        @add-item="addItem"
+        @open-dir="openDir"
+      ></tree-item>
+    </ul>
+  </div>
+</div>
+<!-- /#sidebar-wrapper -->
+{% endraw %}

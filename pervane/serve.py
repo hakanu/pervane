@@ -472,6 +472,11 @@ def _failure_json(err):
   return jsonify({'result' : err})
 
 
+@app.context_processor
+def inject_dict_for_all_templates():
+  return dict(
+      logged_in_user=current_user)
+
 
 @app.route('/api/check_updates')
 @login_required
@@ -488,7 +493,7 @@ def front_page_handler():
     os.mkdir(root_dir)
     
   return render_template(
-      'index_vue.html', tree=make_tree(root_dir),
+      'index.html', tree=make_tree(root_dir),
       html_content=args.front_page_message,
       note_extensions=args.note_extensions,
       mime_type='',
