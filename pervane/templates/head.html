@@ -1,29 +1,4 @@
-<script>
-  console.log('Starting with debug mode: {{debug}}')
-  {% if not debug %}
-    var console = {};
-    console.log = function(){};
-  {% endif %}
 
-  var values = [];
-  var pathToInitEditor = '';
-  {% if file_paths_flat %}
-  values = {{ file_paths_flat | safe }};
-  {% endif %}
-
-  {% if (md_content or md != '') and path and not mime_type.startswith('image/') %}
-    pathToInitEditor = '{{path}}';
-  {% endif %}
-
-  var rootDirPath = "{{ tree.path|replace(working_dir, '')}}";
-
-  // Search page related vars to be passed down to vue.js
-  // TODO(hakanu): These are dynamically fetched, not needed any more.
-  var searchResults = {{ search_results|safe if search_results else [] }};
-  var searchQuery = '{{ query if query else '' }}';
-  var searchStats = '{{ stats if stats else ''}}';
-  var tree = {{tree|safe}};
-</script>
 
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -53,10 +28,13 @@
 <meta property="al:android:app_name" content="" />
 <meta name="author" content="hi@hakanu.net">
 <link rel="shortcut icon" href=""/>
-<!--<link rel="stylesheet" href="https://bootswatch.com/4/journal/bootstrap.css" crossorigin="anonymous">-->
-<link rel="stylesheet" href="https://bootswatch.com/4/sandstone/bootstrap.css" crossorigin="anonymous">
-<link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
-<link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.10.0/css/lightbox.min.css" rel="stylesheet">
+
+<!-- Themes are from bootswatch.com -->
+<link rel="stylesheet" href="/static/css/bootswatch.darkly.css" crossorigin="anonymous">
+<!-- fa 4.7.0 -->
+<link href="/static/css/font-awesome.min.css" rel="stylesheet">
+<!-- lightbox 2.10.0 -->
+<link href="/static/css/lightbox.min.css" rel="stylesheet">
 
 <link rel="apple-touch-icon" sizes="180x180" href="static/img/favicon/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="static/img/favicon/favicon-32x32.png">
@@ -71,6 +49,34 @@
 
 <script src="/static/js/vue.js"></script>
 <script src="/static/js/vue-router.js"></script>
+
+
+<script>
+  console.log('Starting with debug mode: {{debug}}')
+  {% if not debug %}
+    var console = {};
+    console.log = function(){};
+  {% endif %}
+
+  var values = [];
+  var pathToInitEditor = '';
+  {% if file_paths_flat %}
+  values = {{ file_paths_flat | safe }};
+  {% endif %}
+
+  {% if (md_content or md != '') and path and not mime_type.startswith('image/') %}
+    pathToInitEditor = '{{path}}';
+  {% endif %}
+
+  var rootDirPath = "{{ tree.path|replace(working_dir, '')}}";
+
+  // Search page related vars to be passed down to vue.js
+  // TODO(hakanu): These are dynamically fetched, not needed any more.
+  var searchResults = {{ search_results|safe if search_results else [] }};
+  var searchQuery = '{{ query if query else '' }}';
+  var searchStats = '{{ stats if stats else ''}}';
+  var tree = {{tree|safe}};
+</script>
 
 {% raw %}
 <!-- item template -->

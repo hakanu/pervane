@@ -1,33 +1,45 @@
 <hr>
 <footer class="text-muted div-footer">
 	<div class="container">
-    <p>Simple offline private note taking app</p>
-		<ul>
-			<li><a href="https://reddit.com/r/pervane" target="_blank">Feedback</a></li>
-			<li><a href="https://github.com/hakanu/pervane" target="_blank">Contribute</a></li>
-			<li><a href="mailto:hi@hakanu.net" target="_blank">Email</a></li>
-		</ul>
-		{% if logged_in_user %}
-			<ul>
-				<li>
-					<a href="/u/{{logged_in_user.username}}" target="_blank">
-						logged in as {{logged_in_user.username}} 
-					<a>
-				</li>
-				<li>
-          <a href="/user/log-out" target="_blank">
-            Log out
-					<a>
-				</li>
-			</ul>
-		{% else %}
-			<ul>
-				<li>
-          <a href="/user/sign-in" target="_blank">
-            Sign in
-					<a>
-				</li>
-			</ul>
-		{% endif %}
+		<div class="row">
+			<div class="col-md-12">
+				<p>Simple offline private note taking app</p>
+			</div>
+		</div>
+
+		<div class="row">
+			<div class="col-md-4">
+				<ul>
+					<li><a href="https://reddit.com/r/pervane" target="_blank">Feedback</a></li>
+					<li><a href="https://github.com/hakanu/pervane" target="_blank">Contribute</a></li>
+					<li><a href="mailto:hi@hakanu.net" target="_blank">Email</a></li>
+				</ul>
+			</div>
+
+			<div class="col-md-4">
+				{% if logged_in_user %}
+					<ul>
+						<li>
+							<a href="/" target="_blank">
+								Logged in as {{logged_in_user.username}} 
+							<a>
+						</li>
+						<li>
+							<a href="/user/log-out" target="_blank">
+								Log out
+							<a>
+						</li>
+					</ul>
+				{% else %}
+					<ul>
+						<li>
+							<a href="/user/sign-in" target="_blank">
+								Sign in
+							<a>
+						</li>
+					</ul>
+				{% endif %}
+			</div>
+		</div>
 	</div>
 </footer>

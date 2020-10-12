@@ -178,3 +178,18 @@ font-size: 15px;
 #root-ul {
     padding-left: 0em;
 }
+
+.nav-link {
+  font-size: small;
+}
+
+.item {
+  cursor: pointer;
+  font-size: small;
+}
+
+/* I see 15px wasted :P */
+.col-md-12 {
+  padding-left: 0px;
+  padding-right: 0px;
+}

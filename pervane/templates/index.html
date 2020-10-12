@@ -12,7 +12,7 @@
             <span>
               <a href="#" alt="Toggle sidebar" @click="showSidebar = !showSidebar"
                 style="font-size: 20px; font-style: bold; padding-right:15px;"> 
-                <span v-if="showSidebar">« Tree</span>
+                <span v-if="showSidebar" style="font-size: small;">« Tree</span>
                 <span v-else>»</span>
               </a>
             </span>
@@ -27,44 +27,7 @@
           </ul> <!-- /tab headers -->
         </div> <!-- /tab headers -->
 
-        <!-- Save/settings/shortcuts/upload -->
-        <div class="float-right">
-          <span v-if="$route.params.path.endsWith('.md')">
-            <button
-                class="btn btn-large" 
-                @click="saveContent($route.params.path, editor.getMarkdown())">
-              <i class="large-font fa fa-floppy-o" aria-hidden="true"></i>
-            </button>
-          </span>
 
-          <!-- If it's not markdown, check if it's a code file -->
-          <span v-else>
-            <button
-                class="btn btn-large" 
-                v-if="!($route.params.path.endsWith('.jpg') ||  $route.params.path.endsWith('.mp4') || $route.params.path.endsWith('.png') || $route.params.path.endsWith('.jpeg'))"
-                @click="saveContent($route.params.path, codeEditor.getValue())">
-              <i class="large-font fa fa-floppy-o" aria-hidden="true"></i>
-            </button>
-          </span>
-
-          <span>
-            <button class="btn btn-large" 
-                href="#" data-toggle="modal" @click="showShortcutsModal()" title="Shortcuts">
-              <i class="large-font fa fa-keyboard-o" aria-hidden="true"></i>
-            </button>
-          </span>
-
-          <span>
-            <button class="btn btn-large fileinput-button" alt="Upload file"><i class="fa fa-upload" aria-hidden="true"></i></button>
-          </span>
-
-          <span>
-            <button class="btn btn-large" 
-              href="#" data-toggle="modal" @click="showSettingsModal()" title="Settings">
-              <i class="large-font fa fa-gear" aria-hidden="true"></i>
-            </button>
-          </span>
-        </div> <!-- /float-right -->
 
 
         <div class="tab-content" id="myTabContent">
@@ -79,6 +42,7 @@
           </div>
         </div> <!-- myTabContent -->
       </div> <!-- /col-md-12 -->
+
     </div>
   </div>  
 </div>

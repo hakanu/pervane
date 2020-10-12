@@ -4,7 +4,8 @@
 <script src="/static/js/editormd.js"></script>
 <script src="/static/js/en.js"></script>
 <script src="/static/js/fuzzysort.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.5.3/umd/popper.min.js" integrity="sha512-53CQcu9ciJDlqhK7UD8dZZ+TF2PFGZrOngEYM/8qucuQba+a+BXOIRsp9PoMNJI3ZeLMVNIxIfZLbG/CdHI5PA==" crossorigin="anonymous"></script>
+<!-- popper 2.5.3 -->
+<script src="/static/js/popper.min.js"></script>
 
 <!-- Drag Drop upload -->
 <script>
@@ -767,11 +768,11 @@
       settingsBodyBackgroundColor: (
         (localStorage.settingsBodyBackgroundColor) ? 
         localStorage.settingsBodyBackgroundColor :
-         '#272822'),
+         '#373831'),
       settingsSidebarBackgroundColor: (
         (localStorage.settingsSidebarBackgroundColor) ? 
         localStorage.settingsSidebarBackgroundColor:
-         '#272822'),
+         '#373831'),
     },
     created: function() {
       let self = this
