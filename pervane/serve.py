@@ -865,6 +865,7 @@ def static_file_handler(file_path):
   return send_from_directory(_get_root_dir(), file_path)
 
 
+# TODO(hakanu): Slowly get rid of this in favor of production gunicorn.
 def cli_main():
   """Used within the python package cli."""
   app.run(host=args.host, port=args.port, debug=args.debug)

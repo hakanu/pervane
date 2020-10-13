@@ -8,3 +8,4 @@ Flask-SQLAlchemy
 jinja2
 email_validator
 atomicfile
+gunicorn

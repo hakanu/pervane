@@ -23,6 +23,7 @@ setuptools.setup(
         "Flask-User>=1.0.2.2",
         "email_validator>=1.1.1",
         "atomicfile>=1.0.1",
+        "gunicorn>=20.0.4",
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
@@ -31,6 +32,6 @@ setuptools.setup(
     ],
     python_requires='>=3',
     #scripts=['bin/pervane'],
-    entry_points={"console_scripts": ["pervane = pervane.cli:main"]},
+    entry_points={"console_scripts": ["pervane = pervane.prod:main"]},
     include_package_data=True,
 )
