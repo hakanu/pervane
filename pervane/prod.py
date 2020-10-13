@@ -1,5 +1,4 @@
-from serve import app
-from serve import args
+from pervane import serve
 import multiprocessing
 import gunicorn.app.base
 
@@ -27,10 +26,10 @@ class StandaloneApplication(gunicorn.app.base.BaseApplication):
 
 def main(as_module=False):
   options = {
-      'bind': '%s:%s' % (args.host, args.port),
+      'bind': '%s:%s' % (serve.args.host, serve.args.port),
       'workers': number_of_workers(),
   }
-  StandaloneApplication(app, options).run()
+  StandaloneApplication(serve.app, options).run()
 
 if __name__ == '__main__':
   cli_main()
