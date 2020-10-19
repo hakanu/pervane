@@ -179,8 +179,13 @@ font-size: 15px;
     padding-left: 0em;
 }
 
-.nav-link {
+.nav-link{
   font-size: small;
+}
+
+.nav-link.active {
+  border: 2px solid red;
+  border-radius: 5px;
 }
 
 .item {
