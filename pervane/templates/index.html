@@ -23,12 +23,12 @@
                 {{ openTabHeader|shortenTabName }}
               </router-link>
             </li>
-            
+
+            <li class="nav-item">
+              <button class="close closeTab" type="button" @click="addItem({path: '/'})">+</button>
+            </li>
           </ul> <!-- /tab headers -->
         </div> <!-- /tab headers -->
-
-
-
 
         <div class="tab-content" id="myTabContent">
           <div class="tab-pane fade" id="profile" role="tabpanel" 
