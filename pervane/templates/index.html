@@ -19,8 +19,8 @@
             <li class="nav-item" v-for="openTabHeader in openTabHeaders">
               <button class="close closeTab" type="button" @click="closeTab(openTabHeader)">×</button>
               <router-link v-bind:class="{'nav-link': true, 'active': openTabPath == openTabHeader}" 
-                :to="'/n/' + encodeURIComponent(openTabHeader)">
-                {{ openTabHeader}}
+                :to="'/n/' + encodeURIComponent(openTabHeader)" :title="openTabHeader">
+                {{ openTabHeader|shortenTabName }}
               </router-link>
             </li>
             

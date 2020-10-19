@@ -296,7 +296,7 @@
         this.updateOpenTabPathInLS(to.params.path)
         next()
       }
-    },
+    }, 
     created: function() {
       let self = this
       // Comes from prop through $route.
@@ -773,6 +773,11 @@
         (localStorage.settingsSidebarBackgroundColor) ? 
         localStorage.settingsSidebarBackgroundColor:
          '#373831'),
+    },
+    filters: {
+      shortenTabName: function(value) {
+        return value.substring(value.lastIndexOf('/')+1, value.length)
+      }
     },
     created: function() {
       let self = this

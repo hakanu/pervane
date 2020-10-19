@@ -193,3 +193,18 @@ font-size: 15px;
   padding-left: 0px;
   padding-right: 0px;
 }
+
+
+.nav-tabs > li .close {
+  /* margin: -2px 0 0 10px; */
+  margin: 10px;
+  font-size: 18px;
+}
+
+.nav-tabs > li {
+  margin: 5px;
+}
+
+.nav-tabs > li:hover {
+  background-color: darkslategrey;
+}
