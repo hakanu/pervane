@@ -26,3 +26,5 @@ pervane/haku*
 # Old jinja templates.
 index_vue.jinja
 index.jinja
+
+.vscode

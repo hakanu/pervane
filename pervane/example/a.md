@@ -11,7 +11,6 @@ More content comes [here](test)
 - bullet 2
 - bullet 3
 
-<b>test</b
->
+<b>test</b>
 
 test

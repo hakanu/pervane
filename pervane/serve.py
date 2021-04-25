@@ -1,13 +1,14 @@
-"""Simple plain text based note taking app to serve and files
-with directory hierarchy.
+"""Simple plain text based note taking app to serve and files with hierarchy.
 
 # Dependencies:
 
 - Flask as python server.
+- Vue.js for UI (I'm not a js ninja so don't beat me up on that
 - Jinja2 for templating.
 - Bootstrap
 - A little jquery
 - Actually no more, transitioned to editor.md
+
    https://pandao.github.io/editor.md
 - highlight.js for simple code highlighting for non-md files.
 - dropzone.js for drag/drop uploads.
@@ -22,16 +23,16 @@ single file app, this was necessary.
 All dependencies in the template is imported from CDNs. So
 should be fairly fast and cached.
 
+Cookie based user login support is provided by Flask-User package using a sqlite
+db living in ~/.pervane folder (similar path for windows too.)
+
 # Init:
 virtualenv -p python3 env
 source env/bin/activate
-pip install flask markdown2 Flask-Caching Flask-HTTPAuth 
+pip3 install -r requirements.txt
 
 # Run simple:
-python3 serve.py 
-
-# Run flask way:
-export FLASK_APP=serve.py; export FLASK_ENV=development; flask run 
+python3 serve.py --dir=example/ --debug=true
 """
 import argparse
 import base64

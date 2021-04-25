@@ -403,6 +403,7 @@
           })  // end of fetch.
       },
       initEditor: function (data, path) {
+        console.log('loading editor')
         // There are 2 editors living all the time except initial load.
         // editor => General markdown editor
         // codeEditor => Code editor.
@@ -490,7 +491,7 @@
                 watch: (localStorage.settingsWatch) ? (localStorage.settingsWatch == '1'): true,
                 theme: (localStorage.theme) ? localStorage.theme : 'dark',
                 previewTheme: (localStorage.previewTheme) ? localStorage.previewTheme : 'dark',
-                editorTheme: (localStorage.editorTheme) ? localStorage.editorTheme : "pastel-on-dark",
+                editorTheme: (localStorage.editorTheme) ? localStorage.editorTheme : "monokai",
                 htmlDecode : (localStorage.settingsRenderHtmlTags) ? "style,script,iframe|on*" : false,  // Enable HTML tag parsing. For security, it is not enabled by default
                 markdown: data.content,
                 value: '',
@@ -567,6 +568,7 @@
         }
       },  // end of initEditor.
       loadPathInEditor: function(path) {
+        console.log('loadPathInEditor')
         self = this 
         if (path.endsWith('.jpg')
             || path.endsWith('.png')
@@ -806,17 +808,16 @@
 
       // alt + g focus on quick search, sublime text style.
       $(document).keydown(function (event) {
-        // 19 for Mac Command+S
         if (!(String.fromCharCode(event.which).toLowerCase() == 'g' && 
             event.altKey) && !(event.which == 19)) return true
         event.preventDefault()
-        $('#search-field').focus()
+        // $('#search-field').focus()
+        self.showQuickSeachResultsModal()
         return false
       })
 
       // alt + n create new note in the first level directory.
       $(document).keydown(function (event) {
-        // 19 for Mac Command+S
         if (!(String.fromCharCode(event.which).toLowerCase() == 'n' && 
             event.altKey) && !(event.which == 19)) return true
         event.preventDefault()
@@ -826,7 +827,6 @@
 
       // alt + h hide the sidebar.
       $(document).keydown(function (event) {
-        // 19 for Mac Command+S
         if (!(String.fromCharCode(event.which).toLowerCase() == 'h' && 
             event.altKey) && !(event.which == 19)) return true
         event.preventDefault()
@@ -970,6 +970,9 @@
       },
       showUpdateModal: function() {
         $('#update-modal').modal();
+      },
+      showQuickSeachResultsModal: function() {
+        $('#quick-seach-results-modal').modal();
       },
       addNode: function(newNodeName, newNodeParentPath) {
         $('#nodeModal').modal('hide')

@@ -31,7 +31,6 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     python_requires='>=3',
-    #scripts=['bin/pervane'],
     entry_points={"console_scripts": ["pervane = pervane.prod:main"]},
     include_package_data=True,
 )

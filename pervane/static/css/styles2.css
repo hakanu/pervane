@@ -213,3 +213,12 @@ font-size: 15px;
 .nav-tabs > li:hover {
   background-color: darkslategrey;
 }
+
+.editormd-preview, .editormd-preview-theme-dark, .markdown-body {
+  font-family: "PT Sans";
+}
+
+a {
+  color: lightgreen;
+  font-style: bold;
+}

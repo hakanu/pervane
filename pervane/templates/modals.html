@@ -245,4 +245,41 @@
     </div>
   </div>
 </div> <!-- /settings modal -->
+
+<!-- Quick Search Results Modal -->
+<div class="modal fade" id="quick-seach-results-modal" tabindex="-1" role="dialog" 
+      aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel2">
+          Quick fuzzy search by file name
+        </h5>
+        <button type="button" class="close" data-dismiss="modal"
+                aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <input class="search form-control" id="search-field" 
+                placeholder="Quick search (alt + g)" @input="doQuickSearch"
+                v-model="quickSearchQuery" />
+        <div class="list-group list-group-flush">
+          <a v-for="quickResult in quickResults" 
+              class="list-group-item list-group-item-action bg-dark">
+            <router-link :to="'/n/' + encodeURIComponent(quickResult.target)">
+              [{{quickResult.score}}]: {{ quickResult.target }}
+            </router-link>
+          </a>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div> <!--  /quick search results modal -->
+
 {% endraw %}

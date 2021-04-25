@@ -61,22 +61,26 @@
   <br>
 
   <div class="">
-    <span>
+    <!-- <span>
       <input class="search form-control" id="search-field" 
               placeholder="Quick search (alt + g)" @input="doQuickSearch"
               v-model="quickSearchQuery" />
+    </span> -->
+    <span>
+      <input class="search form-control" id="search-field" 
+              placeholder="Quick search (alt + g)" @click="showQuickSeachResultsModal()" />
     </span>
   </div>
 
   <!-- Quick search results -->
-  <div class="list-group list-group-flush">
+  <!-- <div class="list-group list-group-flush">
     <a v-for="quickResult in quickResults" 
         class="list-group-item list-group-item-action bg-light">
       <router-link :to="'/n/' + encodeURIComponent(quickResult.target)">
         [{{quickResult.score}}]: {{ quickResult.target }}
       </router-link>
     </a>
-  </div>
+  </div> -->
 
   <!-- File tree for real -->
   <div class="list-group list-group-flush sidebar">
