@@ -973,6 +973,9 @@
       },
       showQuickSeachResultsModal: function() {
         $('#quick-seach-results-modal').modal();
+        $('#quick-seach-results-modal').on('shown.bs.modal', function (e) {
+          $('#search-field').trigger('focus')
+        })
       },
       addNode: function(newNodeName, newNodeParentPath) {
         $('#nodeModal').modal('hide')
