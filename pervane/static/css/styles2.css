@@ -231,6 +231,8 @@ a {
 .editormd-preview-theme-dark .editormd-preview-container h4,
 .editormd-preview-theme-dark .editormd-preview-container h5,
 .editormd-preview-theme-dark .editormd-preview-container h6,
+.editormd-preview-theme-dark .editormd-preview-container ul,
+.editormd-preview-theme-dark .editormd-preview-container li,
   .editormd-preview-theme-dark .editormd-preview-container blockquote {
   color: white;
 }
