@@ -25,7 +25,7 @@ ChromeOS or mobile OS like Android and iOS.
 ## Features
 
 * Completely private, your files, your computer, no database, no installation
-  (apart from some general python packages).
+  (apart from some general python packages). There is no statistic collection through any medium. (I only check [pypi stats](https://pypistats.org/packages/pervane))
 * Self hosted (working on a managed version if anyone is interested, drop a messsage!)
 * Notes are stored as plain text files with the names given by yourself. Pervane
   doesn't rename automatically.
