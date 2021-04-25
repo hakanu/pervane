@@ -222,3 +222,19 @@ a {
   color: lightgreen;
   font-style: bold;
 }
+
+/* Tune the dark preview for more readability */
+.editormd-preview-theme-dark .editormd-preview-container p,
+.editormd-preview-theme-dark .editormd-preview-container h1,
+.editormd-preview-theme-dark .editormd-preview-container h2,
+.editormd-preview-theme-dark .editormd-preview-container h3,
+.editormd-preview-theme-dark .editormd-preview-container h4,
+.editormd-preview-theme-dark .editormd-preview-container h5,
+.editormd-preview-theme-dark .editormd-preview-container h6,
+  .editormd-preview-theme-dark .editormd-preview-container blockquote {
+  color: white;
+}
+
+.editormd-preview-theme-dark .editormd-preview-container a {
+  color: lightskyblue;
+}

@@ -1,4 +1,4 @@
-![](https://github.com/hakanu/pervane/raw/master/docs/pervane_logo_small.png)
+![](https://github.com/hakanu/pervane/wiki/general_look.png)
 
 # Pervane | [Demo](https://youtu.be/2WiFvcgV6lo) | [Install & Run](https://github.com/hakanu/pervane/wiki/Install-&-Run-instructions) | [Wiki](https://github.com/hakanu/pervane/wiki) | [Discuss](https://reddit.com/r/pervane/)
 
@@ -68,9 +68,9 @@ ChromeOS or mobile OS like Android and iOS.
 * Full screen Zen mode for writing.
 * Autosave.
 
-## Screenshot
+## [Screenshots](https://github.com/hakanu/pervane/wiki/Screenshots-Gallery)
 
-![Generel view of the app](https://github.com/hakanu/pervane/wiki/markdown.jpg)
+![Generel view of the app](https://github.com/hakanu/pervane/wiki/general_look.png)
 
 All of the screenshots and more video are located in [Pervane Wiki](https://github.com/hakanu/pervane/wiki).
 
