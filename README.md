@@ -70,7 +70,7 @@ ChromeOS or mobile OS like Android and iOS.
 
 ## [Screenshots](https://github.com/hakanu/pervane/wiki/Screenshots-Gallery)
 
-![Generel view of the app](https://github.com/hakanu/pervane/wiki/general_look.png)
+![Generel view of the app](https://github.com/hakanu/pervane/wiki/flow_chart.png)
 
 All of the screenshots and more video are located in [Pervane Wiki](https://github.com/hakanu/pervane/wiki).
 
