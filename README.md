@@ -95,6 +95,8 @@ for more installation options.
 
 ## Contribute
 
+Please and thank you :)
+
 ```shell
 # Init:
 git clone https://github.com/hakanu/pervane.git && cd pervane
@@ -107,7 +109,3 @@ pip install -r requirements.txt
 # Run
 python3 pervane/serve.py --debug=true
 ```
-
-## Keep the engine running
-
-https://www.buymeacoffee.com/haku
