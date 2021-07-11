@@ -603,14 +603,24 @@ class ZipAES(EncryptedFile):
             zf.setpassword(self.key)
             return zf.read(self._filename)
 
+
     def write_to(self, file_object, byte_data):
-        raise NotImplementedError
         # pyzipper appears to take file-like object or filename so should integrate with AtomicFile
+        if not hasattr(file_object, 'flush'):
+            def _flush_noop():
+                # Avoid; AttributeError: 'AtomicFile' object has no attribute 'flush'
+                # NOTE https://github.com/sashka/atomicfile-py is archived and not maintained
+                # Consider using https://github.com/untitaker/python-atomicwrites instead?
+                pass
+
+            file_object.flush = _flush_noop
+
         with pyzipper.AESZipFile(file_object,
                                  'w',
                                  compression=pyzipper.ZIP_LZMA,  # TODO revisit this
                                  encryption=pyzipper.WZ_AES,
-                                 nbits=256) as zf:
+                                 ) as zf:
+            # defaults to nbits=256 - TODO make explict?
             zf.setpassword(self.key)
             zf.writestr(self._filename, byte_data)  # pyzipper can take string or bytes
 
@@ -715,8 +725,11 @@ def api_update_handler():
       
     return jsonify({'result': 'success'})
   except Exception as e:
-    logging.error('There is an error while writing: %s. Error: %s', path, str(e))
+    logging.error('There is an error while writing: %s. Error: %s', path, str(e))  # this does not give enough information on server
+    logging.error('There is an error while writing: %s. Error: %r', path, e)
+    logging.error('There is an error while writing: %s.', path, exc_info=True)
     # Don't leak the absolute path.
+    # TODO errors not materelized to frontend, no idea failure occured :-(
     return _failure_json(('Writing %s failed' % requested_path))
 
 
