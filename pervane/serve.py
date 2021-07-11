@@ -562,10 +562,17 @@ def api_get_tree_handler():
   })
 
 
-# TODO sub-class
-# handle errors?
-import chi_io  # https://github.com/clach04/chi_io/
-import pyzipper  # https://github.com/danifus/pyzipper  NOTE py3 only
+# TODO handle errors? e.g. bad password, so can report/prompt for password with same exception
+# pickup from plugin directory? Would need a registration function (see file_type_handlers init below)
+try:
+    import chi_io  # https://github.com/clach04/chi_io/
+except ImportError:
+    chi_io = None
+
+try:
+    import pyzipper  # https://github.com/danifus/pyzipper  NOTE py3 only
+except ImportError:
+    pyzipper = None
 
 class EncryptedFile:
     def __init__(self, key=None, password=None, password_encoding='utf8'):
@@ -589,12 +596,14 @@ class EncryptedFile:
     def write_to(self, file_object, byte_data):
         raise NotImplementedError
 
+
 class TomboBlowfish(EncryptedFile):
     def read_from(self, full_pathname):
         return chi_io.read_encrypted_file(full_pathname, self.key)
 
     def write_to(self, file_object, byte_data):
         chi_io.write_encrypted_file(file_object, self.key, byte_data)
+
 
 class ZipAES(EncryptedFile):
     _filename = 'encrypted.md'
@@ -626,11 +635,17 @@ class ZipAES(EncryptedFile):
 
 
 # note uses file extension, check out the mime support already in place
-file_type_handlers = {
-    '.aes.zip': ZipAES,  # Zip file with AES-256 - Standard WinZip/7z (not the old ZipCrypto!)
-    '.aes256.zip': ZipAES,  # Zip file with AES-256 - Standard WinZip/7z (not the old ZipCrypto!)
-    '.chi': TomboBlowfish,  # created by http://tombo.osdn.jp/En/
-}
+file_type_handlers = {}
+if chi_io :
+    file_type_handlers['.chi'] = TomboBlowfish # created by http://tombo.osdn.jp/En/
+if pyzipper :
+    file_type_handlers['.aes.zip'] = ZipAES  # Zip file with AES-256 - Standard WinZip/7z (not the old ZipCrypto!)
+    file_type_handlers['.aes256.zip'] = ZipAES  # Zip file with AES-256 - Standard WinZip/7z (not the old ZipCrypto!)
+
+# Consider command line crypto (via pipe to avoid plaintext on disk)
+# TODO? openssl aes-128-cbc -in in_file -out out_file.aes128
+# TODO? openpgp
+
 def filename2handler(filename):
     filename = filename.lower()
     if filename.endswith('.aes256.zip'):
