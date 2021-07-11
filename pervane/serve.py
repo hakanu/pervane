@@ -686,7 +686,7 @@ def api_get_content_handler():
         'mod_time': mod_time
     })
   except Exception as e:
-    logging.error('There is an error while reading: %s. Error: %s', path, str(e))
+    logging.error('There is an error while writing: %s.', path, exc_info=True)
     # Don't leak the absolute path.
     # NOTE this error is not propagated to the client :-( https://github.com/hakanu/pervane/issues/152
     return _failure_json(('Reading %s failed' % requested_path))
