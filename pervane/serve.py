@@ -667,7 +667,6 @@ def api_update_handler():
 
 
   try:
-    # TODO implement encrypted write/update
     with AtomicFile(path, file_mode) as f:
       if handler_class:
           crypto_password = debug_get_password()
