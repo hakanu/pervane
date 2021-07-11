@@ -579,6 +579,12 @@ class TomboBlowfish:
 file_type_handlers = {
     '.chi': TomboBlowfish,  # created by http://tombo.osdn.jp/En/
 }
+def filename2handler(filename):
+    _dummy, file_extn = os.path.splitext(filename.lower())
+    handler_class = file_type_handlers.get(file_extn)
+    logging.error('clach04 DEBUG file_extn: %r', file_extn)
+    logging.error('clach04 DEBUG handler_class: %r', handler_class)
+    return handler_class
 
 @app.route('/api/get_content')
 @login_required
@@ -596,10 +602,7 @@ def api_get_content_handler():
   try:
     mod_time = _get_file_mod_time(path)
 
-    _dummy, file_extn = os.path.splitext(path.lower())
-    handler_class = file_type_handlers.get(file_extn)
-    logging.error('clach04 DEBUG file_extn: %r', file_extn)
-    logging.error('clach04 DEBUG handler_class: %r', handler_class)
+    handler_class = filename2handler(path)
     if handler_class:
         crypto_key = os.getenv('DEBUG_CRYPTO_KEY', 'test password')
         crypto_key = os.getenv('DEBUG_CRYPTO_KEY', 'test')
@@ -643,10 +646,7 @@ def api_update_handler():
   if err:
     return _failure_json(err)
 
-  _dummy, file_extn = os.path.splitext(path.lower())
-  handler_class = file_type_handlers.get(file_extn)
-  logging.error('clach04 DEBUG file_extn: %r', file_extn)
-  logging.error('clach04 DEBUG handler_class: %r', handler_class)
+  handler_class = filename2handler(path)
   if handler_class:
       file_mode = 'wb'
   else:
