@@ -565,7 +565,9 @@ def api_get_tree_handler():
 # TODO sub-class
 # handle errors?
 import chi_io  # https://github.com/clach04/chi_io/
-class TomboBlowfish:
+import pyzipper  # https://github.com/danifus/pyzipper  NOTE py3 only
+
+class EncryptedFile:
     def __init__(self, key=None, password=None, password_encoding='utf8'):
         """
         key - is the actual encryption key in bytes
@@ -582,17 +584,51 @@ class TomboBlowfish:
             self.key = key
 
     def read_from(self, full_pathname):
+        raise NotImplementedError
+
+    def write_to(self, file_object, byte_data):
+        raise NotImplementedError
+
+class TomboBlowfish(EncryptedFile):
+    def read_from(self, full_pathname):
         return chi_io.read_encrypted_file(full_pathname, self.key)
 
     def write_to(self, file_object, byte_data):
         chi_io.write_encrypted_file(file_object, self.key, byte_data)
 
+class ZipAES(EncryptedFile):
+    _filename = 'encrypted.md'
+    def read_from(self, full_pathname):
+        with pyzipper.AESZipFile(full_pathname) as zf:
+            zf.setpassword(self.key)
+            return zf.read(self._filename)
+
+    def write_to(self, file_object, byte_data):
+        raise NotImplementedError
+        # pyzipper appears to take file-like object or filename so should integrate with AtomicFile
+        with pyzipper.AESZipFile(file_object,
+                                 'w',
+                                 compression=pyzipper.ZIP_LZMA,  # TODO revisit this
+                                 encryption=pyzipper.WZ_AES,
+                                 nbits=256) as zf:
+            zf.setpassword(self.key)
+            zf.writestr(self._filename, byte_data)  # pyzipper can take string or bytes
+
+
 # note uses file extension, check out the mime support already in place
 file_type_handlers = {
+    '.aes.zip': ZipAES,  # Zip file with AES-256 - Standard WinZip/7z (not the old ZipCrypto!)
+    '.aes256.zip': ZipAES,  # Zip file with AES-256 - Standard WinZip/7z (not the old ZipCrypto!)
     '.chi': TomboBlowfish,  # created by http://tombo.osdn.jp/En/
 }
 def filename2handler(filename):
-    _dummy, file_extn = os.path.splitext(filename.lower())
+    filename = filename.lower()
+    if filename.endswith('.aes256.zip'):
+        file_extn = '.aes.zip'
+    elif filename.endswith('.aes.zip'):
+        file_extn = '.aes.zip'
+    else:
+        _dummy, file_extn = os.path.splitext(filename)
     handler_class = file_type_handlers.get(file_extn)
     logging.error('clach04 DEBUG file_extn: %r', file_extn)
     logging.error('clach04 DEBUG handler_class: %r', handler_class)
