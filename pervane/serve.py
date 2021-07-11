@@ -528,6 +528,7 @@ def api_get_file_handler():
     html_content = ''
     # Text is our main interest.
     if mime_type.startswith('text/'):
+      # TODO determine if encryption support is needed here
       with open(path, 'r') as f:
         html_content = f.read()
     elif mime_type.startswith('image/'):
@@ -561,6 +562,24 @@ def api_get_tree_handler():
   })
 
 
+# TODO sub-class
+# handle errors?
+import chi_io  # https://github.com/clach04/chi_io/
+class TomboBlowfish:
+    def __init__(self, key):
+        self.key = key
+
+    def read_from(self, full_pathname):
+        return chi_io.read_encrypted_file(full_pathname, self.key)
+
+    def write_to(self, file_object, byte_data):
+        chi_io.write_encrypted_file(file_object, self.key, byte_data)
+
+# note uses file extension, check out the mime support already in place
+file_type_handlers = {
+    '.chi': TomboBlowfish,  # created by http://tombo.osdn.jp/En/
+}
+
 @app.route('/api/get_content')
 @login_required
 def api_get_content_handler():
@@ -570,13 +589,33 @@ def api_get_content_handler():
   if err:
     return _failure_json('invalid path: ' + err)
 
+  logging.error('clach04 DEBUG : api_get_content_handler /api/get_content start ish')
   # Obtain the file type to be rendered in editor from path.
   file_mode = _get_file_mode(requested_path)
 
   try:
-    with open(path, 'r') as f:
-      content = f.read()
-      mod_time = _get_file_mod_time(path)
+    mod_time = _get_file_mod_time(path)
+
+    _dummy, file_extn = os.path.splitext(path.lower())
+    handler_class = file_type_handlers.get(file_extn)
+    logging.error('clach04 DEBUG file_extn: %r', file_extn)
+    logging.error('clach04 DEBUG handler_class: %r', handler_class)
+    if handler_class:
+        crypto_key = os.getenv('DEBUG_CRYPTO_KEY', 'test password')
+        crypto_key = os.getenv('DEBUG_CRYPTO_KEY', 'test')
+        logging.error('clach04 DEBUG key: %r', crypto_key)
+        # TODO string key to bytes
+        crypto_key = crypto_key.encode('utf8')
+        handler = handler_class(crypto_key)
+        content = handler.read_from(path)
+        print('bytes from decrypt')
+        logging.error('clach04 DEBUG data: %r', content)
+        print(repr(content))
+        content = content.decode('utf8')  # hard coded for now
+    else:
+        logging.error('clach04 DEBUG : regular read')
+        with open(path, 'r') as f:
+          content = f.read()
 
     return jsonify({
         'result': 'success',
@@ -587,6 +626,7 @@ def api_get_content_handler():
   except Exception as e:
     logging.error('There is an error while reading: %s. Error: %s', path, str(e))
     # Don't leak the absolute path.
+    # NOTE this error is not propagated to the client :-( https://github.com/hakanu/pervane/issues/152
     return _failure_json(('Reading %s failed' % requested_path))
 
 
@@ -603,9 +643,31 @@ def api_update_handler():
   if err:
     return _failure_json(err)
 
+  _dummy, file_extn = os.path.splitext(path.lower())
+  handler_class = file_type_handlers.get(file_extn)
+  logging.error('clach04 DEBUG file_extn: %r', file_extn)
+  logging.error('clach04 DEBUG handler_class: %r', handler_class)
+  if handler_class:
+      file_mode = 'wb'
+  else:
+      file_mode = 'w'
+
+
   try:
-    with AtomicFile(path, 'w') as f:
-      f.write(updated_content)
+    # TODO implement encrypted write/update
+    with AtomicFile(path, file_mode) as f:
+      if handler_class:
+          crypto_key = os.getenv('DEBUG_CRYPTO_KEY', 'test password')
+          crypto_key = os.getenv('DEBUG_CRYPTO_KEY', 'test')
+          logging.error('clach04 DEBUG key: %r', crypto_key)
+          # TODO string key to bytes
+          crypto_key = crypto_key.encode('utf8')
+          handler = handler_class(crypto_key)
+          content = updated_content.encode('utf8')  # hard coded for now
+          handler.write_to(f, content)
+      else:
+          logging.error('clach04 DEBUG : regular write')
+          f.write(updated_content)
       
     return jsonify({'result': 'success'})
   except Exception as e:
