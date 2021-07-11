@@ -566,8 +566,20 @@ def api_get_tree_handler():
 # handle errors?
 import chi_io  # https://github.com/clach04/chi_io/
 class TomboBlowfish:
-    def __init__(self, key):
-        self.key = key
+    def __init__(self, key=None, password=None, password_encoding='utf8'):
+        """
+        key - is the actual encryption key in bytes
+        password is the passphrase/password as a string
+        password_encoding is used to create key from password if key is not provided
+        """
+        if key is None and password is None:
+            raise RuntimeError('need password or key')  # TODO custom exception (needed for read_from()/write_to() failures
+        if key:
+            self.key = key
+        elif password:
+            key = password.encode(password_encoding)
+            # KDF could be applied here if write_to() does not handle this
+            self.key = key
 
     def read_from(self, full_pathname):
         return chi_io.read_encrypted_file(full_pathname, self.key)
@@ -585,8 +597,7 @@ def filename2handler(filename):
     logging.error('clach04 DEBUG file_extn: %r', file_extn)
     logging.error('clach04 DEBUG handler_class: %r', handler_class)
     return handler_class
-#def debug_get_password():
-def debug_get_key():
+def debug_get_password():
     # DEBUG this should be a callback mechanism
     crypto_key = os.getenv('DEBUG_CRYPTO_KEY', 'test')  # dumb default password, should raise exception on missing password
     logging.error('clach04 DEBUG key: %r', crypto_key)
@@ -610,10 +621,8 @@ def api_get_content_handler():
 
     handler_class = filename2handler(path)
     if handler_class:
-        crypto_key = debug_get_key()
-        # TODO string key to bytes
-        crypto_key = crypto_key.encode('utf8')
-        handler = handler_class(crypto_key)
+        crypto_password = debug_get_password()
+        handler = handler_class(password=crypto_password)
         content = handler.read_from(path)
         print('bytes from decrypt')
         logging.error('clach04 DEBUG data: %r', content)
@@ -661,10 +670,8 @@ def api_update_handler():
     # TODO implement encrypted write/update
     with AtomicFile(path, file_mode) as f:
       if handler_class:
-          crypto_key = debug_get_key()
-          # TODO string key to bytes
-          crypto_key = crypto_key.encode('utf8')
-          handler = handler_class(crypto_key)
+          crypto_password = debug_get_password()
+          handler = handler_class(password=crypto_password)
           content = updated_content.encode('utf8')  # hard coded for now
           handler.write_to(f, content)
       else:
