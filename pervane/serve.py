@@ -585,6 +585,12 @@ def filename2handler(filename):
     logging.error('clach04 DEBUG file_extn: %r', file_extn)
     logging.error('clach04 DEBUG handler_class: %r', handler_class)
     return handler_class
+#def debug_get_password():
+def debug_get_key():
+    # DEBUG this should be a callback mechanism
+    crypto_key = os.getenv('DEBUG_CRYPTO_KEY', 'test')  # dumb default password, should raise exception on missing password
+    logging.error('clach04 DEBUG key: %r', crypto_key)
+    return crypto_key
 
 @app.route('/api/get_content')
 @login_required
@@ -604,9 +610,7 @@ def api_get_content_handler():
 
     handler_class = filename2handler(path)
     if handler_class:
-        crypto_key = os.getenv('DEBUG_CRYPTO_KEY', 'test password')
-        crypto_key = os.getenv('DEBUG_CRYPTO_KEY', 'test')
-        logging.error('clach04 DEBUG key: %r', crypto_key)
+        crypto_key = debug_get_key()
         # TODO string key to bytes
         crypto_key = crypto_key.encode('utf8')
         handler = handler_class(crypto_key)
@@ -657,9 +661,7 @@ def api_update_handler():
     # TODO implement encrypted write/update
     with AtomicFile(path, file_mode) as f:
       if handler_class:
-          crypto_key = os.getenv('DEBUG_CRYPTO_KEY', 'test password')
-          crypto_key = os.getenv('DEBUG_CRYPTO_KEY', 'test')
-          logging.error('clach04 DEBUG key: %r', crypto_key)
+          crypto_key = debug_get_key()
           # TODO string key to bytes
           crypto_key = crypto_key.encode('utf8')
           handler = handler_class(crypto_key)
