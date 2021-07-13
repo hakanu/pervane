@@ -763,7 +763,7 @@ def api_update_handler():
     logging.error('There is an error while writing: %s. Error: %r', path, e)
     logging.error('There is an error while writing: %s.', path, exc_info=True)
     # Don't leak the absolute path.
-    # TODO errors not materelized to frontend, no idea failure occured :-(
+    # TODO error do not materialize to frontend, user has no idea failure occurred :-(
     return _failure_json(('Writing %s failed' % requested_path))
 
 
