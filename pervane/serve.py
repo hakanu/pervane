@@ -598,6 +598,15 @@ class EncryptedFile:
 
 
 class TomboBlowfish(EncryptedFile):
+    """Read/write Tombo (modified) Blowfish encrypted files
+    Compatible with files in:
+
+      * Tombo - http://tombo.osdn.jp/En/
+      * Kumagusu - https://osdn.net/projects/kumagusu/ and https://play.google.com/store/apps/details?id=jp.gr.java_conf.kumagusu
+      * miniNoteViewer - http://hatapy.web.fc2.com/mininoteviewer.html and https://play.google.com/store/apps/details?id=jp.gr.java_conf.hatalab.mnv&hl=en_US&gl=US
+
+    """
+
     def read_from(self, full_pathname):
         return chi_io.read_encrypted_file(full_pathname, self.key)
 
@@ -606,7 +615,17 @@ class TomboBlowfish(EncryptedFile):
 
 
 class ZipAES(EncryptedFile):
+    """Read/write ZIP AES(256) encrypted files (not old ZipCrypto)
+    Compatible with files in WinZIP and 7z.
+
+    Example 7z demo (Windows or Linux, assuming 7z is in the path):
+
+        echo encrypted > encrypted.md
+        7z a -ptest test_file.aes.zip encrypted.md
+    """
+
     _filename = 'encrypted.md'
+
     def read_from(self, full_pathname):
         with pyzipper.AESZipFile(full_pathname) as zf:
             zf.setpassword(self.key)
