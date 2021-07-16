@@ -482,7 +482,8 @@ def inject_dict_for_all_templates():
 @app.route('/api/check_updates')
 @login_required
 def api_check_updates():
-  return jsonify(_check_pervane_needs_update())
+  # return jsonify(_check_pervane_needs_update())
+  return jsonify({})
 
 
 @app.route('/')
