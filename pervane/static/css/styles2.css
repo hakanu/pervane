@@ -102,7 +102,7 @@ body {
 
 #sidebar-wrapper .sidebar-heading {
   padding: 0.875rem 1.25rem;
-  font-size: 1.2rem;
+  font-size: 1.8rem;
 }
 
 #sidebar-wrapper .list-group {
@@ -164,7 +164,7 @@ body {
 }
 
 .large-font {
-font-size: 15px;
+  font-size: 18px;
 }
 
 .small-font {
@@ -205,7 +205,7 @@ font-size: 15px;
 
 .item {
   cursor: pointer;
-  font-size: small;
+  font-size: medium;
 }
 
 /* I see 15px wasted :P */
