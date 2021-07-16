@@ -75,7 +75,7 @@
   var searchResults = {{ search_results|safe if search_results else [] }};
   var searchQuery = '{{ query if query else '' }}';
   var searchStats = '{{ stats if stats else ''}}';
-  var tree = {{tree|safe}};
+  var tree = {{ tree|safe }};
 </script>
 
 {% raw %}

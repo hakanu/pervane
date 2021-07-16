@@ -46,6 +46,7 @@ import re
 import shutil
 import subprocess
 import sys
+from operator import itemgetter
 
 from jinja2 import Environment, BaseLoader
 from flask import Flask, render_template, request, jsonify, redirect, url_for, send_from_directory, flash
@@ -351,7 +352,15 @@ def _make_tree(path):
         this_node['children'].append(dict(
           name=child_name, path=_get_workspace_path(child_path),
           kind='file', ext=os.path.splitext(child_path)[1]))
-  return this_node
+  
+  if len(this_node['children']) > 0:
+    # Sort by two keys.
+    # Kind is for sorting the directories first.
+    # Name is for natural alphabetical order within directories and files 
+    # separately.
+    this_node['children'] = sorted(
+        this_node['children'], key=itemgetter('kind', 'name'))
+  return this_node 
 
 
 def is_ignored(file_path):
