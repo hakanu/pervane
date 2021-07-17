@@ -538,6 +538,7 @@ def api_get_file_handler():
     html_content = ''
     # Text is our main interest.
     if mime_type.startswith('text/'):
+      # TODO determine if encryption support is needed here
       with open(path, 'r') as f:
         html_content = f.read()
     elif mime_type.startswith('image/'):
@@ -571,6 +572,127 @@ def api_get_tree_handler():
   })
 
 
+# TODO handle errors? e.g. bad password, so can report/prompt for password with same exception
+# pickup from plugin directory? Would need a registration function (see file_type_handlers init below)
+try:
+    import chi_io  # https://github.com/clach04/chi_io/
+except ImportError:
+    chi_io = None
+
+try:
+    import pyzipper  # https://github.com/danifus/pyzipper  NOTE py3 only
+except ImportError:
+    pyzipper = None
+
+class EncryptedFile:
+    def __init__(self, key=None, password=None, password_encoding='utf8'):
+        """
+        key - is the actual encryption key in bytes
+        password is the passphrase/password as a string
+        password_encoding is used to create key from password if key is not provided
+        """
+        if key is None and password is None:
+            raise RuntimeError('need password or key')  # TODO custom exception (needed for read_from()/write_to() failures
+        if key:
+            self.key = key
+        elif password:
+            key = password.encode(password_encoding)
+            # KDF could be applied here if write_to() does not handle this
+            self.key = key
+
+    def read_from(self, full_pathname):
+        raise NotImplementedError
+
+    def write_to(self, file_object, byte_data):
+        raise NotImplementedError
+
+
+class TomboBlowfish(EncryptedFile):
+    """Read/write Tombo (modified) Blowfish encrypted files
+    Compatible with files in:
+
+      * Tombo - http://tombo.osdn.jp/En/
+      * Kumagusu - https://osdn.net/projects/kumagusu/ and https://play.google.com/store/apps/details?id=jp.gr.java_conf.kumagusu
+      * miniNoteViewer - http://hatapy.web.fc2.com/mininoteviewer.html and https://play.google.com/store/apps/details?id=jp.gr.java_conf.hatalab.mnv&hl=en_US&gl=US
+
+    """
+
+    def read_from(self, full_pathname):
+        return chi_io.read_encrypted_file(full_pathname, self.key)
+
+    def write_to(self, file_object, byte_data):
+        chi_io.write_encrypted_file(file_object, self.key, byte_data)
+
+
+class ZipAES(EncryptedFile):
+    """Read/write ZIP AES(256) encrypted files (not old ZipCrypto)
+    Compatible with files in WinZIP and 7z.
+
+    Example 7z demo (Windows or Linux, assuming 7z is in the path):
+
+        echo encrypted > encrypted.md
+        7z a -ptest test_file.aes.zip encrypted.md
+    """
+
+    _filename = 'encrypted.md'
+
+    def read_from(self, full_pathname):
+        with pyzipper.AESZipFile(full_pathname) as zf:
+            zf.setpassword(self.key)
+            return zf.read(self._filename)
+
+
+    def write_to(self, file_object, byte_data):
+        # pyzipper appears to take file-like object or filename so should integrate with AtomicFile
+        if not hasattr(file_object, 'flush'):
+            def _flush_noop():
+                # Avoid; AttributeError: 'AtomicFile' object has no attribute 'flush'
+                # NOTE https://github.com/sashka/atomicfile-py is archived and not maintained
+                # Consider using https://github.com/untitaker/python-atomicwrites instead?
+                pass
+
+            file_object.flush = _flush_noop
+
+        with pyzipper.AESZipFile(file_object,
+                                 'w',
+                                 compression=pyzipper.ZIP_LZMA,  # TODO revisit this
+                                 encryption=pyzipper.WZ_AES,
+                                 ) as zf:
+            # defaults to nbits=256 - TODO make explict?
+            zf.setpassword(self.key)
+            zf.writestr(self._filename, byte_data)  # pyzipper can take string or bytes
+
+
+# note uses file extension, check out the mime support already in place
+file_type_handlers = {}
+if chi_io :
+    file_type_handlers['.chi'] = TomboBlowfish # created by http://tombo.osdn.jp/En/
+if pyzipper :
+    file_type_handlers['.aes.zip'] = ZipAES  # Zip file with AES-256 - Standard WinZip/7z (not the old ZipCrypto!)
+    file_type_handlers['.aes256.zip'] = ZipAES  # Zip file with AES-256 - Standard WinZip/7z (not the old ZipCrypto!)
+
+# Consider command line crypto (via pipe to avoid plaintext on disk)
+# TODO? openssl aes-128-cbc -in in_file -out out_file.aes128
+# TODO? openpgp
+
+def filename2handler(filename):
+    filename = filename.lower()
+    if filename.endswith('.aes256.zip'):
+        file_extn = '.aes.zip'
+    elif filename.endswith('.aes.zip'):
+        file_extn = '.aes.zip'
+    else:
+        _dummy, file_extn = os.path.splitext(filename)
+    handler_class = file_type_handlers.get(file_extn)
+    logging.error('clach04 DEBUG file_extn: %r', file_extn)
+    logging.error('clach04 DEBUG handler_class: %r', handler_class)
+    return handler_class
+def debug_get_password():
+    # DEBUG this should be a callback mechanism
+    crypto_key = os.getenv('DEBUG_CRYPTO_KEY', 'test')  # dumb default password, should raise exception on missing password
+    logging.error('clach04 DEBUG key: %r', crypto_key)
+    return crypto_key
+
 @app.route('/api/get_content')
 @login_required
 def api_get_content_handler():
@@ -580,13 +702,26 @@ def api_get_content_handler():
   if err:
     return _failure_json('invalid path: ' + err)
 
+  logging.error('clach04 DEBUG : api_get_content_handler /api/get_content start ish')
   # Obtain the file type to be rendered in editor from path.
   file_mode = _get_file_mode(requested_path)
 
   try:
-    with open(path, 'r') as f:
-      content = f.read()
-      mod_time = _get_file_mod_time(path)
+    mod_time = _get_file_mod_time(path)
+
+    handler_class = filename2handler(path)
+    if handler_class:
+        crypto_password = debug_get_password()
+        handler = handler_class(password=crypto_password)
+        content = handler.read_from(path)
+        print('bytes from decrypt')
+        logging.error('clach04 DEBUG data: %r', content)
+        print(repr(content))
+        content = content.decode('utf8')  # hard coded for now
+    else:
+        logging.error('clach04 DEBUG : regular read')
+        with open(path, 'r') as f:
+          content = f.read()
 
     return jsonify({
         'result': 'success',
@@ -595,8 +730,9 @@ def api_get_content_handler():
         'mod_time': mod_time
     })
   except Exception as e:
-    logging.error('There is an error while reading: %s. Error: %s', path, str(e))
+    logging.error('There is an error while reading: %s.', path, exc_info=True)
     # Don't leak the absolute path.
+    # NOTE this error is not propagated to the client :-( https://github.com/hakanu/pervane/issues/152
     return _failure_json(('Reading %s failed' % requested_path))
 
 
@@ -613,14 +749,31 @@ def api_update_handler():
   if err:
     return _failure_json(err)
 
+  handler_class = filename2handler(path)
+  if handler_class:
+      file_mode = 'wb'
+  else:
+      file_mode = 'w'
+
+
   try:
-    with AtomicFile(path, 'w') as f:
-      f.write(updated_content)
+    with AtomicFile(path, file_mode) as f:
+      if handler_class:
+          crypto_password = debug_get_password()
+          handler = handler_class(password=crypto_password)
+          content = updated_content.encode('utf8')  # hard coded for now
+          handler.write_to(f, content)
+      else:
+          logging.error('clach04 DEBUG : regular write')
+          f.write(updated_content)
       
     return jsonify({'result': 'success'})
   except Exception as e:
-    logging.error('There is an error while writing: %s. Error: %s', path, str(e))
+    logging.error('There is an error while writing: %s. Error: %s', path, str(e))  # this does not give enough information on server
+    logging.error('There is an error while writing: %s. Error: %r', path, e)
+    logging.error('There is an error while writing: %s.', path, exc_info=True)
     # Don't leak the absolute path.
+    # TODO error do not materialize to frontend, user has no idea failure occurred :-(
     return _failure_json(('Writing %s failed' % requested_path))
 
 
