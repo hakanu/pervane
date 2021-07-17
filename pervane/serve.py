@@ -263,7 +263,7 @@ def _check_pervane_needs_update():
     needs_update = True if 'pervane' in str(stdout) else False
     return {'needs_update': needs_update}
   except Exception as e:
-    logging.error('Failed to check newest versions: ', str(e))
+    logging.error('Failed to check newest versions', exc_info=True)
     # If for some reason, user is not using pip, don't crush on
     # this.
     return {'needs_update': False}
@@ -553,7 +553,7 @@ def api_get_file_handler():
       'mod_time': mod_time
     })
   except Exception as e:
-    logging.error('There is an error while reading: %s', str(e))
+    logging.error('There is an error while reading: %r', path, exc_info=True)
     # Don't leak the absolute path.
     return _failure_json(('Reading %s failed' % requested_path))
 
@@ -595,7 +595,7 @@ def api_get_content_handler():
         'mod_time': mod_time
     })
   except Exception as e:
-    logging.error('There is an error while reading: %s. Error: %s', path, str(e))
+    logging.error('There is an error while reading: %r', path, exc_info=True)
     # Don't leak the absolute path.
     return _failure_json(('Reading %s failed' % requested_path))
 
@@ -619,7 +619,7 @@ def api_update_handler():
       
     return jsonify({'result': 'success'})
   except Exception as e:
-    logging.error('There is an error while writing: %s. Error: %s', path, str(e))
+    logging.error('There is an error while writing: %r', path, exc_info=True)
     # Don't leak the absolute path.
     return _failure_json(('Writing %s failed' % requested_path))
 
@@ -713,8 +713,8 @@ def api_move_handler():
         'dest_path': dest_path
     })
   except Exception as e:
-    logging.error('There is an error while moving %s to %s. Error: %s',
-                  source_path, dest_dir, str(e))
+    logging.error('There is an error while moving %r to %r',
+                  source_path, dest_dir, exc_info=True)
     return _failure_json('smt went wrong')
 
 
