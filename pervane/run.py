@@ -212,16 +212,19 @@ class MyIndexView(IndexView):
 
 
 ########### INIT THE APP
+
 app = Flask(__name__, template_folder='templates_bulma')
 # Create simple cache for the sidebar and its costly re-gen.
 cache = Cache(config={'CACHE_TYPE': 'simple'})  # haku stuff.
 app.config.from_object("config")
+#app.config.from_object(__name__+'.ConfigClass')
 db = SQLA(app)
 appbuilder = AppBuilder(app, db.session, indexview=MyIndexView)
 cache.init_app(app)
 
 
 ############## VIEWS.
+ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
 """
 Application views.
 """
@@ -667,6 +670,23 @@ _FILE_MODE_DICT = {
     'rb': 'ruby',
  }
 
+# We use config.py directly.
+# Class-based application configuration
+# class ConfigClass(object):
+#   """ Flask application config """
+#   # Flask settings
+#   SECRET_KEY = 'This is an INSECURE secret!! DO NOT use this in production!!'
+#   # Flask-SQLAlchemy settings
+#   SQLALCHEMY_DATABASE_URI = _SQLITE_PATH 
+#   SQLALCHEMY_TRACK_MODIFICATIONS = False    # Avoids SQLAlchemy warning
+#   # Flask-User settings
+#   USER_APP_NAME = "Pervane"      # Shown in and email templates and page footers
+#   USER_ENABLE_EMAIL = False      # Disable email authentication
+#   USER_ENABLE_USERNAME = True    # Enable username authentication
+#   USER_REQUIRE_RETYPE_PASSWORD = False    # Simplify register form
+#   USER_CORPORATION_NAME = 'Pervane'
+#   USER_COPYRIGHT_YEAR = '2022'
+#   USER_APP_VERSION = 'alpha'
 
 # Regex url matcher.
 class regex_converter(BaseConverter):
@@ -946,4 +966,3 @@ def cli_main():
 
 if __name__ == '__main__':
   main()
-
