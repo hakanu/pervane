@@ -76,6 +76,14 @@ from flask import Flask
 from flask import render_template, request, jsonify, redirect, url_for, send_from_directory, flash
 from flask_caching import Cache
 from flask_appbuilder import AppBuilder, SQLA
+from flask_appbuilder.security.manager import (
+    AUTH_OID,
+    AUTH_REMOTE_USER,
+    AUTH_DB,
+    AUTH_LDAP,
+    AUTH_OAUTH,
+)
+
 
 from jinja2 import Environment, BaseLoader
 from flask import Flask, render_template, request, jsonify, redirect, url_for, send_from_directory, flash
@@ -212,12 +220,42 @@ class MyIndexView(IndexView):
 
 
 ########### INIT THE APP
+# We don't use config.py directly.
+# Class-based application configuration
+class ConfigClass(object):
+  """ Flask application config """
+  basedir = os.path.abspath(os.path.dirname(__file__))
+  # Your App secret key
+  SECRET_KEY = "\2\1thisismyscretkey\1\2\e\y\y\h"
+  # The SQLAlchemy connection string.
+  SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(basedir, "app.db")
+  # Flask-WTF flag for CSRF
+  CSRF_ENABLED = True
+  APP_NAME = "Pervane"
+  AUTH_TYPE = AUTH_DB
+  # Uncomment to setup Full admin role name
+  AUTH_ROLE_ADMIN = 'Admin'
+  BABEL_DEFAULT_LOCALE = "en"
+  BABEL_DEFAULT_FOLDER = "translations"
+  LANGUAGES = {
+      "en": {"flag": "gb", "name": "English"},
+      "pt": {"flag": "pt", "name": "Portuguese"},
+      "pt_BR": {"flag": "br", "name": "Pt Brazil"},
+      "es": {"flag": "es", "name": "Spanish"},
+      "de": {"flag": "de", "name": "German"},
+      "zh": {"flag": "cn", "name": "Chinese"},
+      "ru": {"flag": "ru", "name": "Russian"},
+      "pl": {"flag": "pl", "name": "Polish"},
+  }
+  UPLOAD_FOLDER = basedir + "/app/static/uploads/"
+  IMG_UPLOAD_FOLDER = basedir + "/app/static/uploads/"
+  IMG_UPLOAD_URL = "/static/uploads/"
 
 app = Flask(__name__, template_folder='templates_bulma')
 # Create simple cache for the sidebar and its costly re-gen.
 cache = Cache(config={'CACHE_TYPE': 'simple'})  # haku stuff.
-app.config.from_object("config")
-#app.config.from_object(__name__+'.ConfigClass')
+# app.config.from_object("config")
+app.config.from_object(__name__+'.ConfigClass')
 db = SQLA(app)
 appbuilder = AppBuilder(app, db.session, indexview=MyIndexView)
 cache.init_app(app)
@@ -670,23 +708,8 @@ _FILE_MODE_DICT = {
     'rb': 'ruby',
  }
 
-# We use config.py directly.
-# Class-based application configuration
-# class ConfigClass(object):
-#   """ Flask application config """
-#   # Flask settings
-#   SECRET_KEY = 'This is an INSECURE secret!! DO NOT use this in production!!'
-#   # Flask-SQLAlchemy settings
-#   SQLALCHEMY_DATABASE_URI = _SQLITE_PATH 
-#   SQLALCHEMY_TRACK_MODIFICATIONS = False    # Avoids SQLAlchemy warning
-#   # Flask-User settings
-#   USER_APP_NAME = "Pervane"      # Shown in and email templates and page footers
-#   USER_ENABLE_EMAIL = False      # Disable email authentication
-#   USER_ENABLE_USERNAME = True    # Enable username authentication
-#   USER_REQUIRE_RETYPE_PASSWORD = False    # Simplify register form
-#   USER_CORPORATION_NAME = 'Pervane'
-#   USER_COPYRIGHT_YEAR = '2022'
-#   USER_APP_VERSION = 'alpha'
+
+
 
 # Regex url matcher.
 class regex_converter(BaseConverter):
