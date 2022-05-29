@@ -1,7 +1,7 @@
 language: python
 script: true
 python:
-  - "3.6"      # current default Python on Travis CI
+  - "3.7"      # current default Python on Travis CI
 deploy:
   provider: pypi
   user: __token__
