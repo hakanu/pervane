@@ -1,13 +1,7 @@
 language: python
 script: true
 python:
-  - "3.5"
   - "3.6"      # current default Python on Travis CI
-  - "3.7"
-  - "3.8"
-  - "3.9"
-  - "3.9-dev"  # 3.9 development branch
-  - "nightly"  # nightly build
 deploy:
   provider: pypi
   user: __token__
