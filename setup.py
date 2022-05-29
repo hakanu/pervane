@@ -31,7 +31,7 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    python_requires='>=3.9',
+    python_requires='>=3.4',
     entry_points={"console_scripts": ["pervane = pervane.prod:main"]},
     include_package_data=True,
 )
