@@ -20,7 +20,6 @@ setuptools.setup(
         "flask>=1.1.1",
         "Flask-Caching>=1.8.0",
         "Flask-HTTPAuth>=3.3.0",
-        #"Flask-User>=1.0.2.2",
         "email_validator>=1.1.1",
         "atomicfile>=1.0.1",
         "gunicorn>=20.0.4",
