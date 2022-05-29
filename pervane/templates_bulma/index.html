@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block content %}
+{% raw %}
+
+<div class="">
+  <div class="">
+    <div class="row">
+      <div class="col-md-12">
+        <!-- tab headers -->
+        <div id="tab-headers" class="float-left">
+          <div class="tabs is-small is-boxed">
+            <ul style="color: white;">
+              <li v-bind:class="{'is-active': openTabPath == openTabHeader}" v-for="openTabHeader in openTabHeaders">
+                <a>
+                  <span>
+                    <router-link 
+                      :to="'/n/' + encodeURIComponent(openTabHeader)" :title="openTabHeader"
+                      >
+                      {{ openTabHeader|shortenTabName }}
+                    </router-link>
+                  </span>
+                  <button class="close closeTab button is-small" type="button" @click="closeTab(openTabHeader)">×</button>
+                  <span class="icon is-small"><i class="fas fa-image" aria-hidden="true"></i></span>
+                </a>
+              </li>
+
+              <!-- New tabe -->
+              <li class="">
+                <button
+                  class="button is-small close closeTab" type="button" 
+                  @click="addItem({path: '/'})">+</button>
+              </li>
+            </ul>
+          </div>
+        </div> <!-- /tab headers -->
+
+        <div class="tab-content" id="myTabContent">
+          <div class="tab-pane fade" id="profile" role="tabpanel" 
+               aria-labelledby="profile-tab">...</div>
+          <div class="tab-pane fade show active" id="home" role="tabpanel" 
+               aria-labelledby="home-tab">
+            <div id="div-editor" class="">
+              <p id="message"></p>
+              <router-view></router-view>
+            </div>
+          </div>
+        </div> <!-- myTabContent -->
+      </div> <!-- /col-md-12 -->
+
+    </div>
+  </div>  
+</div>
+
+{% endraw %}
+{% endblock %}

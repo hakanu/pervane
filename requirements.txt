@@ -1,11 +1,13 @@
 flask
 Flask-Caching
 Flask-HTTPAuth
-Flask-User
+#Flask-User  # Depracated
 Flask-BabelEx
 Flask-Login
 Flask-SQLAlchemy
 jinja2
 email_validator
-atomicfile
+atomicfile  # Remove this too
 gunicorn
+flask-appbuilder
+

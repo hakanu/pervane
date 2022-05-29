@@ -79,13 +79,24 @@ All of the screenshots and more video are located in [Pervane Wiki](https://gith
 ```shell
 screen
 pip install pervane
+
+# First make sure you create the admin user
+pervane --mode=init
+
+# Then run the app for reals.
+# You can login with your recently created credentials.
 pervane --dir=example/
 ```
 
-When you go to localhost:5000, you need to register. Pervane only accepts 1
+When you go to localhost:5000, Pervane only accepts 1
 user. So your notes will only be visible by this single user.
 
 ⚠️ If you see a server error, delete your cookies and retry.
+
+### If you are upgrading from a version before 0.0.9
+
+You will probably see errors about user is not existing. You need to run `pervane --mode=init` first.
+I've changed user auth mode again (had to, because flask-user is deprecated). Sorry about it.
 
 Package details here: https://pypi.org/project/pervane/
 

@@ -1,0 +1,143 @@
+
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+<meta name="keywords" content="">
+
+<link rel="image_src" href="" />
+<meta name="twitter:image" content="" />
+<meta property="og:image" content="" />
+<meta property="og:type" content="article" />
+<meta name="title" content="Pervane"/>
+<meta name="description" content=""/>
+<meta property="og:description" content="" />
+<meta property="og:title" content="" />
+<link rel="canonical" href="." />
+<link rel="alternate" href="" />
+<meta property="og:url" content="" />
+<meta property="al:android:url" content="" />
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:site" content="" />
+<meta property="og:site_name" content="" />
+<meta property="fb:pages" content="" />
+<meta property="article:author" content="" />
+<meta property="al:android:package" content="" />
+<meta property="al:android:app_name" content="" />
+<meta name="author" content="hi@hakanu.net">
+<link rel="shortcut icon" href=""/>
+
+<!-- Themes are from bootswatch.com -->
+<!--  <link rel="stylesheet" href="/static/css/bootswatch.darkly.css" crossorigin="anonymous">  -->
+<link rel="stylesheet" href="/static/css/bootstrap5.min.css" crossorigin="anonymous">
+<link rel="stylesheet" href="/static/css/bulma.min.css" crossorigin="anonymous">
+<!-- fa 4.7.0 -->
+<link href="/static/css/font-awesome.min.css" rel="stylesheet">
+<!-- lightbox 2.10.0 -->
+<link href="/static/css/lightbox.min.css" rel="stylesheet">
+
+<link rel="apple-touch-icon" sizes="180x180" href="static/img/favicon/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="static/img/favicon/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="static/img/favicon/favicon-16x16.png">
+
+<link href="/static/css/dropzone.min.css" rel="stylesheet" >
+<link href="https://fonts.googleapis.com/css?family=PT+Sans&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="/static/css/editormd.min.css" />
+
+<link href="/static/css/styles2.css" rel="stylesheet">
+
+<script src="/static/js/vue.js"></script>
+<script src="/static/js/vue-router.js"></script>
+
+
+<script>
+  console.log('Starting with debug mode: {{debug}}')
+  {% if not debug %}
+    var console = {};
+    console.log = function(){};
+  {% endif %}
+
+  var values = [];
+  var pathToInitEditor = '';
+  {% if file_paths_flat %}
+  values = {{ file_paths_flat | safe }};
+  {% endif %}
+
+  {% if (md_content or md != '') and path and not mime_type.startswith('image/') %}
+    pathToInitEditor = '{{path}}';
+  {% endif %}
+
+  var rootDirPath = "{{ tree.path|replace(working_dir, '')}}";
+
+  // Search page related vars to be passed down to vue.js
+  // TODO(hakanu): These are dynamically fetched, not needed any more.
+  var searchResults = {{ search_results|safe if search_results else [] }};
+  var searchQuery = '{{ query if query else '' }}';
+  var searchStats = '{{ stats if stats else ''}}';
+  var tree = {{ tree|safe }};
+</script>
+
+{% raw %}
+<!-- item template -->
+<script type="text/x-template" id="item-template">
+  <li>
+    <span
+      :class="{bold: isFolder}"
+      @click="toggle"
+      >
+      <span v-if="item.name" >
+        <span v-if="item.kind == 'file'" draggable
+              v-on:dragstart="drag($event, item)" 
+              class="span-item-name">
+          <router-link 
+              v-if="item.path.endsWith('.jpg') || item.path.endsWith('.png') || item.path.endsWith('.jpeg')"
+              :title="item.path"
+              :to="'/n/' + encodeURIComponent(item.path)">
+            <i class="fa fa-image" aria-hidden="true"></i> {{ item.name }}
+          </router-link>
+
+          <router-link v-else :to="'/n/' + encodeURIComponent(item.path)"
+              :title="item.path">
+            <i class="fa fa-file-text small-font" aria-hidden="true"
+                v-if="item.path.endsWith('.md')"></i>
+            <i class="fa fa-file-code-o small-font" aria-hidden="true" 
+                v-else></i> {{ item.name }}
+          </router-link>
+        </span>
+        <span v-else draggable="false" v-on:drop="drop($event, item)" class="span-item-name">
+          <i class="fa" :class="expanded() ? 'fa-angle-down' : 'fa-angle-right'" aria-hidden="true"></i> {{ item.name }}/
+        </span>
+      </span>
+      <span v-else>/</span>
+    </span>
+
+    <router-link
+        :to="'/d/' + encodeURIComponent(item.path)" 
+        :title="item.path"
+        title="Preview directory contents" v-if="item.kind == 'dir'">
+      <i class="fa fa-eye"></i>
+    </router-link>
+
+    <span title="Add a child node (file or directory)" 
+          v-if="item.kind == 'dir'"
+          @click="$emit('add-item', item)">
+      [{{ isOpen ? '+' : '+' }}]
+    </span>
+
+    <ul v-show="expanded()" v-if="item.kind == 'dir'">
+      <tree-item
+        class="item"
+        v-for="(child, index) in item.children"
+        :key="index"
+        :item="child"
+        @add-item="$emit('add-item', $event)"
+      ></tree-item>
+    </ul>
+  </li>
+</script>
+
+{% endraw %}
+</head>

@@ -1,0 +1,66 @@
+<!-- Sidebar -->
+{% raw %}
+
+<div class="border-right " id="sidebar-wrapper" v-if="showSidebar" v-bind:style="sidebarStyle">
+
+  <aside class="menu">
+    <div class="">
+      <div class="float-left">
+        <a href="/" style="margin: 5px; font-size: large;">Pervane</a>
+      </div>
+
+      <!-- Save/settings/shortcuts/upload -->
+      <div class="float-right">
+        <span>
+          <button class="button is-small" 
+              href="#" data-toggle="modal" @click="showShortcutsModal()" title="Shortcuts">
+            <i class="large-font fa fa-keyboard-o" aria-hidden="true"></i>
+          </button>
+        </span>
+
+        <span>
+          <button class="button is-small fileinput-button" alt="Upload file"><i class="fa fa-upload" aria-hidden="true"></i></button>
+        </span>
+
+        <span>
+          <button class="button is-small" 
+            href="#" data-toggle="modal" @click="showSettingsModal()" title="Settings">
+            <i class="large-font fa fa-gear" aria-hidden="true"></i>
+          </button>
+        </span>
+      </div> <!-- /float-right -->
+    </div> <!-- /sidebar-heading -->
+
+    <div class="">
+      <span>
+        <form class="" @submit.prevent="initSearch">
+          <input class="search form-control" type="text" name="query"
+                v-model="query"
+                placeholder="Search all notes"
+                aria-label="Search">
+        </form>
+      </span>
+    </div>
+
+    <div class="">
+      <span>
+        <input class="search form-control" id="search-field" 
+                placeholder="Quick search (alt + g)" @click="showQuickSeachResultsModal()" />
+      </span>
+    </div>
+
+    <div class="list-group list-group-flush sidebar file_tree">
+      <ul id="root-ul" class="">
+        <tree-item
+          class="item"
+          :item="treeData"
+          @add-item="addItem"
+          @open-dir="openDir"
+        ></tree-item>
+      </ul>
+    </div>
+
+  </aside>
+</div>
+<!-- /#sidebar-wrapper -->
+{% endraw %}

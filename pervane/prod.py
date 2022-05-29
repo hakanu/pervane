@@ -1,4 +1,5 @@
-from pervane import serve
+#from pervane import serve
+from pervane import run as serve
 import multiprocessing
 import gunicorn.app.base
 
@@ -30,6 +31,7 @@ def main(as_module=False):
       'workers': number_of_workers(),
   }
   StandaloneApplication(serve.app, options).run()
+
 
 if __name__ == '__main__':
   cli_main()
