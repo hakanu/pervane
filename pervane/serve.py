@@ -49,15 +49,20 @@ import sys
 from operator import itemgetter
 
 from jinja2 import Environment, BaseLoader
-from flask import Flask, render_template, request, jsonify, redirect, url_for, send_from_directory, flash
+from flask import Flask, render_template, request, jsonify, redirect, url_for, send_from_directory, flash, session
 from flask_caching import Cache
 from flask_sqlalchemy import SQLAlchemy
-from flask_user import current_user, login_required, UserManager, UserMixin
+
+from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
+# from flask_user import current_user, login_required, UserManager, UserMixin
+
 
 from werkzeug.routing import BaseConverter
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from atomicfile import AtomicFile
+
+import bcrypt
 
 mimetypes.init()
 
@@ -187,13 +192,13 @@ class ConfigClass(object):
   SQLALCHEMY_DATABASE_URI = _SQLITE_PATH 
   SQLALCHEMY_TRACK_MODIFICATIONS = False    # Avoids SQLAlchemy warning
   # Flask-User settings
-  USER_APP_NAME = "Pervane"      # Shown in and email templates and page footers
-  USER_ENABLE_EMAIL = False      # Disable email authentication
-  USER_ENABLE_USERNAME = True    # Enable username authentication
-  USER_REQUIRE_RETYPE_PASSWORD = False    # Simplify register form
-  USER_CORPORATION_NAME = 'Pervane'
-  USER_COPYRIGHT_YEAR = '2020'
-  USER_APP_VERSION = 'alpha'
+  # USER_APP_NAME = "Pervane"      # Shown in and email templates and page footers
+  # USER_ENABLE_EMAIL = False      # Disable email authentication
+  # USER_ENABLE_USERNAME = True    # Enable username authentication
+  # USER_REQUIRE_RETYPE_PASSWORD = False    # Simplify register form
+  # USER_CORPORATION_NAME = 'Pervane'
+  # USER_COPYRIGHT_YEAR = '2023'
+  # USER_APP_VERSION = 'beta'
 
 logging.basicConfig(level=logging.DEBUG)
 cache = Cache(config={'CACHE_TYPE': 'simple'})
@@ -235,22 +240,30 @@ class User(db.Model, UserMixin):
                          server_default='')
   last_name = db.Column(db.String(100, collation='NOCASE'), nullable=False,
                          server_default='')
+
+login_manager = LoginManager()
+login_manager.init_app(app)
 # Create all database tables
 db.create_all()
 
-class CustomUserManager(UserManager):
-  # Override or extend the default register view method.
-  def register_view(self):
-    # If multi user signup is not allowed and there is a user.
-    if not args.allow_multi_user and User.query.all():
-      logging.info('A user already exists! Disabling registers')
-      return ('There is already a user signed up, Pervane does not allow more users to sign up. '
-              'Login here: <a href="/user/sign-in">Sign in</a>')
-    return super().register_view()
+# class CustomUserManager(UserManager):
+#   # Override or extend the default register view method.
+#   def register_view(self):
+#     # If multi user signup is not allowed and there is a user.
+#     if not args.allow_multi_user and User.query.all():
+#       logging.info('A user already exists! Disabling registers')
+#       return ('There is already a user signed up, Pervane does not allow more users to sign up. '
+#               'Login here: <a href="/user/sign-in">Sign in</a>')
+#     return super().register_view()
 
 
 # Setup Flask-User and specify the User data-model
-user_manager = CustomUserManager(app, db, User)
+# user_manager = CustomUserManager(app, db, User)
+
+
+@login_manager.user_loader
+def load_user(user_id):
+  return User.query.get(int(user_id))
 
 
 def _check_pervane_needs_update():
@@ -486,6 +499,53 @@ def _failure_json(err):
 def inject_dict_for_all_templates():
   return dict(
       logged_in_user=current_user)
+  
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+  if current_user and current_user.is_authenticated:
+    return 'Already a member, login: <a href="/login">here</a>'
+  
+  # There should be exactly one user only in the system.
+  # If there is a new user trying to log in, stop it.
+  num_registered_users = User.query.count()
+  print('num_registered_users: ' , num_registered_users)
+  if num_registered_users > 0:
+    return 'Master user is already registered, login: <a href="/login">here</a>'
+  
+  if request.method == 'POST':
+    username = request.form['username']
+    password = request.form['password']
+    hashed = bcrypt.hashpw(password.encode('utf8'), bcrypt.gensalt())
+    user = User(username=username, password=hashed)
+    db.session.add(user)
+    db.session.commit()
+    return redirect('/login')
+  return render_template('register.html')
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+  print('current user: ', current_user)
+  if current_user and current_user.is_authenticated:
+    return redirect('/')
+  if request.method == 'POST':
+    username = request.form['username']
+    password = request.form['password']
+    user = User.query.filter_by(username=username).first()
+    if user and bcrypt.checkpw(password.encode('utf8'), user.password.encode('utf8')):
+      login_user(user)
+      session['logged_in'] = True
+      return redirect('/')
+    return 'Invalid username or password'
+  return render_template('login.html')
+
+
+@app.route('/logout')
+@login_required
+def logout():
+  logout_user()
+  return redirect('/')
 
 
 @app.route('/api/check_updates')
@@ -496,8 +556,12 @@ def api_check_updates():
 
 
 @app.route('/')
-@login_required
+# @login_required
 def front_page_handler():
+  if not current_user or not current_user.is_authenticated:
+    print('not logged in')
+    return redirect('/login')
+
   root_dir = _get_root_dir()
   if not os.path.exists(root_dir):
     logging.info('Initializing the root dir')

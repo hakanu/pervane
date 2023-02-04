@@ -9,4 +9,4 @@ email_validator
 atomicfile
 gunicorn
 flask-appbuilder
-
+bcrypt

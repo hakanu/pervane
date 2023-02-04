@@ -24,6 +24,9 @@ setuptools.setup(
         "atomicfile>=1.0.1",
         "gunicorn>=20.0.4",
         "flask-appbuilder>=4.1.1",
+        "bcrypt>=4.0.1",
+        "Flask-Login>=0.6.2",
+
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
