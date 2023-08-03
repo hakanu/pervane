@@ -533,7 +533,8 @@ def login():
     username = request.form['username']
     password = request.form['password']
     user = User.query.filter_by(username=username).first()
-    if user and bcrypt.checkpw(password.encode('utf8'), user.password.encode('utf8')):
+    if (user and bcrypt.checkpw(
+            password.encode('utf8'), user.password)):
       login_user(user)
       session['logged_in'] = True
       return redirect('/')
